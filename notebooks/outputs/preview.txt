@@ -1,0 +1,82 @@
+Preview of unique sampling periods and sampling time
+
+Year: 2022
+  survey_ym(2022): 4 unique values
+    Values: <DatetimeArray>
+['2022-03-01 00:00:00', '2022-06-01 00:00:00', '2022-09-01 00:00:00',
+ '2022-12-01 00:00:00']
+Length: 4, dtype: datetime64[ms]
+  surveymont(2022): 4 unique values
+    Values: [ 5  7 10  1]
+
+Year: 2017
+  survey_ym(2017): 4 unique values
+    Values: <DatetimeArray>
+['2017-03-01 00:00:00', '2017-06-01 00:00:00', '2017-09-01 00:00:00',
+ '2017-12-01 00:00:00']
+Length: 4, dtype: datetime64[ms]
+  surveymont(2017): 4 unique values
+    Values: [ 5  7 10  1]
+
+Year: 2012
+  survey_ym(2012): 4 unique values
+    Values: <DatetimeArray>
+['2012-03-01 00:00:00', '2012-06-01 00:00:00', '2012-12-01 00:00:00',
+ '2012-09-01 00:00:00']
+Length: 4, dtype: datetime64[ms]
+  surveymont(2012): 4 unique values
+    Values: [ 5  7  1 10]
+
+Year: 2007
+  survey_ym(2007): 4 unique values
+    Values: <DatetimeArray>
+['2007-12-01 00:00:00', '2007-03-01 00:00:00', '2007-06-01 00:00:00',
+ '2007-09-01 00:00:00']
+Length: 4, dtype: datetime64[ms]
+  surveymont(2007): 4 unique values
+    Values: [ 1  5  7 10]
+
+Year: 2002
+  survey_ym(2002): 4 unique values
+    Values: <DatetimeArray>
+['2002-03-01 00:00:00', '2002-06-01 00:00:00', '2002-09-01 00:00:00',
+ '2002-12-01 00:00:00']
+Length: 4, dtype: datetime64[ms]
+  surveymont(2002): 4 unique values
+    Values: [ 5  7 10  1]
+
+Year: 1997
+  survey_ym(1997): 4 unique values
+    Values: <DatetimeArray>
+['1997-03-01 00:00:00', '1997-09-01 00:00:00', '1997-12-01 00:00:00',
+ '1997-06-01 00:00:00']
+Length: 4, dtype: datetime64[ms]
+  surveymont(1997): 4 unique values
+    Values: [ 5 10  1  7]
+
+Year: 1992
+  survey_ym(1992): 4 unique values
+    Values: <DatetimeArray>
+['1992-03-01 00:00:00', '1992-06-01 00:00:00', '1992-09-01 00:00:00',
+ '1992-12-01 00:00:00']
+Length: 4, dtype: datetime64[ms]
+  surveymont(1992): 4 unique values
+    Values: [ 5  7 10  1]
+
+Year: 1987
+  survey_ym(1987): 4 unique values
+    Values: <DatetimeArray>
+['1987-06-01 00:00:00', '1987-12-01 00:00:00', '1987-03-01 00:00:00',
+ '1987-09-01 00:00:00']
+Length: 4, dtype: datetime64[ms]
+  surveymont(1987): 4 unique values
+    Values: [ 7  1  5 10]
+
+Year: 1981
+  survey_ym(1981): 4 unique values
+    Values: <DatetimeArray>
+['1981-03-01 00:00:00', '1981-06-01 00:00:00', '1981-12-01 00:00:00',
+ '1981-09-01 00:00:00']
+Length: 4, dtype: datetime64[ms]
+  surveymont(1981): 4 unique values
+    Values: [ 5  8  1 10]

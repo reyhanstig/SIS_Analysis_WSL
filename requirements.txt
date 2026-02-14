@@ -1,0 +1,14 @@
+geopandas
+pandas
+numpy
+matplotlib
+cartopy
+xlrd
+scipy
+imageio
+scikit-gstat
+pyarrow
+pdfminer.six
+pymupdf4llm
+dvc
+dvc-gdrive

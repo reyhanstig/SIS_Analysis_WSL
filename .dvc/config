@@ -1,0 +1,4 @@
+[core]
+    remote = storage
+['remote "storage"']
+    url = C:/Users/reyha/Documents/SIS_Analysis_DVC_Remote

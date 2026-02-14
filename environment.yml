@@ -1,0 +1,22 @@
+name: sis_analysis
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - geopandas
+  - pandas
+  - numpy
+  - matplotlib
+  - cartopy
+  - scipy
+  - imageio
+  - pyarrow
+  - scikit-gstat
+  - xlrd
+  - dvc
+  - pip
+  - pip:
+    - pdfminer.six
+    - pymupdf4llm
+    - dvc-gdrive

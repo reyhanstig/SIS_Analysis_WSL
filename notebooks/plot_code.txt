@@ -1,0 +1,47 @@
+# Create base map with all sampling points colored by division (WITHOUT labels)
+fig = plt.figure(figsize=(12, 10))
+ax = plt.axes(projection=ccrs.PlateCarree())
+
+# Set extent for Seto Inland Sea
+ax.set_extent([130.6, 135.6, 32.75, 35.1], crs=ccrs.PlateCarree())
+
+# Add map features
+ax.coastlines()
+ax.add_feature(cfeature.LAND)
+ax.add_feature(cfeature.OCEAN)
+ax.gridlines(draw_labels=True, dms=True, x_inline=False, y_inline=False)
+
+# Get unique divisions and assign colors
+divisions = merged_gdf['division'].unique()
+colors_map = plt.cm.get_cmap('jet', len(divisions))
+division_color_map = {div: colors_map(i) for i, div in enumerate(divisions)}
+
+# Plot points colored by division
+legend_elements = []
+for division in divisions:
+    div_data = merged_gdf[merged_gdf['division'] == division]
+    ax.scatter(
+        div_data.longitude, 
+        div_data.latitude, 
+        s=30,
+        alpha=0.6,
+        color=division_color_map[division],
+        transform=ccrs.PlateCarree(),
+        edgecolors='black',
+        linewidth=0.3
+    )
+    # Create legend element with black edge
+    from matplotlib.lines import Line2D
+    legend_elements.append(Line2D([0], [0], marker='o', color='w', 
+                                   markerfacecolor=division_color_map[division],
+                                   markersize=8, markeredgecolor='black', 
+                                   markeredgewidth=0.5, label=division))
+
+ax.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(1.05, 1), fontsize=9, title='Water Mass Division')
+
+ax.set_title('Sampling Points in Seto Inland Sea by Water Mass Division', fontsize=14, fontweight='bold')
+plt.tight_layout()
+plt.show()
+
+print(f"Total sampling points: {len(unique_points)}")
+print(f"water masses: {list(divisions)}")

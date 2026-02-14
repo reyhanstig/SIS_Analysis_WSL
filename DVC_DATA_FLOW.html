@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DVC Data Flow Visualization</title>
+</head>
+
+<body>
+    <h2>DVC Data Flow Configuration</h2>
+    <!-- Mermaid Diagram Container -->
+    <pre class="mermaid">
+flowchart TD
+    %% Nodes
+    User([User])
+    subgraph Local_Workspace [Local Workspace]
+        DataFolder[/"SIS_Analysis/data/<br/>(Raw Files)"/]
+        DataDVC["data.dvc<br/>(Pointer File)"]
+        LocalCache[(".dvc/cache<br/>(Hashed Blobs)")]
+    end
+
+    subgraph DVC_System [DVC Push Process]
+        PushApp{DVC Push}
+    end
+
+    subgraph Local_Drive_Path [Local Drive Path]
+        LocalRemote[("C:\Users\...\SIS_Analysis_DVC_Remote\n(Local Directory)")]
+    end
+    
+    subgraph Desktop_Sync_Client [Desktop Sync Process]
+        SyncApp{Google Drive App}
+    end
+    
+    subgraph Cloud [Google Drive Cloud]
+        CloudFolder[("Cloud Storage")]
+    end
+
+    %% Edge styles
+    linkStyle default stroke-width:2px,fill:none,stroke:gray;
+
+    %% Sync Flow (Implicit)
+    LocalRemote -. "Auto-Sync" .-> SyncApp
+    SyncApp -.-> CloudFolder
+
+    %% DVC Flow
+    User -- "1. file changes" --> DataFolder
+    User -- "2. dvc add" --> LocalCache
+    LocalCache -.-> DataFolder
+    LocalCache -- "3. dvc push" --> PushApp
+    PushApp -- "Copies Files" --> LocalRemote
+
+    %% Styles
+    style LocalRemote fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style SyncApp fill:#fff,stroke:#333,stroke-dasharray: 5 5
+    style PushApp fill:#fff,stroke:#333
+    </pre>
+
+    <!-- Mermaid JS Loader -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+</body>
+
+</html>
