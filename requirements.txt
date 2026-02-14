@@ -12,3 +12,10 @@ pdfminer.six
 pymupdf4llm
 dvc
 dvc-gdrive
+ipykernel
+openpyxl
+geopy
+seaborn
+shapely
+scikit-learn
+tqdm

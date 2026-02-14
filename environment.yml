@@ -15,6 +15,13 @@ dependencies:
   - scikit-gstat
   - xlrd
   - dvc
+  - ipykernel
+  - openpyxl
+  - geopy
+  - seaborn
+  - shapely
+  - scikit-learn
+  - tqdm
   - pip
   - pip:
     - pdfminer.six

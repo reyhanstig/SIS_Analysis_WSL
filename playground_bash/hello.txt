@@ -1,2 +1,0 @@
-Hello Bash
-Learning is fun
