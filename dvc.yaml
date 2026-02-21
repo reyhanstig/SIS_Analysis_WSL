@@ -7,6 +7,14 @@ stages:
     outs:
       - data/processed/merged_gdf.feather
 
+  hypoxia_mapping:
+    cmd: papermill notebooks/pipeline/04_Hypoxia_Mapping.ipynb notebooks/output/04_log.ipynb
+    deps:
+      - notebooks/pipeline/04_Hypoxia_Mapping.ipynb
+      - data/processed/merged_gdf.feather
+    outs:
+      - figures/hypoxia_map_summer_point2.png
+
   decorrelation:
     cmd: python scripts/run_pipeline_step.py notebooks/pipeline/08_Decorrelation_Analysis_v3.ipynb notebooks/output/08_log.ipynb decorrelation
     deps:

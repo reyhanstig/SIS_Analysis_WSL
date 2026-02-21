@@ -36,6 +36,12 @@ This skill guides you through the process of taking an exploration notebook and 
     -   Run `dvc repro`.
     -   Check that the new stage executes correctly and produces the expected outputs.
 
+7.  **Update Pipeline Summary**:
+    -   Open `notebooks/pipeline/pipeline_summary.md`.
+    -   Add a new section for the added stage under "3. Pipeline Stages".
+    -   List the notebook path, inputs, and outputs.
+    -   Add any new path constants to "4. Key Artifacts".
+
 ## Parameters for `run_pipeline_step.py`
 
 When adding a stage to `dvc.yaml`, prefer using `python scripts/run_pipeline_step.py` over raw `papermill` if you need parameter injection from `params.yaml`.
@@ -59,5 +65,5 @@ Example `dvc.yaml` entry:
 -   Notebook is in `notebooks/pipeline/`.
 -   `dvc.yaml` includes the new stage.
 -   `dvc repro` runs successfully.
+-   `notebooks/pipeline/pipeline_summary.md` is updated.
 -   Git tracks the changes (`dvc.yaml`, `scripts/paths.py`, notebook file).
-
