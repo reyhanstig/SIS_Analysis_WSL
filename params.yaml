@@ -1,3 +1,11 @@
+seasonal_subsets:
+  min_periods: 15        # stations must have >= this many years of data to be included
+  representative_months: # single month used per season (from sampling_months_check analysis)
+    Spring: 5            # May
+    Summer: 7            # July
+    Autumn: 10           # October
+    Winter: 1            # January
+
 interpolation:
   weighting_func: gaussian
   min_weight: 0.01
