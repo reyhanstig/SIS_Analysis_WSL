@@ -1,13 +1,13 @@
 ---
-description: Test and run Python scripts and Jupyter Notebook chunks in the geo_env virtual environment
+description: Test and run Python scripts and Jupyter Notebook chunks in the sis_analysis virtual environment
 ---
 
 # Test and Run Python Code
 
-This workflow allows the agent to execute python code (scripts or notebook cells) using the user's specific `geo_env` conda environment.
+This workflow allows the agent to execute python code (scripts or notebook cells) using the user's specific `sis_analysis` conda environment.
 
 ## Prerequisites
-- The `geo_env` python interpreter path must be configured.
+- The `sis_analysis` python interpreter path must be configured.
 - Code must run within the `SIS_Analysis` project context.
 
 ## Steps
@@ -18,7 +18,7 @@ This workflow allows the agent to execute python code (scripts or notebook cells
      - Use `view_file` to read the path inside it. This is your `<PYTHON_PATH>`.
    - **If the file does NOT exist**:
      - You cannot proceed without the correct environment.
-     - **Ask the user**: "I need to configure the `geo_env` python path to run scripts correctly. Please provide the absolute path to the `python.exe` in your `geo_env` (e.g., `C:\Users\reyha\anaconda3\envs\geo_env\python.exe` or `C:\Users\reyha\.conda\envs\geo_env\python.exe`)."
+     - **Ask the user**: "I need to configure the `sis_analysis` python path to run scripts correctly. Please provide the absolute path to the `python.exe` in your `sis_analysis` (e.g., `C:\Users\reyha\anaconda3\envs\sis_analysis\python.exe` or `C:\Users\reyha\.conda\envs\sis_analysis\python.exe`)."
      - Stop and wait for the user's response.
      - **Once provided**:
        - Verify the path by running `run_command`: `"<PROVIDED_PATH>" --version`. (Expected: Python 3.11.14).

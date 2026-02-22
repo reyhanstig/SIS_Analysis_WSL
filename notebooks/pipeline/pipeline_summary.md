@@ -66,6 +66,9 @@ These parameters control the behavior of the analysis steps. Adjusting them here
 -   **Method**: Each season uses a **single representative month** (May/Jul/Oct/Jan) rather than averaging all months in the season. This was validated by `notebooks/sampling_months_check.ipynb`, which showed that >93% of observations already come from the dominant month.
 -   **Note**: The shared distance matrix (`dist_matrix_km.csv`) is **not** recomputed here — it is produced once by Stage 2.
 
+**Important Data Caveat:** Seasonal subsets only extract data from a single representative month (Spring=5, Summer=7, Autumn=10, Winter=1) to prevent sampling bias. Consequently, some years (like 1981 and 1983 for Summer) are missing entirely from downstream pipelines because no sampling occurred during the strict representative month for that year.
+
+
 ### Stage 2: `decorrelation`
 -   **Goal**: Analyze spatial decorrelation scales for each station.
 -   **Notebook**: `notebooks/pipeline/08_Decorrelation_Analysis_v3.ipynb`

@@ -56,6 +56,15 @@ class ProjectPaths:
     PCA_LOADINGS_FILE = PROCESSED_DATA_DIR / "pca_loadings.csv"
     PCA_VARIANCE_FILE = PROCESSED_DATA_DIR / "pca_variance.csv"
 
+    # ---------------------------------------------------------------------------
+    # Seasonal Subsets
+    # Directory structure:  data/processed/seasonal/{season_lower}_{layer_lower}/
+    # Valid seasons : Spring, Summer, Autumn, Winter
+    # Valid layers  : surface (saisuipoin=1), bottom (saisuipoin=2)
+    # ---------------------------------------------------------------------------
+    SEASONAL_DATA_DIR = PROCESSED_DATA_DIR / "seasonal"
+    LAYER_CODES = {"surface": 1, "bottom": 2}  # mapping used when filtering
+
     # Reference Files
     SOURCES_DIR = PROJECT_ROOT / "sources"
     
@@ -68,7 +77,38 @@ class ProjectPaths:
     
     # Figures Directory (Symlink in Project Root)
     FIGURES_DIR = PROJECT_ROOT / "figures"
-    
+
+    # ------------------------------------------------------------------
+    # Seasonal subset helpers
+    # ------------------------------------------------------------------
+
+    @classmethod
+    def get_subset_dir(cls, season: str, layer: str) -> Path:
+        """Return the processed subdirectory for a given season / layer combination.
+
+        Args:
+            season: One of 'Spring', 'Summer', 'Autumn', 'Winter'
+                    (case-insensitive).
+            layer:  One of 'surface' or 'bottom' (case-insensitive).
+
+        Returns:
+            ``data/processed/seasonal/{season_lower}_{layer_lower}/``
+
+        Example::
+
+            ProjectPaths.get_subset_dir('Summer', 'bottom')
+            # → data/processed/seasonal/summer_bottom/
+        """
+        key = f"{season.lower()}_{layer.lower()}"
+        return cls.SEASONAL_DATA_DIR / key
+
+    @classmethod
+    def ensure_subset_dir(cls, season: str, layer: str) -> Path:
+        """Create (if needed) and return the subset directory."""
+        d = cls.get_subset_dir(season, layer)
+        d.mkdir(parents=True, exist_ok=True)
+        return d
+
     @classmethod
     def ensure_directories(cls):
         """Ensure that critical output directories exist."""
