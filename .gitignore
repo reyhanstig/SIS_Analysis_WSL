@@ -2,3 +2,6 @@ data
 *.tmp.driveupload
 reports/figures
 figures/
+00_Heavy_Assets/
+notes/
+sources/
