@@ -1,0 +1,6 @@
+outs:
+- md5: bb92d3db812bf61c3e2f62214618f466.dir
+  size: 2019665
+  nfiles: 27
+  hash: md5
+  path: sushitsu
