@@ -3,4 +3,4 @@ outs:
   size: 2803350133
   nfiles: 41
   hash: md5
-  path: boundaries
+  path: data/boundaries
