@@ -22,6 +22,8 @@ dependencies:
   - shapely
   - scikit-learn
   - tqdm
+  - papermill
+  - pyyaml
   - pip
   - pip:
     - pdfminer.six

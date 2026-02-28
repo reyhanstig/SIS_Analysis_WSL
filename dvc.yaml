@@ -1,0 +1,47 @@
+stages:
+  process_data:
+    cmd: papermill notebooks/pipeline/01_Data_Processing.ipynb notebooks/output/01_log.ipynb
+    deps:
+      - notebooks/pipeline/01_Data_Processing.ipynb
+      - scripts/data_loader.py
+    outs:
+      - data/processed/merged_gdf.feather
+
+  decorrelation:
+    cmd: python scripts/run_pipeline_step.py notebooks/pipeline/08_Decorrelation_Analysis_v3.ipynb notebooks/output/08_log.ipynb decorrelation
+    deps:
+      - notebooks/pipeline/08_Decorrelation_Analysis_v3.ipynb
+      - data/processed/merged_gdf.feather
+    params:
+      - decorrelation.min_periods
+      - decorrelation.r_crit_alpha
+      - decorrelation.distance_cutoff_km
+    outs:
+      - data/processed/yearly_do_df.csv
+      - data/processed/dist_matrix_km.csv
+      - data/processed/stations_decorrelation_scale.csv
+
+  interpolation:
+    cmd: python scripts/run_pipeline_step.py notebooks/pipeline/09_Spatial_Interpolation_v2.ipynb notebooks/output/09_log.ipynb interpolation
+    deps:
+      - notebooks/pipeline/09_Spatial_Interpolation_v2.ipynb
+      - data/processed/yearly_do_df.csv
+      - data/processed/dist_matrix_km.csv
+      - data/processed/stations_decorrelation_scale.csv
+    params:
+      - interpolation.weighting_func
+      - interpolation.min_weight
+      - interpolation.search_radius_factor
+    outs:
+      - data/processed/interpolated_do_df.csv
+
+  pca_analysis:
+    cmd: papermill notebooks/pipeline/10_PCA_Analysis.ipynb notebooks/output/10_log.ipynb
+    deps:
+      - notebooks/pipeline/10_PCA_Analysis.ipynb
+      - data/processed/interpolated_do_df.csv
+      - data/processed/stations_decorrelation_scale.csv
+    outs:
+      - data/processed/pca_scores.csv
+      - data/processed/pca_loadings.csv
+      - data/processed/pca_variance.csv

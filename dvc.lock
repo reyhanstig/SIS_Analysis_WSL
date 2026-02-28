@@ -1,0 +1,115 @@
+schema: '2.0'
+stages:
+  process_data:
+    cmd: papermill notebooks/pipeline/01_Data_Processing.ipynb 
+      notebooks/output/01_log.ipynb
+    deps:
+    - path: notebooks/pipeline/01_Data_Processing.ipynb
+      hash: md5
+      md5: 164b1d993c448b7212c218fbd104ad78
+      size: 197124
+      isexec: true
+    - path: scripts/data_loader.py
+      hash: md5
+      md5: a4aa8bc9b507a54ea10c7bb51a0bb56c
+      size: 5487
+      isexec: true
+    outs:
+    - path: data/processed/merged_gdf.feather
+      hash: md5
+      md5: f1176eb8ecc7e942d2a07c9b537bd02d
+      size: 9676074
+  decorrelation:
+    cmd: python scripts/run_pipeline_step.py 
+      notebooks/pipeline/08_Decorrelation_Analysis_v3.ipynb 
+      notebooks/output/08_log.ipynb decorrelation
+    deps:
+    - path: data/processed/merged_gdf.feather
+      hash: md5
+      md5: f1176eb8ecc7e942d2a07c9b537bd02d
+      size: 9676074
+    - path: notebooks/pipeline/08_Decorrelation_Analysis_v3.ipynb
+      hash: md5
+      md5: be86c332ce36a1ca2b1fde0de772bb8c
+      size: 900095
+      isexec: true
+    params:
+      params.yaml:
+        decorrelation.distance_cutoff_km: 100
+        decorrelation.min_periods: 15
+        decorrelation.r_crit_alpha: 0.01
+    outs:
+    - path: data/processed/dist_matrix_km.csv
+      hash: md5
+      md5: dc76e93702c2c3bb605788fabe2dcc67
+      size: 297883
+    - path: data/processed/stations_decorrelation_scale.csv
+      hash: md5
+      md5: 102b24e3e8a3b0e7aef73b11477fc49b
+      size: 15893
+    - path: data/processed/yearly_do_df.csv
+      hash: md5
+      md5: 4a37fc8c059ee0a463c370125551bad8
+      size: 22921
+  interpolation:
+    cmd: python scripts/run_pipeline_step.py 
+      notebooks/pipeline/09_Spatial_Interpolation_v2.ipynb 
+      notebooks/output/09_log.ipynb interpolation
+    deps:
+    - path: data/processed/dist_matrix_km.csv
+      hash: md5
+      md5: dc76e93702c2c3bb605788fabe2dcc67
+      size: 297883
+    - path: data/processed/stations_decorrelation_scale.csv
+      hash: md5
+      md5: 102b24e3e8a3b0e7aef73b11477fc49b
+      size: 15893
+    - path: data/processed/yearly_do_df.csv
+      hash: md5
+      md5: 4a37fc8c059ee0a463c370125551bad8
+      size: 22921
+    - path: notebooks/pipeline/09_Spatial_Interpolation_v2.ipynb
+      hash: md5
+      md5: afd97518722da0dab911cc6ab160214c
+      size: 10948
+      isexec: true
+    params:
+      params.yaml:
+        interpolation.min_weight: 0.01
+        interpolation.search_radius_factor: 2.0
+        interpolation.weighting_func: gaussian
+    outs:
+    - path: data/processed/interpolated_do_df.csv
+      hash: md5
+      md5: df6131ab07915e51d932f69b90a50777
+      size: 23337
+  pca_analysis:
+    cmd: papermill notebooks/pipeline/10_PCA_Analysis.ipynb 
+      notebooks/output/10_log.ipynb
+    deps:
+    - path: data/processed/interpolated_do_df.csv
+      hash: md5
+      md5: df6131ab07915e51d932f69b90a50777
+      size: 23337
+    - path: data/processed/stations_decorrelation_scale.csv
+      hash: md5
+      md5: 102b24e3e8a3b0e7aef73b11477fc49b
+      size: 15893
+    - path: notebooks/pipeline/10_PCA_Analysis.ipynb
+      hash: md5
+      md5: ea0bf7c86f7b49463c8bdcfb563de316
+      size: 1417429
+      isexec: true
+    outs:
+    - path: data/processed/pca_loadings.csv
+      hash: md5
+      md5: 545db851b3d1feb09a560b98cb20071e
+      size: 6498
+    - path: data/processed/pca_scores.csv
+      hash: md5
+      md5: 20a584ed871bd4fbf94bb00c20a324ce
+      size: 36886
+    - path: data/processed/pca_variance.csv
+      hash: md5
+      md5: d9fb187f4f1e33883c75d95dd9911496
+      size: 1953

@@ -1,0 +1,9 @@
+interpolation:
+  weighting_func: gaussian
+  min_weight: 0.01
+  search_radius_factor: 2.0
+
+decorrelation:
+  min_periods: 15
+  r_crit_alpha: 0.01
+  distance_cutoff_km: 100

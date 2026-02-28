@@ -40,8 +40,21 @@ class ProjectPaths:
     PROCESSED_DATA_DIR = DATA_DIR / "processed"
     BOUNDARIES_DIR = DATA_DIR / "boundaries"
     
-    # Processed Files
+    # Processed Files (Pipeline Artifacts)
     MERGED_DATA_FILE = PROCESSED_DATA_DIR / "merged_gdf.feather"
+    
+    # Decorrelation Analysis Outputs
+    YEARLY_DO_FILE = PROCESSED_DATA_DIR / "yearly_do_df.csv"
+    DIST_MATRIX_FILE = PROCESSED_DATA_DIR / "dist_matrix_km.csv"
+    DECORRELATION_SCALE_FILE = PROCESSED_DATA_DIR / "stations_decorrelation_scale.csv"
+    
+    # Interpolation Outputs
+    INTERPOLATED_DO_FILE = PROCESSED_DATA_DIR / "interpolated_do_df.csv"
+    
+    # PCA Analysis Outputs
+    PCA_SCORES_FILE = PROCESSED_DATA_DIR / "pca_scores.csv"
+    PCA_LOADINGS_FILE = PROCESSED_DATA_DIR / "pca_loadings.csv"
+    PCA_VARIANCE_FILE = PROCESSED_DATA_DIR / "pca_variance.csv"
 
     # Reference Files
     SOURCES_DIR = PROJECT_ROOT / "sources"

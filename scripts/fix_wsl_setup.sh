@@ -10,28 +10,9 @@ echo "Running DVC Setup Fix for WSL..."
 echo "Project Root: $PROJECT_ROOT"
 echo "Windows Project Root: $WINDOWS_PROJECT_ROOT"
 
-# 1. Install DVC if missing
+# 1. DVC Check (Optional)
 if ! command -v dvc &> /dev/null; then
-    echo "DVC not found. Attempting to install..."
-    
-    if command -v pip &> /dev/null; then
-        pip install dvc
-    elif command -v pip3 &> /dev/null; then
-        pip3 install dvc
-    elif command -v python3 &> /dev/null; then
-        python3 -m pip install dvc
-    else
-        echo "Error: Python/pip not found. Please install DVC manually."
-        # Don't exit, proceed to file linkage
-    fi
-
-    if ! command -v dvc &> /dev/null; then
-         echo "Warning: DVC installation failed or not found in PATH. Proceeding with file structure fix..."
-    else
-         echo "DVC installed successfully."
-    fi
-else
-    echo "DVC is already installed."
+    echo "Note: DVC is not installed. Data management should be done in Windows."
 fi
 
 # 2. Fix Data Symlink
