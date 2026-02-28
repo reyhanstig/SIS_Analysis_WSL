@@ -84,11 +84,10 @@ Modify data or figures in your Windows folder. Commit changes here first.
 # In Windows PowerShell
 cd C:\Users\reyha\Documents\SIS_Analysis_Windows
 
-# Add new data
+# Add new external data (figures are auto-tracked by the pipeline's dvc.yaml)
 dvc add data
-dvc add figures
-git add data.dvc figures.dvc
-git commit -m "Update data and figures"
+git add data.dvc
+git commit -m "Update external data"
 git push
 ```
 
@@ -112,6 +111,7 @@ Commit analysis work in WSL.
 git add .
 git commit -m "Update analysis code"
 git push
+dvc push  # Pushes newly generated figures and cache to DVC remote
 ```
 
 **4. Sync Back (Windows)**
@@ -119,4 +119,5 @@ Occasionally pull code changes to Windows to keep it up to date.
 ```powershell
 # In Windows
 git pull
+dvc pull  # Pull the latest figures and data changes from the remote
 ``` 

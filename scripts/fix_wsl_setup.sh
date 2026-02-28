@@ -38,7 +38,7 @@ else
 fi
 
 # 3. specific folders to link from Windows (if they don't exist in WSL)
-FOLDERS=("00_Heavy_Assets" "notes" "sources")
+FOLDERS=("00_Heavy_Assets" "notes" "sources" "figures")
 
 for FOLDER in "${FOLDERS[@]}"; do
     WSL_PATH="$PROJECT_ROOT/$FOLDER"
