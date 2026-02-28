@@ -84,10 +84,10 @@ Modify data or figures in your Windows folder. Commit changes here first.
 # In Windows PowerShell
 cd C:\Users\reyha\Documents\SIS_Analysis_Windows
 
-# Add new external data (figures are auto-tracked by the pipeline's dvc.yaml)
-dvc add data
-git add data.dvc
-git commit -m "Update external data"
+# Add new external raw data folders individually (do NOT use `dvc add data` to avoid overlapping with pipeline `data/processed` outputs)
+dvc add data/raw data/sushitsu data/boundaries
+git add data/raw.dvc data/sushitsu.dvc data/boundaries.dvc
+git commit -m "Update external raw data"
 git push
 ```
 
