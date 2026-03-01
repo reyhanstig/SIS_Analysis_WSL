@@ -84,12 +84,9 @@ Modify data or figures in your Windows folder. Commit changes here first.
 # In Windows PowerShell
 cd C:\Users\reyha\Documents\SIS_Analysis_Windows
 
-# Add new external raw data folders individually (this places the .dvc files in the data/ folder)
-# We must immediately move them to the root directory and rename them to avoid placing Git-tracked items inside the WSL data/ symlink.
+# We've set up custom tracker names in the repository root to avoid symlink overlap.
+# Simply run the add command -- DVC will automatically detect and update `data_raw.dvc`, `data_sushitsu.dvc`, etc.!
 dvc add data/raw data/sushitsu data/boundaries
-mv data/raw.dvc data_raw.dvc
-mv data/sushitsu.dvc data_sushitsu.dvc
-mv data/boundaries.dvc data_boundaries.dvc
 git add data_raw.dvc data_sushitsu.dvc data_boundaries.dvc
 git commit -m "Update external raw data"
 git push
