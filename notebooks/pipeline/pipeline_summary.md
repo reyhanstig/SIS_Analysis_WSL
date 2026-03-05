@@ -40,7 +40,21 @@ These parameters control the behavior of the analysis steps. Adjusting them here
 
 ---
 
-## 3. Pipeline Stages
+## 3. Data Field Definitions
+
+Based on verification in `notebooks/26_check_temp_wtemp.ipynb`, target variables are defined as follows:
+
+| Field | Meaning | Description |
+| :--- | :--- | :--- |
+| `temp` | **Air Temperature** | Ambient air temperature at the station; independent of sampling depth. |
+| `wtemp` | **Water Temperature** | Temperature of the water column at the specified depth layer. |
+| `saisuipoin` | **Depth Layer** | `1` = Surface Layer, `2` = Bottom Layer. |
+| `do_` | **Dissolved Oxygen** | Concentration in mg/L. |
+| `salt` | **Salinity** | Measurement of salt content. |
+
+---
+
+## 4. Pipeline Stages
 
 ### Stage 1: `process_data`
 -   **Goal**: Clean and merge raw datasets into a unified format.
@@ -98,7 +112,7 @@ These parameters control the behavior of the analysis steps. Adjusting them here
 
 ---
 
-## 4. Key Artifacts (Path Constants)
+## 5. Key Artifacts (Path Constants)
 
 All file paths are centrally managed in `scripts/paths.py`.
 
@@ -115,7 +129,7 @@ All file paths are centrally managed in `scripts/paths.py`.
 | `get_subset_dir(season, layer)` | `data/processed/seasonal/{season}_{layer}/` | Helper method — returns subset directory |
 
 
-### 5. `generate_seasonal_plots`
+### 6. `generate_seasonal_plots`
 - **Script:** `scripts/generate_seasonal_plots.py`
 - **Purpose:** Automates the creation of high-quality spatial interpolation matrices and visual maps for seasonal parameters across multiple years, utilizing multiprocessing for maximum CPU efficiency. Creates individual maps, 2x2 seasonal grids, and yearly progressions.
 - **Dependencies:** `scripts/generate_seasonal_plots.py`, `params.yaml`, `data/boundaries/SIS water mass polygon/sea_area_mask_simplified.shp`, `data/processed/merged_gdf.feather`

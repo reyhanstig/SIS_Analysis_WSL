@@ -126,6 +126,11 @@ class ProjectPaths:
         except Exception as e:
             print(f"Warning: Could not ensure directories: {e}")
 
+    # ---------------------------------------------------------------------------
+    # Seasonal Plots Output Directories
+    # ---------------------------------------------------------------------------
+    SEASONAL_PLOTS_DIR = FIGURES_DIR / "seasonal_plots"
+
     @classmethod
     def verify_symlinks(cls):
         """Check status of project symlinks."""
@@ -145,6 +150,23 @@ class ProjectPaths:
                 "target": str(target)
             }
         return status
+
+    @classmethod
+    def get_seasonal_plots_dir(cls, parameter: str, plot_type: str) -> Path:
+        """
+        Get the directory for a specific type of seasonal plot.
+        Creates the directory if it doesn't exist.
+        
+        Args:
+            parameter: The parameter name (e.g., 'do_')
+            plot_type: The type of plot ('individual', 'progressive', 'grid_2x2')
+            
+        Returns:
+            Path object to the nested directory.
+        """
+        path = cls.SEASONAL_PLOTS_DIR / parameter / plot_type
+        path.mkdir(parents=True, exist_ok=True)
+        return path
 
 if __name__ == "__main__":
     # Self-test when run directly

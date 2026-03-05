@@ -18,7 +18,7 @@ decorrelation:
   distance_cutoff_km: 100
 
 seasonal_plots:
-  parameters: ['do_']
+  parameters: ['do_', 'temp', 'wtemp', 'salt']
   seasons: ['Spring', 'Summer', 'Autumn', 'Winter']
   layers: ['surface', 'bottom']
   years: [1991]

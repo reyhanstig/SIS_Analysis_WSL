@@ -49,6 +49,18 @@ Run the setup script to link data from Windows:
 ```
 *This script creates symlinks to your Windows `data/` folder so you can access files directly.*
 
+## Data Field Definitions
+
+Key parameters in the dataset have been clarified through statistical analysis (see `notebooks/26_check_temp_wtemp.ipynb`):
+
+- **`temp`**: **Air Temperature (°C)**. Ambient air temperature recorded at the time of sampling. Shows higher variance and is independent of water depth.
+- **`wtemp`**: **Water Temperature (°C)**. Recorded at the specific sampling depth. Shows lower variance (high heat capacity) and decreases with depth.
+- **`saisuipoin`**: **Sampling Depth Layer**. 
+    - `1`: Surface Layer.
+    - `2`: Bottom Layer.
+- **`do_`**: Dissolved Oxygen concentration (mg/L).
+- **`salt`**: Salinity.
+
 ---
 
 ## Analysis Pipeline (New!)

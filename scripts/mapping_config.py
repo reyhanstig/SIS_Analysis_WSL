@@ -27,19 +27,57 @@ class MappingConfig:
             'cmap': 'jet_r',
             'vmin': 0.0,
             'vmax': 12.0,
-            'label': 'DO Concentration (mg/L)'
+            'label': 'DO Concentration (mg/L)',
+            'extend': 'both',
+            'tick_step': 2.0
         },
         'temperature': {
-            'cmap': 'coolwarm',
+            'cmap': 'RdYlBu_r',
+            'vmin': 0.0,
+            'vmax': 39.0,
+            'label': 'Air Temperature (\u00b0C)',
+            'extend': 'neither',
+            'tick_step': 5.0
+        },
+        'temp': { # Alias for Air Temperature
+            'cmap': 'RdYlBu_r',
+            'vmin': 0.0,
+            'vmax': 39.0,
+            'label': 'Air Temperature (\u00b0C)',
+            'extend': 'neither',
+            'tick_step': 5.0
+        },
+        'water_temperature': {
+            'cmap': 'RdYlBu_r',
             'vmin': 10.0,
             'vmax': 30.0,
-            'label': 'Temperature (\u00b0C)'
+            'label': 'Water Temperature (\u00b0C)',
+            'extend': 'neither',
+            'tick_step': 5.0
+        },
+        'wtemp': { # Alias for Water Temperature
+            'cmap': 'RdYlBu_r',
+            'vmin': 10.0,
+            'vmax': 30.0,
+            'label': 'Water Temperature (\u00b0C)',
+            'extend': 'neither',
+            'tick_step': 5.0
         },
         'salinity': {
             'cmap': 'viridis',
-            'vmin': 25.0,
+            'vmin': 31.0,
             'vmax': 35.0,
-            'label': 'Salinity (PSU)'
+            'label': 'Salinity (PSU)',
+            'extend': 'min',
+            'tick_step': 1.0
+        },
+        'salt': { # Alias for Salinity
+            'cmap': 'viridis',
+            'vmin': 31.0,
+            'vmax': 35.0,
+            'label': 'Salinity (PSU)',
+            'extend': 'min',
+            'tick_step': 1.0
         }
     }
     
@@ -53,5 +91,35 @@ class MappingConfig:
             'cmap': 'RdYlBu',
             'vmin': 0.0,
             'vmax': 10.0,
-            'label': f'{variable_name} Value'
+            'label': f'{variable_name} Value',
+            'extend': 'both',
+            'tick_step': 2.0
         })
+        
+    @staticmethod
+    def format_colorbar_ticks(cbar, variable_name):
+        import numpy as np
+        var_settings = MappingConfig.get_var_settings(variable_name)
+        vmin = var_settings['vmin']
+        vmax = var_settings['vmax']
+        tick_step = var_settings.get('tick_step', 1.0)
+        
+        # Calculate ticks from vmin to vmax with tick_step
+        # Ensuring first and last are definitely vmin and vmax
+        ticks = np.arange(vmin, vmax, tick_step)
+        
+        # Make sure vmax is included as the last tick
+        if len(ticks) == 0 or ticks[-1] != vmax:
+            ticks = np.append(ticks, vmax)
+            
+        cbar.set_ticks(ticks)
+        
+        # Avoid decimal formatting if the tick values themselves are essentially integers
+        # E.g., for non-decimal increment requirement
+        tick_labels = []
+        for t in ticks:
+            if float(t).is_integer():
+                tick_labels.append(f"{int(t)}")
+            else:
+                tick_labels.append(f"{t}")
+        cbar.set_ticklabels(tick_labels)
