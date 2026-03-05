@@ -24,15 +24,40 @@ stages:
     params:
       - seasonal_subsets.min_periods
       - seasonal_subsets.representative_months
+      - seasonal_subsets.parameters_to_process
     outs:
       - data/processed/seasonal/spring_surface/yearly_do_df.csv
+      - data/processed/seasonal/spring_surface/yearly_temp_df.csv
+      - data/processed/seasonal/spring_surface/yearly_wtemp_df.csv
+      - data/processed/seasonal/spring_surface/yearly_salt_df.csv
       - data/processed/seasonal/spring_bottom/yearly_do_df.csv
+      - data/processed/seasonal/spring_bottom/yearly_temp_df.csv
+      - data/processed/seasonal/spring_bottom/yearly_wtemp_df.csv
+      - data/processed/seasonal/spring_bottom/yearly_salt_df.csv
       - data/processed/seasonal/summer_surface/yearly_do_df.csv
+      - data/processed/seasonal/summer_surface/yearly_temp_df.csv
+      - data/processed/seasonal/summer_surface/yearly_wtemp_df.csv
+      - data/processed/seasonal/summer_surface/yearly_salt_df.csv
       - data/processed/seasonal/summer_bottom/yearly_do_df.csv
+      - data/processed/seasonal/summer_bottom/yearly_temp_df.csv
+      - data/processed/seasonal/summer_bottom/yearly_wtemp_df.csv
+      - data/processed/seasonal/summer_bottom/yearly_salt_df.csv
       - data/processed/seasonal/autumn_surface/yearly_do_df.csv
+      - data/processed/seasonal/autumn_surface/yearly_temp_df.csv
+      - data/processed/seasonal/autumn_surface/yearly_wtemp_df.csv
+      - data/processed/seasonal/autumn_surface/yearly_salt_df.csv
       - data/processed/seasonal/autumn_bottom/yearly_do_df.csv
+      - data/processed/seasonal/autumn_bottom/yearly_temp_df.csv
+      - data/processed/seasonal/autumn_bottom/yearly_wtemp_df.csv
+      - data/processed/seasonal/autumn_bottom/yearly_salt_df.csv
       - data/processed/seasonal/winter_surface/yearly_do_df.csv
+      - data/processed/seasonal/winter_surface/yearly_temp_df.csv
+      - data/processed/seasonal/winter_surface/yearly_wtemp_df.csv
+      - data/processed/seasonal/winter_surface/yearly_salt_df.csv
       - data/processed/seasonal/winter_bottom/yearly_do_df.csv
+      - data/processed/seasonal/winter_bottom/yearly_temp_df.csv
+      - data/processed/seasonal/winter_bottom/yearly_wtemp_df.csv
+      - data/processed/seasonal/winter_bottom/yearly_salt_df.csv
 
   decorrelation:
     cmd: python scripts/run_pipeline_step.py notebooks/pipeline/08_Decorrelation_Analysis_v3.ipynb notebooks/output/08_log.ipynb decorrelation
@@ -72,3 +97,18 @@ stages:
       - data/processed/seasonal/summer_bottom/pca_scores.csv
       - data/processed/seasonal/summer_bottom/pca_loadings.csv
       - data/processed/seasonal/summer_bottom/pca_variance.csv
+
+  generate_seasonal_plots:
+    cmd: python scripts/generate_seasonal_plots.py
+    deps:
+      - scripts/generate_seasonal_plots.py
+      - data/boundaries/SIS water mass polygon/sea_area_mask_simplified.shp
+      - data/processed/merged_gdf.feather
+    params:
+      - seasonal_plots.parameters
+      - seasonal_plots.seasons
+      - seasonal_plots.layers
+      - seasonal_plots.years
+      - seasonal_plots.plot_types
+    outs:
+      - figures/seasonal_plots/

@@ -57,11 +57,11 @@ These parameters control the behavior of the analysis steps. Adjusting them here
     -   `figures/hypoxia_map_summer_point2.png` (Hypoxia frequency map)
 
 ### Stage 1.5: `create_seasonal_datasets`
--   **Goal**: Split merged data into 8 season × layer subsets (yearly DO per station).
+-   **Goal**: Split merged data into 8 season × layer subsets (yearly parameter mean per station).
 -   **Notebook**: `notebooks/pipeline/02_Create_Seasonal_Datasets.ipynb`
 -   **Inputs**: `merged_gdf.feather`
 -   **Outputs** (one directory per combination):
-    -   `data/processed/seasonal/{season}_{layer}/yearly_do_df.csv`
+    -   `data/processed/seasonal/{season}_{layer}/yearly_{param}_df.csv` (where `param` is one of `do_`, `temp`, `wtemp`, `salt`)
 -   **Combinations**: Spring/Summer/Autumn/Winter × surface(`saisuipoin=1`) / bottom(`saisuipoin=2`)
 -   **Method**: Each season uses a **single representative month** (May/Jul/Oct/Jan) rather than averaging all months in the season. This was validated by `notebooks/sampling_months_check.ipynb`, which showed that >93% of observations already come from the dominant month.
 -   **Note**: The shared distance matrix (`dist_matrix_km.csv`) is **not** recomputed here — it is produced once by Stage 2.
@@ -114,3 +114,9 @@ All file paths are centrally managed in `scripts/paths.py`.
 | `SEASONAL_DATA_DIR` | `data/processed/seasonal/` | Root directory for all seasonal subsets |
 | `get_subset_dir(season, layer)` | `data/processed/seasonal/{season}_{layer}/` | Helper method — returns subset directory |
 
+
+### 5. `generate_seasonal_plots`
+- **Script:** `scripts/generate_seasonal_plots.py`
+- **Purpose:** Automates the creation of high-quality spatial interpolation matrices and visual maps for seasonal parameters across multiple years, utilizing multiprocessing for maximum CPU efficiency. Creates individual maps, 2x2 seasonal grids, and yearly progressions.
+- **Dependencies:** `scripts/generate_seasonal_plots.py`, `params.yaml`, `data/boundaries/SIS water mass polygon/sea_area_mask_simplified.shp`, `data/processed/merged_gdf.feather`
+- **Output:** Nested directories and mapped figures within `figures/seasonal_plots/`

@@ -1,4 +1,5 @@
 seasonal_subsets:
+  parameters_to_process: ['do_', 'temp', 'wtemp', 'salt']
   min_periods: 15        # stations must have >= this many years of data to be included
   representative_months: # single month used per season (from sampling_months_check analysis)
     Spring: 5            # May
@@ -15,3 +16,13 @@ decorrelation:
   min_periods: 15
   r_crit_alpha: 0.01
   distance_cutoff_km: 100
+
+seasonal_plots:
+  parameters: ['do_']
+  seasons: ['Spring', 'Summer', 'Autumn', 'Winter']
+  layers: ['surface', 'bottom']
+  years: [1991]
+  plot_types:
+    individual: true
+    progressive: true
+    grid_2x2: true
