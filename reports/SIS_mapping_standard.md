@@ -36,7 +36,11 @@ ax.set_facecolor(MappingConfig.COLOR_OCEAN)
 
 ### 2.1 Multi-Subplot Figure Sizing
 
-When plotting grids of multiple Cartopy subplots, rigid `figsize` definitions will enforce problematic blank padding (vertical whitespace) if the user's fixed `figsize` proportions do not match the geographic `extent` proportions explicitly enforced by Cartopy layout generation. Always define `fig_height` proportionally when working with `.subplots(n_rows, n_cols)`:
+When plotting grids of multiple Cartopy subplots, rigid `figsize` definitions will enforce problematic blank padding (vertical, horizontal whitespace) if the user's fixed `figsize` proportions do not match the geographic `extent` proportions explicitly enforced by Cartopy layout generation. Cartopy enforces strict aspect ratios, meaning that if the figure dimensions are slightly off, Cartopy will aggressively shrink the subplot to fit, resulting in huge empty spaces.
+
+Furthermore, `plt.tight_layout()` often struggles with Cartopy axes and spanning colorbars, causing more unexpected shrinking.
+
+Always define `fig_height` proportionally when working with `.subplots(n_rows, n_cols)`, define a dedicated colorbar axis, and use `plt.subplots_adjust()` instead of `tight_layout()`:
 
 ```python
 extent = [bounds[0]-0.2, bounds[2]+0.2, bounds[1]-0.2, bounds[3]+0.2]
@@ -44,10 +48,21 @@ aspect_ratio = (extent[3] - extent[2]) / (extent[1] - extent[0])
 
 fig_width = 25 # Set maximum allowed width
 width_per_subplot = fig_width / n_cols
-height_per_subplot = (width_per_subplot * aspect_ratio) + 0.3 # 0.3 for title buffer
-fig_height = height_per_subplot * n_rows
+height_per_subplot = (width_per_subplot * aspect_ratio) + 0.3 # Buffer for titles
+# Add extra height buffer (e.g. 1.5) for the colorbar at the bottom
+fig_height = (height_per_subplot * n_rows) + 1.5 
 
-fig, axes = plt.subplots(n_rows, n_cols, figsize=(fig_width, fig_height), ...)
+fig, axes = plt.subplots(n_rows, n_cols, figsize=(fig_width, fig_height), subplot_kw={'projection': ccrs.PlateCarree()})
+
+# ... plotting logic for each ax ...
+
+# CRITICAL: Adjust the grid explicitly instead of tight_layout()
+plt.subplots_adjust(bottom=0.15, wspace=0.05, hspace=0.15)
+
+# Add a dedicated colorbar axes [left, bottom, width, height]
+# This prevents the colorbar from stealing horizontal width from the plotting axes
+cbar_ax = fig.add_axes([0.25, 0.05, 0.5, 0.03]) 
+cbar = fig.colorbar(sm, cax=cbar_ax, orientation='horizontal')
 ```
 
 ---
@@ -206,3 +221,13 @@ All quantitative spatial calculations (e.g., the station distance matrix in `08_
 
 > [!TIP]
 > If true-to-life proportions are needed in a figure (e.g., for publication), switch the axis projection to `ccrs.Mercator()` or `ccrs.UTM(zone=53)`. All other standard elements (boundary file, facecolor, zorder) remain unchanged.
+
+---
+
+## 10. Automated Verification Protocol
+
+When creating code for a mass-produced map loop or long-running script that generates plots, follow these steps:
+1. **Create a test script** (e.g., using `run_command` and python) that produces a single representative test plot.
+2. **Conduct automated verification** by executing the script and inspecting the output, focusing explicitly on checking appropriate metric spacing between subplots and overall Cartopy compliance.
+3. **Delete the test script and plot** once verification passes.
+4. **Proceed with the main task** applying the validated layout code.
