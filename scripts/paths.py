@@ -40,6 +40,11 @@ class ProjectPaths:
     PROCESSED_DATA_DIR = DATA_DIR / "processed"
     BOUNDARIES_DIR = DATA_DIR / "boundaries"
     
+    # Bathymetry Raw Paths
+    BATHYMETRY_GEBCO_DIR = DATA_DIR / "raw" / "GEBCO_10_Mar_2026_d2286085bd59"
+    BATHYMETRY_JODC_DIR = DATA_DIR / "raw" / "JODC_mesh500_SIS"
+    
+    
     # Processed Files (Pipeline Artifacts)
     MERGED_DATA_FILE = PROCESSED_DATA_DIR / "merged_gdf.feather"
     
@@ -55,6 +60,8 @@ class ProjectPaths:
     PCA_SCORES_FILE = PROCESSED_DATA_DIR / "pca_scores.csv"
     PCA_LOADINGS_FILE = PROCESSED_DATA_DIR / "pca_loadings.csv"
     PCA_VARIANCE_FILE = PROCESSED_DATA_DIR / "pca_variance.csv"
+    PCA_ENV_CORR_PC1_FILE = PROCESSED_DATA_DIR / "pca_env_corr_pc1.csv"
+    PCA_ENV_CORR_PC2_FILE = PROCESSED_DATA_DIR / "pca_env_corr_pc2.csv"
 
     # ---------------------------------------------------------------------------
     # Seasonal Subsets

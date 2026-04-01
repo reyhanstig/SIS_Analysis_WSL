@@ -32,7 +32,7 @@ The project uses a Conda environment named **`sis_analysis`**.
    conda env create -f environment.yml
    ```
    *Alternatively, create manually:*
-   `conda create -n sis_analysis python=3.10 geopandas cartopy pandas matplotlib scipy dvc papermill pyyaml -y`
+   `conda create -n sis_analysis python=3.10 geopandas cartopy pandas matplotlib scipy dvc papermill pyyaml xarray netcdf4 gsw selenium beautifulsoup4 -y`
 3. **Activate the environment**:
    ```bash
    conda activate sis_analysis

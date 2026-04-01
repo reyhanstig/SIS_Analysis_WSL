@@ -113,3 +113,31 @@ stages:
       hash: md5
       md5: d9fb187f4f1e33883c75d95dd9911496
       size: 1953
+  pca_env_corr:
+    cmd: python notebooks/pipeline/33_DO_PCA_corr.py
+    deps:
+    - path: data/processed/merged_gdf.feather
+      hash: md5
+      md5: 398e4b0cac45046175b67f81fb795056
+      size: 9675154
+      isexec: true
+    - path: data/processed/seasonal/summer_bottom/pca_scores.csv
+      hash: md5
+      md5: 948f97bfb6a2f56adb25717cec1940de
+      size: 33565
+      isexec: true
+    - path: notebooks/pipeline/33_DO_PCA_corr.py
+      hash: md5
+      md5: 0e3ab3a604349588339c323357ce46c7
+      size: 6359
+    outs:
+    - path: data/processed/seasonal/summer_bottom/pca_env_corr_pc1.csv
+      hash: md5
+      md5: a1cc2c82bea0a6807a9d6421d37609be
+      size: 26746
+      isexec: true
+    - path: data/processed/seasonal/summer_bottom/pca_env_corr_pc2.csv
+      hash: md5
+      md5: 8ccc511bc5ec587d8e2dbaeb6c9f6d56
+      size: 26824
+      isexec: true

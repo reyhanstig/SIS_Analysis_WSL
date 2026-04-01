@@ -17,5 +17,11 @@ openpyxl
 geopy
 seaborn
 shapely
+xarray
+netcdf4
+cmocean
 scikit-learn
 tqdm
+gsw
+selenium
+beautifulsoup4

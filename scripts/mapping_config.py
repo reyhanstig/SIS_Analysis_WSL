@@ -2,11 +2,13 @@ class MappingConfig:
     """Standardized configuration for mapping figures in the SIS Analysis Pipeline."""
     
     # --- Z-Orders ---
-    ZORDER_OCEAN = 0         # Handled largely via set_facecolor on axis
-    ZORDER_LAND = 1          # Setonaikai land boundary
-    ZORDER_GRIDLINES = 2     # Cartopy gridlines
-    ZORDER_PREDICTED = 3     # Interpolated grids, contours, or scatters
-    ZORDER_OBSERVATIONS = 5  # Actual observation scatter points
+    ZORDER_OCEAN = 0               # Handled largely via set_facecolor on axis
+    ZORDER_CARTOPY_LAND = 0.5      # Cartopy low-res land feature
+    ZORDER_CARTOPY_COASTLINE = 0.6 # Cartopy low-res coastline
+    ZORDER_LAND = 1                # Setonaikai high-res land boundary shapefile
+    ZORDER_GRIDLINES = 2           # Cartopy gridlines
+    ZORDER_PREDICTED = 3           # Interpolated grids, contours, or scatters
+    ZORDER_OBSERVATIONS = 5        # Actual observation scatter points
     
     # --- Land / Ocean Styling ---
     COLOR_OCEAN = 'lightblue'

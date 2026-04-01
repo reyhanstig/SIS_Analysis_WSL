@@ -112,3 +112,15 @@ stages:
       - seasonal_plots.plot_types
     outs:
       - figures/seasonal_plots/
+
+  pca_env_corr:
+    cmd: python notebooks/pipeline/33_DO_PCA_corr.py
+    deps:
+      - notebooks/pipeline/33_DO_PCA_corr.py
+      - data/processed/merged_gdf.feather
+      - data/processed/seasonal/summer_bottom/pca_scores.csv
+    outs:
+      - data/processed/seasonal/summer_bottom/pca_env_corr_pc1.csv:
+          cache: false
+      - data/processed/seasonal/summer_bottom/pca_env_corr_pc2.csv:
+          cache: false

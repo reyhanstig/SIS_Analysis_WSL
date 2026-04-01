@@ -20,10 +20,16 @@ dependencies:
   - geopy
   - seaborn
   - shapely
+  - xarray
+  - netcdf4
+  - cmocean
   - scikit-learn
   - tqdm
   - papermill
   - pyyaml
+  - gsw
+  - selenium
+  - beautifulsoup4
   - pip
   - pip:
     - pdfminer.six

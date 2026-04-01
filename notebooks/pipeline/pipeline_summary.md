@@ -56,6 +56,15 @@ Based on verification in `notebooks/26_check_temp_wtemp.ipynb`, target variables
 
 ## 4. Pipeline Stages
 
+### Stage 0: `bathymetry_check` (Exploration)
+-   **Goal**: Evaluate bathymetry sources (GEBCO vs JODC) for environmental mapping.
+-   **Notebook**: `notebooks/31_bathymetry_check.ipynb`
+-   **Inputs**:
+-       - GEBCO: `data/raw/GEBCO_10_Mar_2026_d2286085bd59/`
+-       - JODC: `data/raw/JODC_mesh500_SIS/`
+-   **Outputs**: Visual comparisons of resolution and accuracy.
+-   **Note**: Not yet integrated into `dvc repro` pipeline, pending dataset selection.
+
 ### Stage 1: `process_data`
 -   **Goal**: Clean and merge raw datasets into a unified format.
 -   **Notebook**: `notebooks/pipeline/01_Data_Processing.ipynb`
@@ -110,6 +119,14 @@ Based on verification in `notebooks/26_check_temp_wtemp.ipynb`, target variables
     -   `data/processed/seasonal/{subset}/pca_loadings.csv`
     -   `data/processed/seasonal/{subset}/pca_variance.csv`
 
+### Stage 4.1: `pca_env_corr`
+-   **Goal**: Calculate Pearson correlations between PCA scores and environmental parameters per station over time.
+-   **Script**: `notebooks/pipeline/33_DO_PCA_corr.py`
+-   **Inputs**: `data/processed/merged_gdf.feather`, `data/processed/seasonal/{subset}/pca_scores.csv`
+-   **Outputs**:
+    -   `data/processed/seasonal/{subset}/pca_env_corr_pc1.csv`
+    -   `data/processed/seasonal/{subset}/pca_env_corr_pc2.csv`
+
 ---
 
 ## 5. Key Artifacts (Path Constants)
@@ -125,6 +142,9 @@ All file paths are centrally managed in `scripts/paths.py`.
 | `INTERPOLATED_DO_FILE` | `data/processed/interpolated_do_df.csv` | Legacy interpolated grid |
 | `PCA_SCORES_FILE` | `data/processed/pca_scores.csv` | Legacy PCA temporal results |
 | `PCA_LOADINGS_FILE` | `data/processed/pca_loadings.csv` | Legacy PCA spatial results |
+| `PCA_VARIANCE_FILE` | `data/processed/pca_variance.csv` | Legacy PCA variance results |
+| `PCA_ENV_CORR_PC1_FILE` | `data/processed/pca_env_corr_pc1.csv` | PCA PC1 vs Environmental Correlation results |
+| `PCA_ENV_CORR_PC2_FILE` | `data/processed/pca_env_corr_pc2.csv` | PCA PC2 vs Environmental Correlation results |
 | `SEASONAL_DATA_DIR` | `data/processed/seasonal/` | Root directory for all seasonal subsets |
 | `get_subset_dir(season, layer)` | `data/processed/seasonal/{season}_{layer}/` | Helper method — returns subset directory |
 

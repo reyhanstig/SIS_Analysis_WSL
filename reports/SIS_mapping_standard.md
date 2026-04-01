@@ -12,12 +12,13 @@ This document defines the standardized mapping format for all geospatial visuali
 import geopandas as gpd
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
+import cartopy.feature as cfeature
 from scripts.paths import ProjectPaths
 from scripts.mapping_config import MappingConfig
 ```
 
-> [!IMPORTANT]
-> Do **not** import `cartopy.feature as cfeature`. The default Cartopy features (`LAND`, `COASTLINE`, `OCEAN`) use low-resolution global datasets that fail to capture the intricate shorelines and narrow straits of the Seto Inland Sea.
+> [!NOTE]
+> We now actively use `cfeature.LAND` and `cfeature.COASTLINE` under the main SIS Prefecture Shapefile to fill in large external landmasses outside the detailed region, using explicitly defined Z-Orders to ensure proper layering.
 
 ---
 
@@ -90,7 +91,11 @@ sis_land_boundary = gpd.read_file(land_boundary_path)
 if sis_land_boundary.crs != "EPSG:4326":
     sis_land_boundary = sis_land_boundary.to_crs("EPSG:4326")
 
-# Plot land masses
+# Plot standard Cartopy Land and Coastlines underneath
+ax.add_feature(cfeature.LAND, facecolor=MappingConfig.COLOR_LAND, zorder=MappingConfig.ZORDER_CARTOPY_LAND)
+ax.add_feature(cfeature.COASTLINE, linewidth=0.5, edgecolor='black', zorder=MappingConfig.ZORDER_CARTOPY_COASTLINE)
+
+# Plot high-resolution land masses on top
 sis_land_boundary.plot(
     ax=ax,
     facecolor=MappingConfig.COLOR_LAND,
@@ -137,6 +142,8 @@ ax.set_extent([
 | Z-Order | Config Variable | Layer                                      |
 | :------ | :---------------------------------- | :----------------------------------------- |
 | base    | `ZORDER_OCEAN` | Ocean background (`set_facecolor`)         |
+| 0.5     | `ZORDER_CARTOPY_LAND`| Cartopy background land |
+| 0.6     | `ZORDER_CARTOPY_COASTLINE`| Cartopy background coastline |
 | 1       | `ZORDER_LAND` | Land masses (SIS prefecture shapefile)     |
 | 2       | `ZORDER_GRIDLINES` | Gridlines                                  |
 | 3       | `ZORDER_PREDICTED` | Data overlays (scatter, contours, etc.)    |
@@ -165,6 +172,7 @@ label = var_cfg['label']
 import geopandas as gpd
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
+import cartopy.feature as cfeature
 from scripts.paths import ProjectPaths
 
 fig, ax = plt.subplots(figsize=(10, 8), subplot_kw={'projection': ccrs.PlateCarree()})
@@ -177,7 +185,11 @@ if sis_water_boundary.crs != "EPSG:4326":
     sis_water_boundary = sis_water_boundary.to_crs("EPSG:4326")
 bounds = sis_water_boundary.total_bounds
 
-# Load and Plot Landmass Mask
+# Plot general Cartopy features
+ax.add_feature(cfeature.LAND, facecolor=MappingConfig.COLOR_LAND, zorder=MappingConfig.ZORDER_CARTOPY_LAND)
+ax.add_feature(cfeature.COASTLINE, linewidth=0.5, edgecolor='black', zorder=MappingConfig.ZORDER_CARTOPY_COASTLINE)
+
+# Load and Plot High-Res Landmass Mask
 land_boundary_path = ProjectPaths.BOUNDARIES_DIR / "SIS_prefecture_boundaries" / "Setonaikai_boundary.shp"
 sis_land_boundary = gpd.read_file(land_boundary_path)
 if sis_land_boundary.crs != "EPSG:4326":
