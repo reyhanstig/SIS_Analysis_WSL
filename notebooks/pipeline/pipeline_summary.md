@@ -101,6 +101,12 @@ Based on verification in `notebooks/26_check_temp_wtemp.ipynb`, target variables
     -   `data/processed/dist_matrix_km.csv` (**shared** station distance matrix, written once for `summer_bottom`)
     -   `data/processed/seasonal/{subset}/stations_decorrelation_scale.csv`
 
+### Stage 2.1: `decorrelation_analysis_continue` (Exploration)
+-   **Goal**: Explore correlations between spatial decorrelation scales and environmental factors like station depth and hypoxia frequency.
+-   **Notebook**: `notebooks/30_decorrelation_analysis_continue.ipynb`
+-   **Inputs**: `stations_decorrelation_scale.csv`, `merged_gdf.feather`
+-   **Outputs**: Scatter plots and correlation analysis.
+
 ### Stage 3: `interpolation`
 -   **Goal**: Fill missing DO data using spatial interpolation based on decorrelation scales.
 -   **Notebook**: `notebooks/pipeline/09_Spatial_Interpolation_v2.ipynb`

@@ -116,7 +116,7 @@ def create_correlation_map(corr_df, parameter, output_path, pc_name):
         linewidths=0.5,
         transform=ccrs.PlateCarree(),
         zorder=MappingConfig.ZORDER_PREDICTED,
-        alpha=0.8
+        alpha=1
     )
 
     # 6. Set Map Extent (using Seto Inland Sea bounds)
