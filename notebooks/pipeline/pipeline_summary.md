@@ -52,9 +52,12 @@ Based on verification in `notebooks/26_check_temp_wtemp.ipynb`, target variables
 | `do_` | **Dissolved Oxygen** | Concentration in mg/L. |
 | `salt` | **Salinity** | Measurement of salt content. |
 
+> **Note on Parameter Aliasing:** Data processing automatically detects alternative "v2" columns (e.g., `do_2`, `salt2`) present in raw shapefiles, which often have better numerical data typing (`float64`) and fewer null values. The pipeline natively replaces the primary column data with these superior "v2" variants during ingestion, meaning standard aliases like `do_` silently represent `do_2` values throughout analytical notebooks.
+
 ---
 
 ## 4. Pipeline Stages
+
 
 ### Stage 0: `bathymetry_check` (Exploration)
 -   **Goal**: Evaluate bathymetry sources (GEBCO vs JODC) for environmental mapping.
@@ -106,6 +109,22 @@ Based on verification in `notebooks/26_check_temp_wtemp.ipynb`, target variables
 -   **Notebook**: `notebooks/30_decorrelation_analysis_continue.ipynb`
 -   **Inputs**: `stations_decorrelation_scale.csv`, `merged_gdf.feather`
 -   **Outputs**: Scatter plots and correlation analysis.
+
+### Stage 2.2: `decorrelation_tokyo`
+-   **Goal**: Analyze spatial decorrelation scales specifically for Tokyo Bay stations, adhering to the standard 2-parameter Gaussian model methodology.
+-   **Notebook**: `notebooks/pipeline/39a_Decorrelation_Analysis_Tokyo_Bay.ipynb`
+-   **Inputs**: `data/processed/seasonal/{subset}/yearly_do_df.csv`, `merged_gdf.feather`
+-   **Outputs**:
+    -   `data/processed/seasonal/{subset}/tokyo_bay_decorrelation_scale.csv`
+    -   `figures/tokyo_bay_decorrelation_scale.png`
+
+### Stage 2.3: `decorrelation_ise`
+-   **Goal**: Analyze spatial decorrelation scales specifically for Ise Bay stations, adhering to the standard 2-parameter Gaussian model methodology.
+-   **Notebook**: `notebooks/pipeline/39b_Decorrelation_Analysis_Ise_Bay.ipynb`
+-   **Inputs**: `data/processed/seasonal/{subset}/yearly_do_df.csv`, `merged_gdf.feather`
+-   **Outputs**:
+    -   `data/processed/seasonal/{subset}/ise_bay_decorrelation_scale.csv`
+    -   `figures/ise_bay_decorrelation_scale.png`
 
 ### Stage 3: `interpolation`
 -   **Goal**: Fill missing DO data using spatial interpolation based on decorrelation scales.

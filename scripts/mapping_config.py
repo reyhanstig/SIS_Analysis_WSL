@@ -10,6 +10,9 @@ class MappingConfig:
     ZORDER_PREDICTED = 3           # Interpolated grids, contours, or scatters
     ZORDER_OBSERVATIONS = 5        # Actual observation scatter points
     
+    # --- Boundary Files ---
+    LAND_BOUNDARY_FILENAME = "Setonaikai_boundary_2.shp"
+    
     # --- Land / Ocean Styling ---
     COLOR_OCEAN = 'lightblue'
     COLOR_LAND = 'lightgray'

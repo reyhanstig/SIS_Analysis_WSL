@@ -92,13 +92,31 @@ def load_raw_shapefiles(start_year=1981, end_year=2023):
 def clean_and_process_data(gdf):
     """
     Apply standard cleaning and processing:
-    1. Convert 'do_' (Dissolved Oxygen) to numeric.
-    2. Add 'season' column based on 'surveymont'.
-    3. Ensure geometry is valid.
+    1. Detect if v2 parameter alternatives exist (e.g. do_2), and map them back to default aliases (e.g. do_).
+    2. Convert 'do_' (Dissolved Oxygen) to numeric.
+    3. Add 'season' column based on 'surveymont'.
+    4. Ensure geometry is valid.
     """
-    print("Processing data (cleaning DO, adding seasons)...")
+    print("Processing data (detecting V2 parameters, cleaning DO, adding seasons)...")
     
-    # Clean DO column
+    # Check for V2 columns and map them
+    cols = gdf.columns
+    for col in cols:
+        if col.endswith('2') and len(col) > 1:
+            base_col = col[:-1]
+            # Special case mapping where original may have trailing underscore
+            if base_col == 'do' and 'do_' in cols:
+                base_col = 'do_'
+                
+            if base_col in cols:
+                if pd.api.types.is_numeric_dtype(gdf[col]):
+                    base_valid = gdf[base_col].notna().sum()
+                    v2_valid = gdf[col].notna().sum()
+                    if v2_valid >= base_valid:
+                        gdf[base_col] = gdf[col]
+                        print(f"Mapped {col} -> {base_col} ({col}: {v2_valid} valid float entries | {base_col}: {base_valid} valid originally)")
+
+    # Clean DO column (ensure it gets numeric casting)
     if 'do_' in gdf.columns:
         gdf['do_'] = pd.to_numeric(gdf['do_'], errors='coerce')
     
