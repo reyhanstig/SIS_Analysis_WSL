@@ -13,6 +13,32 @@ class MappingConfig:
     # --- Boundary Files ---
     LAND_BOUNDARY_FILENAME = "Setonaikai_boundary_2.shp"
     
+    BOUNDARY_FILES = {
+        'Seto Inland Sea': 'Setonaikai_boundary_2.shp',
+        'Tokyo Bay': 'Tokyobay_boundary.shp',
+        'Ise Bay': 'Isebay_boundary.shp'
+    }
+    
+    @staticmethod
+    def get_boundary_file(target_region):
+        """Returns the appropriate boundary filename for the given region."""
+        return MappingConfig.BOUNDARY_FILES.get(target_region, MappingConfig.LAND_BOUNDARY_FILENAME)
+    
+    @staticmethod
+    def load_target_region():
+        """Loads the target region from params.yaml."""
+        import yaml
+        from scripts.paths import ProjectPaths
+        try:
+            params_path = ProjectPaths.PROJECT_ROOT / "params.yaml"
+            if params_path.exists():
+                with open(params_path, "r") as f:
+                    params = yaml.safe_load(f)
+                    return params.get('mapping', {}).get('target_region', 'Seto Inland Sea')
+        except Exception:
+            pass
+        return 'Seto Inland Sea'
+
     # --- Land / Ocean Styling ---
     COLOR_OCEAN = 'lightblue'
     COLOR_LAND = 'lightgray'

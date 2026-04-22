@@ -65,7 +65,9 @@ Key parameters in the dataset have been clarified through statistical analysis (
 
 ## Analysis Pipeline (New!)
 
-We use a **DVC Pipeline** to automate the execution of notebooks. This ensures that when you update an early step (like data cleaning), all downstream analysis (like PCA) is automatically updated.
+We use a **DVC Pipeline** to automate the execution of notebooks. This ensures that when you update an early step (like data cleaning), all downstream analysis (like PCA) is automatically updated. 
+
+**Regional Support**: The pipeline now supports localized analysis. By adjusting `mapping` parameters in `params.yaml`, you can automatically restrict the entire analysis (from subsets to PCA) to specific bays such as **Tokyo Bay** or **Ise Bay**.
 
 ### Core Command
 ```bash

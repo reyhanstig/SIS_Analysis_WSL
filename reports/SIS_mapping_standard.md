@@ -84,7 +84,9 @@ sis_water_boundary = gpd.read_file(water_boundary_path)
 Use the pre-filtered, high-resolution SIS prefecture boundary shapefile to draw intricate coastlines and islands on top of Cartopy maps, instead of using low-resolution `cfeature.LAND`.
 
 ```python
-land_boundary_path = ProjectPaths.BOUNDARIES_DIR / "SIS_prefecture_boundaries" / "Setonaikai_boundary_2.shp"
+# Dynamic Landmass Boundary Selection
+land_boundary_file = MappingConfig.get_boundary_file(MappingConfig.TARGET_REGION) # Assuming TARGET_REGION is available or passed
+land_boundary_path = ProjectPaths.BOUNDARIES_DIR / "SIS_prefecture_boundaries" / land_boundary_file
 sis_land_boundary = gpd.read_file(land_boundary_path)
 
 # Enforce WGS84 to match PlateCarree projection
@@ -190,7 +192,8 @@ ax.add_feature(cfeature.LAND, facecolor=MappingConfig.COLOR_LAND, zorder=Mapping
 ax.add_feature(cfeature.COASTLINE, linewidth=0.5, edgecolor='black', zorder=MappingConfig.ZORDER_CARTOPY_COASTLINE)
 
 # Load and Plot High-Res Landmass Mask
-land_boundary_path = ProjectPaths.BOUNDARIES_DIR / "SIS_prefecture_boundaries" / "Setonaikai_boundary_2.shp"
+land_boundary_file = MappingConfig.get_boundary_file(MappingConfig.TARGET_REGION)
+land_boundary_path = ProjectPaths.BOUNDARIES_DIR / "SIS_prefecture_boundaries" / land_boundary_file
 sis_land_boundary = gpd.read_file(land_boundary_path)
 if sis_land_boundary.crs != "EPSG:4326":
     sis_land_boundary = sis_land_boundary.to_crs("EPSG:4326")
@@ -213,7 +216,8 @@ data_gdf.plot(ax=ax, markersize=3, color='red', alpha=0.8,
               transform=ccrs.PlateCarree(), zorder=MappingConfig.ZORDER_PREDICTED,
                cmap=var_cfg['cmap'], vmin=var_cfg['vmin'], vmax=var_cfg['vmax'])
 
-# Extent (using the water bounds)
+# Extent (using the water bounds or filtered data bounds)
+# NOTE: For regional analysis (e.g. Tokyo Bay), the extent should follow the data_gdf bounds.
 ax.set_extent([bounds[0]-0.2, bounds[2]+0.2, bounds[1]-0.2, bounds[3]+0.2],
               crs=ccrs.PlateCarree())
 

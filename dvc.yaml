@@ -73,6 +73,26 @@ stages:
       - data/processed/dist_matrix_km.csv
       - data/processed/seasonal/summer_bottom/stations_decorrelation_scale.csv
 
+  decorrelation_tokyo:
+    cmd: papermill notebooks/pipeline/39a_Decorrelation_Analysis_Tokyo_Bay.ipynb notebooks/output/39a_log.ipynb
+    deps:
+      - notebooks/pipeline/39a_Decorrelation_Analysis_Tokyo_Bay.ipynb
+      - data/processed/seasonal/summer_bottom/yearly_do_df.csv
+      - data/processed/merged_gdf.feather
+    outs:
+      - data/processed/seasonal/summer_bottom/tokyo_bay_decorrelation_scale.csv
+      - figures/tokyo_bay_decorrelation_scale.png
+
+  decorrelation_ise:
+    cmd: papermill notebooks/pipeline/39b_Decorrelation_Analysis_Ise_Bay.ipynb notebooks/output/39b_log.ipynb
+    deps:
+      - notebooks/pipeline/39b_Decorrelation_Analysis_Ise_Bay.ipynb
+      - data/processed/seasonal/summer_bottom/yearly_do_df.csv
+      - data/processed/merged_gdf.feather
+    outs:
+      - data/processed/seasonal/summer_bottom/ise_bay_decorrelation_scale.csv
+      - figures/ise_bay_decorrelation_scale.png
+
   interpolation:
     cmd: python scripts/run_pipeline_step.py notebooks/pipeline/09_Spatial_Interpolation_v2.ipynb notebooks/output/09_log.ipynb interpolation
     deps:

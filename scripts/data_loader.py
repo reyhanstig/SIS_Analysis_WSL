@@ -102,19 +102,22 @@ def clean_and_process_data(gdf):
     # Check for V2 columns and map them
     cols = gdf.columns
     for col in cols:
+        base_col = None
         if col.endswith('2') and len(col) > 1:
             base_col = col[:-1]
             # Special case mapping where original may have trailing underscore
             if base_col == 'do' and 'do_' in cols:
                 base_col = 'do_'
+        elif col == 'chloroph_1' and 'chlorophyl' in cols:
+            base_col = 'chlorophyl'
                 
-            if base_col in cols:
-                if pd.api.types.is_numeric_dtype(gdf[col]):
-                    base_valid = gdf[base_col].notna().sum()
-                    v2_valid = gdf[col].notna().sum()
-                    if v2_valid >= base_valid:
-                        gdf[base_col] = gdf[col]
-                        print(f"Mapped {col} -> {base_col} ({col}: {v2_valid} valid float entries | {base_col}: {base_valid} valid originally)")
+        if base_col and base_col in cols:
+            if pd.api.types.is_numeric_dtype(gdf[col]):
+                base_valid = gdf[base_col].notna().sum()
+                v2_valid = gdf[col].notna().sum()
+                if v2_valid >= base_valid:
+                    gdf[base_col] = gdf[col]
+                    print(f"Mapped {col} -> {base_col} ({col}: {v2_valid} valid float entries | {base_col}: {base_valid} valid originally)")
 
     # Clean DO column (ensure it gets numeric casting)
     if 'do_' in gdf.columns:

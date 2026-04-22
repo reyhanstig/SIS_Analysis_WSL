@@ -26,3 +26,19 @@ seasonal_plots:
     individual: true
     progressive: true
     grid_2x2: true
+
+mapping:
+  # Option A: To target the entire Seto Inland Sea
+  target_region: "Seto Inland Sea" 
+  region_column: "watermass_name" 
+
+  # OR: To target a specific sub-bay (e.g., Osaka Bay, Tokyo Bay, Ise Bay)
+  # target_region: "Osaka Bay"
+  # region_column: "division"
+
+  # Option B: Bounding box for Seto Inland Sea (based on your map coordinates)
+  bbox:
+    min_lon: 130.5
+    max_lon: 135.5
+    min_lat: 32.5
+    max_lat: 35.0

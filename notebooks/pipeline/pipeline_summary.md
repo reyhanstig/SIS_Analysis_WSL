@@ -38,6 +38,12 @@ These parameters control the behavior of the analysis steps. Adjusting them here
 | `r_crit_alpha` | `0.01` | Significance level ($p$-value) for critical correlation ($r_{crit}$) |
 | `distance_cutoff_km` | `100` | Maximum distance to consider for neighbor counting |
 
+### Mapping Settings
+| Parameter | Value | Description |
+| :--- | :--- | :--- |
+| `target_region` | `"Seto Inland Sea"` | The specific region to focus the analysis on (e.g., `"Tokyo Bay"`, `"Ise Bay"`) |
+| `region_column` | `"watermass_name"` | The column name representing the region boundaries |
+
 ---
 
 ## 3. Data Field Definitions
@@ -51,8 +57,9 @@ Based on verification in `notebooks/26_check_temp_wtemp.ipynb`, target variables
 | `saisuipoin` | **Depth Layer** | `1` = Surface Layer, `2` = Bottom Layer. |
 | `do_` | **Dissolved Oxygen** | Concentration in mg/L. |
 | `salt` | **Salinity** | Measurement of salt content. |
+| `chlorophyl` | **Chlorophyll-a** | Phytoplankton biomass indicator (μg/L). |
 
-> **Note on Parameter Aliasing:** Data processing automatically detects alternative "v2" columns (e.g., `do_2`, `salt2`) present in raw shapefiles, which often have better numerical data typing (`float64`) and fewer null values. The pipeline natively replaces the primary column data with these superior "v2" variants during ingestion, meaning standard aliases like `do_` silently represent `do_2` values throughout analytical notebooks.
+> **Note on Parameter Aliasing:** Data processing automatically detects alternative "v2" columns (e.g., `do_2`, `salt2`, `chloroph_1`) present in raw shapefiles, which often have better numerical data typing (`float64`) and fewer null values. The pipeline natively replaces the primary column data with these superior "v2" variants during ingestion, meaning standard aliases like `do_` and `chlorophyl` silently represent the improved values throughout analytical notebooks.
 
 ---
 
@@ -89,7 +96,8 @@ Based on verification in `notebooks/26_check_temp_wtemp.ipynb`, target variables
 -   **Outputs** (one directory per combination):
     -   `data/processed/seasonal/{season}_{layer}/yearly_{param}_df.csv` (where `param` is one of `do_`, `temp`, `wtemp`, `salt`)
 -   **Combinations**: Spring/Summer/Autumn/Winter × surface(`saisuipoin=1`) / bottom(`saisuipoin=2`)
--   **Method**: Each season uses a **single representative month** (May/Jul/Oct/Jan) rather than averaging all months in the season. This was validated by `notebooks/sampling_months_check.ipynb`, which showed that >93% of observations already come from the dominant month.
+-   **Method**: Each season uses a **single representative month** (May/Jul/Oct/Jan) rather than averaging all months in the season.
+-   **Regional Filtering**: This stage now incorporates **Target Region Filtering** based on `params.yaml`. The `merged_gdf` is filtered by the specified `region_column` and `target_region` (e.g., "Tokyo Bay", "Ise Bay", "Seto Inland Sea") before creating subsets. This ensures all downstream analysis is restricted to the specific region of interest.
 -   **Note**: The shared distance matrix (`dist_matrix_km.csv`) is **not** recomputed here — it is produced once by Stage 2.
 
 **Important Data Caveat:** Seasonal subsets only extract data from a single representative month (Spring=5, Summer=7, Autumn=10, Winter=1) to prevent sampling bias. Consequently, some years (like 1981 and 1983 for Summer) are missing entirely from downstream pipelines because no sampling occurred during the strict representative month for that year.
