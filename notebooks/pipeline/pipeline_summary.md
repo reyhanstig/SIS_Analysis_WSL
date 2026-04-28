@@ -82,6 +82,13 @@ Based on verification in `notebooks/26_check_temp_wtemp.ipynb`, target variables
 -   **Outputs**:
     -   `data/processed/merged_gdf.feather` (Cleaned geospatial dataframe)
 
+### Stage 1b: `calculate_physical_indices`
+-   **Goal**: Calculate Potential Density Anomaly ($\sigma_0$) and Stratification indices.
+-   **Notebook**: `notebooks/pipeline/01b_Calculate_Physical_Indices.ipynb`
+-   **Inputs**: `data/processed/merged_gdf.feather`
+-   **Outputs**:
+    -   `data/processed/merged_gdf.feather` (Overwrites the dataset, adding `density`, `stratification`, and `stratification_gradient` columns)
+
 ### Stage 1.1: `hypoxia_mapping`
 -   **Goal**: Visualize hypoxia frequency for specific seasons and sampling points.
 -   **Notebook**: `notebooks/pipeline/04_Hypoxia_Mapping.ipynb`

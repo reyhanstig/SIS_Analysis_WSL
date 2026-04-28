@@ -1,7 +1,27 @@
 
 *.tmp.driveupload
 reports/figures
-figures/
-00_Heavy_Assets/
-notes/
-sources/
+data
+figures
+00_Heavy_Assets
+notes
+sources
+
+
+# Python cache
+__pycache__/
+*.pyc
+scripts/__pycache__/
+
+# Temporary/Scratch files
+tmp_*
+test_*
+
+# Generated outputs
+*.png
+*.gif
+notebooks/output/*_log.ipynb
+
+# Agent metadata
+.agent/
+
