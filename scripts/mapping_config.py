@@ -13,6 +13,22 @@ class MappingConfig:
     # --- Boundary Files ---
     LAND_BOUNDARY_FILENAME = "Setonaikai_boundary_2.shp"
     
+    @staticmethod
+    def apply_global_plot_styles():
+        """Applies global matplotlib parameter updates for consistent styling."""
+        import matplotlib.pyplot as plt
+        plt.rcParams.update({
+            'font.size': 12,              # Minimal base font size
+            'axes.titlesize': 14,         # Plot title font size
+            'axes.labelsize': 12,         # X/Y axis label font size
+            'xtick.labelsize': 10,        # X axis tick label size
+            'ytick.labelsize': 10,        # Y axis tick label size
+            'legend.fontsize': 10,        # Legend font size
+            'axes.titleweight': 'bold',   # Bold plot titles by default
+            'figure.titlesize': 16,       # Super title font size
+            'figure.titleweight': 'bold'  # Bold super titles
+        })
+
     BOUNDARY_FILES = {
         'Seto Inland Sea': 'Setonaikai_boundary_2.shp',
         'Tokyo Bay': 'Tokyobay_boundary.shp',

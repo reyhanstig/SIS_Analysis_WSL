@@ -6,6 +6,27 @@ This document defines the standardized mapping format for all geospatial visuali
 
 ---
 
+## 0. Global Plot Styling
+
+To ensure consistency in font sizes, bold titles, and general aesthetics across all notebooks and scripts, we use a centralized Matplotlib style file located in the project root: `project_style.mplstyle`.
+
+### Usage
+In any notebook or script, add this line after your imports:
+```python
+import matplotlib.pyplot as plt
+plt.style.use('../project_style.mplstyle') # Adjust path if necessary
+```
+
+### Key Parameters
+The style file currently enforces:
+- **Title**: Bold, Size 20
+- **Axis Labels**: Size 18
+- **Tick Labels**: Size 16
+- **Legend**: Size 12
+- **Global Base Font**: Size 16 (controls scatter labels and annotations)
+
+---
+
 ## 1. Required Imports
 
 ```python
@@ -15,6 +36,9 @@ import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from scripts.paths import ProjectPaths
 from scripts.mapping_config import MappingConfig
+
+# Apply the global project style
+plt.style.use('../project_style.mplstyle')
 ```
 
 > [!NOTE]
