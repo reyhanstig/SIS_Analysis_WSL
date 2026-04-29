@@ -7,6 +7,13 @@
 # (Spring, Summer, Autumn, Winter) for a single year, using the
 # diffusion interpolation method from the notebook.
 # Output: 2 fps GIF animations.
+#
+# Performance notes:
+# - Seasonal CSVs are cached in memory (read once, not per-year)
+# - Station joins are pre-computed during interpolation phase
+# - Animation uses in-place artist updates (no ax.clear()) to avoid
+#   expensive Cartopy gridline re-computation on every frame
+# - GIF rendered at dpi=100 for reasonable file size
 
 # --- 1. Imports ---
 import pandas as pd
@@ -29,9 +36,15 @@ import sys
 import time
 from pathlib import Path
 
-project_root = Path("../").resolve()
+project_root = Path(__file__).resolve().parent.parent
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
+
+# Load global project style
+try:
+    plt.style.use(str(project_root / 'project_style.mplstyle'))
+except Exception:
+    pass
 
 from scripts.paths import ProjectPaths
 from scripts.mapping_config import MappingConfig
@@ -42,6 +55,12 @@ MAX_ITERS = 500    # Max SOR iterations
 TOL = 1e-3         # Convergence tolerance
 OMEGA = 1.8        # SOR relaxation factor
 FPS = 2            # Frames per second for the animation
+DPI = 100          # Output DPI (100 is sharp enough for 2fps GIF)
+
+# Font sizes for this script's figures
+TITLE_FONTSIZE = 22
+TICK_LABEL_FONTSIZE = 16
+COLORBAR_FONTSIZE = 20
 
 SEASONS = ['Spring', 'Summer', 'Autumn', 'Winter']
 LAYERS = ['surface', 'bottom']
@@ -88,7 +107,7 @@ lon_flat, lat_flat = transformer.transform(flat_x, flat_y)
 lon_wgs = lon_flat.reshape(grid_x.shape)
 lat_wgs = lat_flat.reshape(grid_y.shape)
 
-# Load station data
+# Load station data (loaded once, reused for fallback and joins)
 print("Loading station data...")
 merged_gdf = gpd.read_feather(ProjectPaths.MERGED_DATA_FILE)
 stations_gdf = merged_gdf[['zettaicode', 'longitude', 'latitude']].drop_duplicates().set_index('zettaicode')
@@ -174,20 +193,56 @@ def run_diffusion_interpolation(year_data, stations_utm_local,
     return Z
 
 
-def load_year_data(s, l, y):
-    """Load yearly DO data for a specific season, layer, and year."""
-    subset_dir = ProjectPaths.get_subset_dir(s, l)
-    yearly_do_file = subset_dir / "yearly_do_df.csv"
-    if not yearly_do_file.exists():
-        return None
-    yearly_do_df = pd.read_csv(yearly_do_file, dtype={'zettaicode': str}).set_index('zettaicode')
-    if str(y) in yearly_do_df.columns:
-        y_col = str(y)
-    elif int(y) in yearly_do_df.columns:
-        y_col = int(y)
-    else:
-        return None
-    do_values = yearly_do_df[[y_col]].dropna().rename(columns={y_col: 'do_'})
+def load_all_seasonal_csvs(layer):
+    """Load all seasonal CSV files for a layer into memory once.
+
+    Returns:
+        csv_cache: dict mapping season name to its DataFrame
+        available_years: sorted list of year strings found across all seasons
+    """
+    csv_cache = {}
+    all_years = set()
+    for season in SEASONS:
+        subset_dir = ProjectPaths.get_subset_dir(season, layer)
+        yearly_do_file = subset_dir / "yearly_do_df.csv"
+        if yearly_do_file.exists():
+            df = pd.read_csv(yearly_do_file, dtype={'zettaicode': str}).set_index('zettaicode')
+            csv_cache[season] = df
+            years = [col for col in df.columns if str(col).isdigit()]
+            all_years.update(years)
+    return csv_cache, sorted(all_years)
+
+
+def load_year_data(s, l, y, csv_cache, fallback_df=None):
+    """Load yearly DO data for a specific season, layer, and year.
+    Uses cached CSV dict instead of reading from disk each time.
+    Falls back to the master feather file if the seasonal CSV is missing the year.
+    """
+    do_values = None
+
+    if s in csv_cache:
+        df = csv_cache[s]
+        y_col = None
+        if str(y) in df.columns:
+            y_col = str(y)
+        elif int(y) in df.columns:
+            y_col = int(y)
+
+        if y_col is not None:
+            do_values = df[[y_col]].dropna().rename(columns={y_col: 'do_'})
+
+    # Fallback to master feather file if data is still missing
+    if (do_values is None or len(do_values) == 0) and fallback_df is not None:
+        layer_code = ProjectPaths.LAYER_CODES.get(l.lower())
+        mask = (fallback_df['year'] == int(y)) & \
+               (fallback_df['season'] == s) & \
+               (fallback_df['saisuipoin'] == layer_code)
+
+        subset = fallback_df[mask][['zettaicode', 'do_']].dropna().set_index('zettaicode')
+        if not subset.empty:
+            do_values = subset
+            print(f"    [Fallback] Loaded {len(do_values)} records for {y} {s} {l} from master feather file.")
+
     return do_values
 
 
@@ -206,11 +261,11 @@ def build_land_patches(gdf, facecolor, edgecolor, linewidth):
 def add_land_to_ax(ax, patches_data):
     """Add land patches to a cartopy axis."""
     patches, fc, ec, lw = patches_data
-    
+
     # Add standard Cartopy Land and Coastlines underneath (standardized baseline)
-    ax.add_feature(cfeature.LAND, facecolor=MappingConfig.COLOR_LAND, 
+    ax.add_feature(cfeature.LAND, facecolor=MappingConfig.COLOR_LAND,
                    zorder=MappingConfig.ZORDER_CARTOPY_LAND)
-    ax.add_feature(cfeature.COASTLINE, linewidth=0.5, edgecolor='black', 
+    ax.add_feature(cfeature.COASTLINE, linewidth=0.5, edgecolor='black',
                    zorder=MappingConfig.ZORDER_CARTOPY_COASTLINE)
 
     pc = PatchCollection(
@@ -220,19 +275,6 @@ def add_land_to_ax(ax, patches_data):
         zorder=MappingConfig.ZORDER_LAND
     )
     ax.add_collection(pc)
-
-
-def get_available_years(layer):
-    """Get the sorted list of available years across all seasons for a layer."""
-    all_years = set()
-    for season in SEASONS:
-        subset_dir = ProjectPaths.get_subset_dir(season, layer)
-        yearly_do_file = subset_dir / "yearly_do_df.csv"
-        if yearly_do_file.exists():
-            yearly_do_df = pd.read_csv(yearly_do_file, dtype={'zettaicode': str}).set_index('zettaicode')
-            years = [col for col in yearly_do_df.columns if str(col).isdigit()]
-            all_years.update(years)
-    return sorted(all_years)
 
 
 # --- 5. Build land patches ---
@@ -247,32 +289,47 @@ land_patches_data = build_land_patches(
 
 # --- 6. Pre-compute all interpolation data ---
 def precompute_all_data(layer):
-    """Pre-compute all diffusion interpolation results for all years and seasons."""
-    available_years = get_available_years(layer)
+    """Pre-compute all diffusion interpolation results for all years and seasons.
+
+    Returns tuples of (Z, plot_df) where plot_df already has station
+    coordinates joined, so the animation loop doesn't repeat that work.
+    """
+    csv_cache, available_years = load_all_seasonal_csvs(layer)
     print(f"  Available years for {layer}: {len(available_years)}")
 
-    all_data = {}  # {year: {season: (Z, do_values)}}
+    all_data = {}  # {year: {season: (Z, plot_df)}}
 
     for y_idx, y in enumerate(available_years):
         year_data = {}
         for season in SEASONS:
-            do_values = load_year_data(season, layer, y)
+            do_values = load_year_data(season, layer, y,
+                                       csv_cache=csv_cache,
+                                       fallback_df=merged_gdf)
             if do_values is not None and len(do_values) > 0:
                 Z = run_diffusion_interpolation(do_values, stations_utm,
                                                  grid_x_1d, grid_y_1d,
                                                  water_mask, grid_x, grid_y)
-                year_data[season] = (Z, do_values)
+                # Pre-join station coordinates (avoids per-frame DataFrame join)
+                plot_df = do_values.join(stations_gdf, how='inner')
+                year_data[season] = (Z, plot_df)
             else:
                 year_data[season] = (None, None)
         all_data[y] = year_data
-        print(f"    Interpolated year {y} ({y_idx + 1}/{len(available_years)})")
+        if (y_idx + 1) % 5 == 0 or (y_idx + 1) == len(available_years):
+            print(f"    Interpolated year {y} ({y_idx + 1}/{len(available_years)})")
 
     return available_years, all_data
 
 
 # --- 7. Create animation ---
 def create_animation(layer, available_years, all_data, output_path):
-    """Create an MP4 animation for the given layer."""
+    """Create a GIF animation for the given layer.
+
+    Performance: static elements (land, coastlines, gridlines) are drawn
+    once during figure setup.  On each frame only the pcolormesh data array
+    and scatter artists are updated, avoiding the expensive Cartopy
+    gridline-label recomputation that ax.clear() would trigger.
+    """
     var_cfg = MappingConfig.get_var_settings('do_')
     vmin, vmax = var_cfg['vmin'], var_cfg['vmax']
     cmap = var_cfg['cmap']
@@ -291,55 +348,92 @@ def create_animation(layer, available_years, all_data, output_path):
                               subplot_kw={'projection': ccrs.PlateCarree()})
     axes_flat = axes.flatten()
 
-    # Reserve space for colorbar
-    cbar_ax = fig.add_axes([0.92, 0.15, 0.015, 0.7])
+    # ------------------------------------------------------------------
+    # STATIC SETUP (drawn once, persists across all frames)
+    # ------------------------------------------------------------------
+    Z_nan = np.full_like(lon_wgs, np.nan)
+    quad_artists = []
+    scatter_artists = [None, None, None, None]
+    title_artists = []
 
-    # Create a dummy ScalarMappable for the colorbar
+    for i, ax in enumerate(axes_flat):
+        ax.set_facecolor(MappingConfig.COLOR_OCEAN)
+        add_land_to_ax(ax, land_patches_data)
+        ax.set_extent(extent, crs=ccrs.PlateCarree())
+
+        # Coordinate gridlines — only left column gets Y labels,
+        # only bottom row gets X labels
+        is_left = (i % 2 == 0)
+        is_bottom = (i >= 2)
+        gl = ax.gridlines(draw_labels=True,
+                          linestyle=MappingConfig.GRID_LINESTYLE,
+                          color=MappingConfig.GRID_COLOR,
+                          alpha=MappingConfig.GRID_ALPHA,
+                          linewidth=MappingConfig.GRID_LINEWIDTH,
+                          zorder=MappingConfig.ZORDER_GRIDLINES)
+        gl.top_labels = False
+        gl.right_labels = False
+        gl.left_labels = is_left
+        gl.bottom_labels = is_bottom
+        gl.xlabel_style = {'size': TICK_LABEL_FONTSIZE}
+        gl.ylabel_style = {'size': TICK_LABEL_FONTSIZE}
+
+        # Initial pcolormesh with NaN (invisible until first update)
+        q = ax.pcolormesh(lon_wgs, lat_wgs, Z_nan,
+                          transform=ccrs.PlateCarree(),
+                          cmap=cmap, shading='nearest',
+                          zorder=MappingConfig.ZORDER_PREDICTED,
+                          vmin=vmin, vmax=vmax)
+        quad_artists.append(q)
+
+        t = ax.set_title('', fontsize=TITLE_FONTSIZE)
+        title_artists.append(t)
+
+    # Colorbar
+    cbar_ax = fig.add_axes([0.92, 0.15, 0.015, 0.7])
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(vmin=vmin, vmax=vmax))
     sm.set_array([])
     cbar = fig.colorbar(sm, cax=cbar_ax)
-    cbar.set_label(label, fontsize=14)
+    cbar.set_label(label, fontsize=COLORBAR_FONTSIZE)
+    cbar.ax.tick_params(labelsize=COLORBAR_FONTSIZE)
 
     # Title
-    suptitle = fig.suptitle('', fontsize=18, fontweight='bold', y=0.95)
+    suptitle = fig.suptitle('', fontsize=TITLE_FONTSIZE, fontweight='bold', y=0.95)
 
     plt.subplots_adjust(right=0.9, wspace=0.05, hspace=0.1)
 
+    # ------------------------------------------------------------------
+    # FRAME UPDATE (only data layers change)
+    # ------------------------------------------------------------------
     def update_frame(frame_idx):
-        """Update function for each animation frame."""
+        """Update pcolormesh data and scatter artists for each frame."""
         year = available_years[frame_idx]
         year_data = all_data[year]
 
         for i, season in enumerate(SEASONS):
-            ax = axes_flat[i]
-            ax.clear()
+            Z, plot_df = year_data[season]
 
-            ax.set_facecolor(MappingConfig.COLOR_OCEAN)
-            add_land_to_ax(ax, land_patches_data)
-            ax.set_extent([bounds[0] - 0.2, bounds[2] + 0.2,
-                           bounds[1] - 0.2, bounds[3] + 0.2],
-                          crs=ccrs.PlateCarree())
+            # Update pcolormesh data in-place
+            if Z is not None:
+                quad_artists[i].set_array(Z.ravel())
+            else:
+                quad_artists[i].set_array(Z_nan.ravel())
 
-            Z, do_values = year_data[season]
+            # Remove previous scatter, add new one if data exists
+            if scatter_artists[i] is not None:
+                scatter_artists[i].remove()
+                scatter_artists[i] = None
 
-            if Z is not None and do_values is not None:
-                ax.pcolormesh(lon_wgs, lat_wgs, Z,
-                              transform=ccrs.PlateCarree(),
-                              cmap=cmap, shading='nearest',
-                              zorder=MappingConfig.ZORDER_PREDICTED,
-                              vmin=vmin, vmax=vmax)
+            if plot_df is not None and Z is not None:
+                scatter_artists[i] = axes_flat[i].scatter(
+                    plot_df['longitude'], plot_df['latitude'],
+                    c=plot_df['do_'], cmap=cmap,
+                    edgecolors='black', linewidth=0.2,
+                    transform=ccrs.PlateCarree(),
+                    zorder=MappingConfig.ZORDER_OBSERVATIONS,
+                    marker='^', s=10, vmin=vmin, vmax=vmax)
 
-                plot_df = do_values.join(stations_gdf, how='inner')
-                ax.scatter(plot_df['longitude'], plot_df['latitude'],
-                           c=plot_df['do_'], cmap=cmap,
-                           edgecolors='black', linewidth=0.2,
-                           transform=ccrs.PlateCarree(),
-                           zorder=MappingConfig.ZORDER_OBSERVATIONS,
-                           marker='^', s=10, vmin=vmin, vmax=vmax)
-
-            ax.set_title(f'{season} {year}', fontsize=14)
-            ax.set_xticks([])
-            ax.set_yticks([])
+            title_artists[i].set_text(f'{season} {year}')
 
         suptitle.set_text(f'Seasonal DO Distribution: {year} ({layer})')
         return axes_flat
@@ -354,7 +448,7 @@ def create_animation(layer, available_years, all_data, output_path):
 
     # Save animation using Pillow writer (GIF format)
     writer = animation.PillowWriter(fps=FPS)
-    anim.save(str(output_path), writer=writer, dpi=150)
+    anim.save(str(output_path), writer=writer, dpi=DPI)
     print(f"  Animation saved to: {output_path}")
 
     plt.close(fig)

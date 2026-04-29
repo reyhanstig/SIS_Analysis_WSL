@@ -22,6 +22,6 @@ test_*
 *.gif
 notebooks/output/*_log.ipynb
 
-# Agent metadata
-.agent/
+# Ignore session-specific scratch files
+brain/*
 
