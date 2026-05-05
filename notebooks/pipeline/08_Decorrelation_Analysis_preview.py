@@ -12,6 +12,9 @@ if str(project_root) not in sys.path:
 
 from scripts.paths import ProjectPaths
 
+# Apply the global project style
+plt.style.use(str(project_root / 'project_style.mplstyle'))
+
 def create_synthetic_presentation_figure():
     """
     Generates a simplified, conceptual figure of the decorrelation scale calculation.
@@ -82,9 +85,9 @@ def create_synthetic_presentation_figure():
 
     # --- 3. Aesthetics & Saving ---
     # Removed specific Station IDs and Water Mass specific references
-    plt.title('Decorrelation Scale Calculation Model', fontsize=18, fontweight='bold', pad=15)
-    plt.xlabel('Distance (km)', fontsize=14)
-    plt.ylabel('Correlation Coefficient ($r$)', fontsize=14)
+    plt.title('Decorrelation Scale Calculation Model', fontsize=20, fontweight='bold', pad=15)
+    plt.xlabel('Distance (km)', fontsize=18)
+    plt.ylabel('Correlation Coefficient ($r$)', fontsize=18)
 
     plt.axhline(0, color='black', linewidth=1)
     plt.xlim(0, 100)
@@ -169,9 +172,9 @@ if len(results_df) > 0:
     plt.axhline(y=B_fit, color='orange', linestyle='-.', linewidth=2.5, alpha=0.9, label=r'Asymptotic Floor ($B$)')
 
     # Aesthetics
-    plt.title('Decorrelation Scale Calculation Model', fontsize=18, fontweight='bold', pad=15)
-    plt.xlabel('Distance (km)', fontsize=14)
-    plt.ylabel('Correlation Coefficient ($r$)', fontsize=14)
+    plt.title('Decorrelation Scale Calculation Model', fontsize=20, fontweight='bold', pad=15)
+    plt.xlabel('Distance (km)', fontsize=18)
+    plt.ylabel('Correlation Coefficient ($r$)', fontsize=18)
     plt.axhline(0, color='black', linewidth=1)
     plt.ylim(-0.5, 1.1)
     plt.xlim(0, x_limit)

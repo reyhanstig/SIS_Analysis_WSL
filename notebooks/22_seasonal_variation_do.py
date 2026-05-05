@@ -24,6 +24,7 @@ import geopandas as gpd
 import numpy as np
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
+import cartopy.feature as cfeature
 import scipy.ndimage as ndimage
 from scipy.spatial import cKDTree
 from shapely.geometry import Point
@@ -34,7 +35,8 @@ from matplotlib.patches import Polygon as MplPolygon
 import sys
 from pathlib import Path
 
-project_root = Path("../").resolve()
+# Add project root to sys.path
+project_root = Path(__file__).resolve().parent.parent
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
@@ -222,6 +224,12 @@ land_patches_data = build_land_patches(
 
 def add_land_to_ax(ax, patches_data):
     patches, fc, ec, lw = patches_data
+    
+    # 1. Plot standard Cartopy Land and Coastlines underneath
+    ax.add_feature(cfeature.LAND, facecolor=MappingConfig.COLOR_LAND, zorder=MappingConfig.ZORDER_CARTOPY_LAND)
+    ax.add_feature(cfeature.COASTLINE, linewidth=0.5, edgecolor='black', zorder=MappingConfig.ZORDER_CARTOPY_COASTLINE)
+
+    # 2. Plot high-resolution land masses on top
     pc = PatchCollection(
         [MplPolygon(p.get_xy(), closed=True) for p in patches],
         facecolor=fc, edgecolor=ec, linewidth=lw,
@@ -256,8 +264,8 @@ if do_values is not None and len(do_values) > 0:
     add_land_to_ax(ax, land_patches_data)
     
     # Extent
-    ax.set_extent([bounds[0]-0.2, bounds[2]+0.2,
-                   bounds[1]-0.2, bounds[3]+0.2], crs=ccrs.PlateCarree())
+    ax.set_extent([bounds[0]+0.1, bounds[2]+0.1,
+                   bounds[1]-0, bounds[3]+0.2], crs=ccrs.PlateCarree())
 
     # Add Gridlines to match SIS Mapping Standard
     gl = ax.gridlines(draw_labels=True, 
@@ -306,7 +314,7 @@ cmap = var_cfg['cmap']
 label = var_cfg['label']
 
 # Dynamically calculated height based on extent aspect ratio
-extent = [bounds[0]-0.2, bounds[2]+0.2, bounds[1]-0.2, bounds[3]+0.2]
+extent = [bounds[0]+0.1, bounds[2]+0.1, bounds[1]-0, bounds[3]+0.2]
 aspect_ratio = (extent[3] - extent[2]) / (extent[1] - extent[0])
 
 fig_width = 18
@@ -322,8 +330,7 @@ for i, s in enumerate(seasons):
     ax = axes[i]
     ax.set_facecolor(MappingConfig.COLOR_OCEAN)
     add_land_to_ax(ax, land_patches_data)
-    ax.set_extent([bounds[0]-0.2, bounds[2]+0.2,
-                   bounds[1]-0.2, bounds[3]+0.2],
+    ax.set_extent([bounds[0]+0.1, bounds[2]+0.1, bounds[1]-0, bounds[3]+0.2],
                   crs=ccrs.PlateCarree())
 
     do_values = load_year_data(s, layer, target_year)
@@ -346,8 +353,16 @@ for i, s in enumerate(seasons):
                    marker='^', s=10, vmin=vmin, vmax=vmax)
 
     ax.set_title(f'{s} {target_year}', fontsize=14)
-    ax.set_xticks([])
-    ax.set_yticks([])
+    
+    # Gridlines and Tickers following SIS Mapping Standard
+    # "only keep the bottom most and leftmost ticker labels"
+    gl = ax.gridlines(draw_labels=True, linestyle=MappingConfig.GRID_LINESTYLE,
+                      color=MappingConfig.GRID_COLOR, alpha=MappingConfig.GRID_ALPHA,
+                      linewidth=MappingConfig.GRID_LINEWIDTH, zorder=MappingConfig.ZORDER_GRIDLINES)
+    gl.top_labels = False
+    gl.right_labels = False
+    gl.bottom_labels = True if i >= 2 else False
+    gl.left_labels = True if i % 2 == 0 else False
 
 # Colorbar
 cbar_ax = fig.add_axes([0.92, 0.15, 0.015, 0.7])
@@ -409,7 +424,7 @@ for season in seasons:
     n_rows = int(np.ceil(n_years / n_cols))
 
     # Dynamically calculated height based on extent aspect ratio
-    extent = [bounds[0]-0.2, bounds[2]+0.2, bounds[1]-0.2, bounds[3]+0.2]
+    extent = [bounds[0]+0.1, bounds[2]+0.1, bounds[1]-0, bounds[3]+0.2]
     aspect_ratio = (extent[3] - extent[2]) / (extent[1] - extent[0])
 
     fig_width = 25
@@ -434,8 +449,8 @@ for season in seasons:
         ax = axes[i]
         ax.set_facecolor(MappingConfig.COLOR_OCEAN)
         add_land_to_ax(ax, land_patches_data)
-        ax.set_extent([bounds[0]-0.2, bounds[2]+0.2,
-                       bounds[1]-0.2, bounds[3]+0.2],
+        ax.set_extent([bounds[0]+0.1, bounds[2]+0.1,
+                       bounds[1]-0, bounds[3]+0.2],
                       crs=ccrs.PlateCarree())
     
         if y in all_Z:

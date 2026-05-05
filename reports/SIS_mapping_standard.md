@@ -68,7 +68,7 @@ Furthermore, `plt.tight_layout()` often struggles with Cartopy axes and spanning
 Always define `fig_height` proportionally when working with `.subplots(n_rows, n_cols)`, define a dedicated colorbar axis, and use `plt.subplots_adjust()` instead of `tight_layout()`:
 
 ```python
-extent = [bounds[0]-0.2, bounds[2]+0.2, bounds[1]-0.2, bounds[3]+0.2]
+extent = [bounds[0]+0.1, bounds[2]+0.1, bounds[1]-0, bounds[3]+0.2]
 aspect_ratio = (extent[3] - extent[2]) / (extent[1] - extent[0])
 
 fig_width = 25 # Set maximum allowed width
@@ -154,9 +154,9 @@ Dynamically crop to the dataset being visualized, with a 0.2° buffer:
 ```python
 bounds = data_gdf.total_bounds  # [minx, miny, maxx, maxy]
 ax.set_extent([
-    bounds[0] - 0.2,  # xmin
-    bounds[2] + 0.2,  # xmax
-    bounds[1] - 0.2,  # ymin
+    bounds[0] + 0.1,  # xmin
+    bounds[2] + 0.1,  # xmax
+    bounds[1] - 0,  # ymin
     bounds[3] + 0.2   # ymax
 ], crs=ccrs.PlateCarree())
 ```
@@ -242,7 +242,7 @@ data_gdf.plot(ax=ax, markersize=3, color='red', alpha=0.8,
 
 # Extent (using the water bounds or filtered data bounds)
 # NOTE: For regional analysis (e.g. Tokyo Bay), the extent should follow the data_gdf bounds.
-ax.set_extent([bounds[0]-0.2, bounds[2]+0.2, bounds[1]-0.2, bounds[3]+0.2],
+ax.set_extent([bounds[0]+0.1, bounds[2]+0.1, bounds[1]-0, bounds[3]+0.2],
               crs=ccrs.PlateCarree())
 
 plt.tight_layout()
