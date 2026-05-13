@@ -123,7 +123,8 @@ def main():
     sbs_matrix = get_time_series_matrix(merged_df, 'salt2', 'Summer', saisuipoin=2)
     wind_matrix = get_time_series_matrix(merged_df, 'fusoku', 'Summer')
     air_t_matrix = get_time_series_matrix(merged_df, 'temp', 'Winter')
-    chla_matrix = get_time_series_matrix(merged_df, 'chlorophyl', 'Spring')
+    spring_chla_matrix = get_time_series_matrix(merged_df, 'chlorophyl', 'Spring')
+    summer_chla_matrix = get_time_series_matrix(merged_df, 'chlorophyl', 'Summer')
     
     print("Computing density matrices...")
     station_coords = stations[['latitude', 'longitude']]
@@ -140,12 +141,12 @@ def main():
     env_matrices = [
         sst_matrix, sbt_matrix, sss_matrix, sbs_matrix,
         surface_density_matrix, bottom_density_matrix, stratification_matrix,
-        wind_matrix, air_t_matrix, chla_matrix
+        wind_matrix, air_t_matrix, spring_chla_matrix, summer_chla_matrix
     ]
     param_names = [
         'Summer_SST', 'Summer_SBT', 'Summer_SSS', 'Summer_SBS',
         'Summer_Surface_Density', 'Summer_Bottom_Density', 'Summer_Stratification',
-        'Summer_Wind_Speed', 'Winter_Air_Temp', 'Spring_Chla'
+        'Summer_Wind_Speed', 'Winter_Air_Temp', 'Spring_Chla', 'Summer_Chla'
     ]
     
     print("Calculating correlations...")

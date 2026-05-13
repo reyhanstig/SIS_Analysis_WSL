@@ -17,20 +17,38 @@ if str(project_root) not in sys.path:
 from scripts.paths import ProjectPaths
 from scripts.mapping_config import MappingConfig
 
+# Apply the global project style
+plt.style.use(str(ProjectPaths.PROJECT_ROOT / 'project_style.mplstyle'))
+
 def create_correlation_map(corr_df, parameter, output_path, pc_name):
     """
     Creates a single plot showing correlation between PC scores and an environmental parameter.
     Circle color indicates correlation value (r) and size indicates significance (p-value).
     """
-    # 1. Base Figure Setup
-    fig, ax = plt.subplots(figsize=(10, 8), subplot_kw={'projection': ccrs.PlateCarree()})
-    ax.set_facecolor(MappingConfig.COLOR_OCEAN)
+    # 1. Calculation for Figure Dimensions (Maintaining Aspect Ratio)
+    # Get extent from water boundary per reports/SIS_mapping_standard.md
+    water_boundary_path = ProjectPaths.BOUNDARIES_DIR / "SIS water mass polygon" / "sea_area_mask_simplified.shp"
+    sis_water_boundary = gpd.read_file(water_boundary_path)
+    if sis_water_boundary.crs != "EPSG:4326":
+        sis_water_boundary = sis_water_boundary.to_crs("EPSG:4326")
+    bounds = sis_water_boundary.total_bounds
     
-    # Add cartopy coastlines and land under the high-res shapefile
-    ax.add_feature(cfeature.LAND, facecolor=MappingConfig.COLOR_LAND, zorder=MappingConfig.ZORDER_CARTOPY_LAND)
-    ax.add_feature(cfeature.COASTLINE, linewidth=0.5, edgecolor='black', zorder=MappingConfig.ZORDER_CARTOPY_COASTLINE)
+    # Standard extent: [xmin, xmax, ymin, ymax]
+    extent = [bounds[0] + 0.1, bounds[2] + 0.1, bounds[1] - 0, bounds[3] + 0.2]
     
-    # 2. Add coastlines (Land Boundary)
+    aspect_ratio = (extent[3] - extent[2]) / (extent[1] - extent[0])
+    fig_width = 10
+    single_fig_height = (fig_width * aspect_ratio) + 1.2  # Buffer for title and labels
+    
+    # 2. Base Figure Setup
+    fig = plt.figure(figsize=(fig_width, single_fig_height))
+    ax = plt.axes(projection=ccrs.PlateCarree())
+    
+    ax.set_extent(extent, crs=ccrs.PlateCarree())
+    ax.add_feature(cfeature.LAND, facecolor='whitesmoke', edgecolor='gray', zorder=MappingConfig.ZORDER_CARTOPY_LAND)
+    ax.add_feature(cfeature.COASTLINE, linewidth=0.5, zorder=MappingConfig.ZORDER_CARTOPY_COASTLINE)
+    
+    # 3. Add High-Res Coastlines (Land Boundary)
     land_boundary_path = ProjectPaths.BOUNDARIES_DIR / "SIS_prefecture_boundaries" / "Setonaikai_boundary.shp"
     sis_land_boundary = gpd.read_file(land_boundary_path)
 
@@ -39,17 +57,16 @@ def create_correlation_map(corr_df, parameter, output_path, pc_name):
 
     sis_land_boundary.plot(
         ax=ax,
-        facecolor=MappingConfig.COLOR_LAND,
-        edgecolor=MappingConfig.COLOR_LAND_EDGE,
+        facecolor='whitesmoke',
+        edgecolor='gray',
         linewidth=MappingConfig.LINEWIDTH_LAND,
         transform=ccrs.PlateCarree(),
         zorder=MappingConfig.ZORDER_LAND
     )
     
-    # 3. Add Gridlines
-    gl = ax.gridlines(draw_labels=True, linestyle=MappingConfig.GRID_LINESTYLE, 
-                      color=MappingConfig.GRID_COLOR, alpha=MappingConfig.GRID_ALPHA, 
-                      linewidth=MappingConfig.GRID_LINEWIDTH, zorder=MappingConfig.ZORDER_GRIDLINES)
+    # 4. Add Gridlines
+    gl = ax.gridlines(draw_labels=True, linestyle='--', color='gray', alpha=0.4, 
+                      linewidth=0.5, zorder=MappingConfig.ZORDER_GRIDLINES)
     gl.top_labels = False
     gl.right_labels = False
     
@@ -69,19 +86,19 @@ def create_correlation_map(corr_df, parameter, output_path, pc_name):
     colors = []
     sizes = []
     
-    # using PRGn colormap: from purple (negative) to green (positive)
-    cmap = plt.get_cmap('PRGn')
+    # using coolwarm colormap: from blue (negative) to red (positive)
+    cmap = plt.get_cmap('coolwarm')
     norm = mcolors.Normalize(vmin=-1, vmax=1)
     
     for val, p_val in zip(plot_data[parameter], plot_data[p_col]):
         
         # 1. Size based on significance (p-value thresholds)
         if p_val <= 0.001:
-            size = 180  # ***
+            size = 500  # ***
         elif p_val <= 0.01:
-            size = 120  # **
+            size = 300  # **
         elif p_val <= 0.05:
-            size = 60   # *
+            size = 150   # *
         else:
             size = 20   # ns
             
@@ -120,22 +137,9 @@ def create_correlation_map(corr_df, parameter, output_path, pc_name):
         alpha=1
     )
 
-    # 6. Set Map Extent (using Seto Inland Sea bounds)
-    water_boundary_path = ProjectPaths.BOUNDARIES_DIR / "SIS water mass polygon" / "sea_area_mask_simplified.shp"
-    sis_water_boundary = gpd.read_file(water_boundary_path)
-    if sis_water_boundary.crs != "EPSG:4326":
-        sis_water_boundary = sis_water_boundary.to_crs("EPSG:4326")
-    bounds = sis_water_boundary.total_bounds
-    
-    ax.set_extent([
-        bounds[0] - 0.2,
-        bounds[2] + 0.2,
-        bounds[1] - 0.2,
-        bounds[3] + 0.2
-    ], crs=ccrs.PlateCarree())
     
     # 7. Add Title and Colorbar
-    plt.title(f"{pc_name} vs {parameter.replace('_', ' ')} Correlation", pad=20, fontsize=14, fontweight='bold')
+    plt.title(f"{pc_name} vs {parameter.replace('_', ' ')} Correlation", pad=20, fontsize=20, fontweight='bold')
     
     # 7a. Colorbar for Correlation values
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
@@ -144,7 +148,7 @@ def create_correlation_map(corr_df, parameter, output_path, pc_name):
     
     cbar_ax = fig.add_axes([0.92, 0.15, 0.03, 0.7]) 
     cbar = fig.colorbar(sm, cax=cbar_ax, orientation='vertical', ticks=ticks)
-    cbar.set_label('Pearson Correlation (Green=Positive, Purple=Negative)') 
+    cbar.set_label('Pearson Correlation (Red=Positive, Blue=Negative)', fontsize=14) 
     
     output_path.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(output_path, dpi=300, bbox_inches='tight')

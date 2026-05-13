@@ -55,6 +55,19 @@ pca_loadings = pd.read_csv(subset_dir / 'pca_loadings.csv', dtype={'zettaicode':
 # Load merged data for water mass division mapping
 merged_df = pd.read_feather(ProjectPaths.MERGED_DATA_FILE)
 merged_df['zettaicode'] = merged_df['zettaicode'].astype(str).str.zfill(8)
+
+# --- Regional Selection ---
+# Set the target region for the analysis: 'Seto Inland Sea', 'Tokyo Bay', or 'Ise Bay'
+target_region = 'Seto Inland Sea' 
+
+if target_region:
+    print(f"Filtering dataset for region: {target_region}")
+    valid_stations = merged_df[merged_df['watermass_name'] == target_region]['zettaicode'].unique()
+    corr_df_pc1 = corr_df_pc1[corr_df_pc1.index.isin(valid_stations)]
+    corr_df_pc2 = corr_df_pc2[corr_df_pc2.index.isin(valid_stations)]
+    pca_loadings = pca_loadings[pca_loadings.index.isin(valid_stations)]
+    merged_df = merged_df[merged_df['zettaicode'].isin(valid_stations)]
+
 divisions = merged_df[['zettaicode', 'division']].drop_duplicates('zettaicode').set_index('zettaicode')
 
 print("Data loaded successfully.")
