@@ -5,6 +5,12 @@ import plotly.express as px
 import plotly.graph_objects as go
 from pathlib import Path
 
+# Fix path resolution for scripts/ folder
+try:
+    from scripts.paths import ProjectPaths
+except ImportError:
+    from paths import ProjectPaths
+
 # Set page config
 st.set_page_config(page_title="SIS Analysis Dashboard", layout="wide")
 
@@ -22,7 +28,7 @@ LAYER_MAP = {1: "surface", 2: "bottom"}
 @st.cache_data
 def load_data():
     """Load the primary merged dataset (Tier 1)."""
-    df = pd.read_feather("data/processed/merged_gdf.feather")
+    df = pd.read_feather(ProjectPaths.MERGED_DATA_FILE)
 
     # Create a proper datetime column
     if 'survey_ym' in df.columns:
@@ -49,11 +55,6 @@ def load_data():
 @st.cache_data
 def load_seasonal_results(season: str, layer: str) -> dict:
     """Load pre-computed pipeline results for a season/layer combo (Tier 2)."""
-    try:
-        from scripts.paths import ProjectPaths
-    except ImportError:
-        from paths import ProjectPaths
-
     subset_dir = ProjectPaths.get_subset_dir(season, layer)
 
     results = {}

@@ -2,6 +2,12 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
+# Fix path resolution for scripts/ folder
+try:
+    from scripts.paths import ProjectPaths
+except ImportError:
+    from paths import ProjectPaths
+
 # Set page config
 st.set_page_config(page_title="SIS Time-Series Dashboard", layout="wide")
 
@@ -10,7 +16,7 @@ st.title("🌊 Water Quality Time-Series Dashboard")
 # Function to load data (cached for performance)
 @st.cache_data
 def load_data():
-    df = pd.read_feather("data/processed/merged_gdf.feather")
+    df = pd.read_feather(ProjectPaths.MERGED_DATA_FILE)
     
     # Create a proper datetime column
     if 'survey_ym' in df.columns:

@@ -117,36 +117,40 @@ def main():
     stations = merged_df[['zettaicode', 'latitude', 'longitude']].drop_duplicates('zettaicode').set_index('zettaicode')
     
     print("Building time series matrices...")
-    sst_matrix = get_time_series_matrix(merged_df, 'wtemp', 'Summer', saisuipoin=1)
-    sbt_matrix = get_time_series_matrix(merged_df, 'wtemp', 'Summer', saisuipoin=2)
-    sss_matrix = get_time_series_matrix(merged_df, 'salt2', 'Summer', saisuipoin=1)
-    sbs_matrix = get_time_series_matrix(merged_df, 'salt2', 'Summer', saisuipoin=2)
+    wtemp_1_matrix = get_time_series_matrix(merged_df, 'wtemp', 'Summer', saisuipoin=1)
+    wtemp_2_matrix = get_time_series_matrix(merged_df, 'wtemp', 'Summer', saisuipoin=2)
+    salt2_1_matrix = get_time_series_matrix(merged_df, 'salt2', 'Summer', saisuipoin=1)
+    salt2_2_matrix = get_time_series_matrix(merged_df, 'salt2', 'Summer', saisuipoin=2)
     wind_matrix = get_time_series_matrix(merged_df, 'fusoku', 'Summer')
     air_t_matrix = get_time_series_matrix(merged_df, 'temp', 'Winter')
-    spring_chla_matrix = get_time_series_matrix(merged_df, 'chlorophyl', 'Spring')
-    summer_chla_matrix = get_time_series_matrix(merged_df, 'chlorophyl', 'Summer')
+    spring_chla_1_matrix = get_time_series_matrix(merged_df, 'chlorophyl', 'Spring', saisuipoin=1)
+    spring_chla_2_matrix = get_time_series_matrix(merged_df, 'chlorophyl', 'Spring', saisuipoin=2)
+    chla_1_matrix = get_time_series_matrix(merged_df, 'chlorophyl', 'Summer', saisuipoin=1)
+    chla_2_matrix = get_time_series_matrix(merged_df, 'chlorophyl', 'Summer', saisuipoin=2)
     
     print("Computing density matrices...")
     station_coords = stations[['latitude', 'longitude']]
-    surface_density_matrix = compute_density_matrix(sst_matrix, sss_matrix, station_coords)
-    bottom_density_matrix = compute_density_matrix(sbt_matrix, sbs_matrix, station_coords)
+    density_1_matrix = compute_density_matrix(wtemp_1_matrix, salt2_1_matrix, station_coords)
+    density_2_matrix = compute_density_matrix(wtemp_2_matrix, salt2_2_matrix, station_coords)
     
     surface_depth_matrix = get_time_series_matrix(merged_df, 'saisuidept', 'Summer', saisuipoin=1)
     bottom_depth_matrix = get_time_series_matrix(merged_df, 'saisuidept', 'Summer', saisuipoin=2)
     
     depth_diff_matrix = bottom_depth_matrix - surface_depth_matrix
     depth_diff_matrix = depth_diff_matrix.replace(0, np.nan)
-    stratification_matrix = (bottom_density_matrix - surface_density_matrix) / depth_diff_matrix
+    stratification_matrix = (density_2_matrix - density_1_matrix) / depth_diff_matrix
     
     env_matrices = [
-        sst_matrix, sbt_matrix, sss_matrix, sbs_matrix,
-        surface_density_matrix, bottom_density_matrix, stratification_matrix,
-        wind_matrix, air_t_matrix, spring_chla_matrix, summer_chla_matrix
+        wtemp_1_matrix, wtemp_2_matrix, salt2_1_matrix, salt2_2_matrix,
+        density_1_matrix, density_2_matrix, stratification_matrix,
+        wind_matrix, air_t_matrix, spring_chla_1_matrix, spring_chla_2_matrix,
+        chla_1_matrix, chla_2_matrix
     ]
     param_names = [
-        'Summer_SST', 'Summer_SBT', 'Summer_SSS', 'Summer_SBS',
-        'Summer_Surface_Density', 'Summer_Bottom_Density', 'Summer_Stratification',
-        'Summer_Wind_Speed', 'Winter_Air_Temp', 'Spring_Chla', 'Summer_Chla'
+        'Summer_1_WTEMP', 'Summer_2_WTEMP', 'Summer_1_SALT2', 'Summer_2_SALT2',
+        'Summer_1_DENSITY', 'Summer_2_DENSITY', 'Summer_Stratification',
+        'Summer_Wind_Speed', 'Winter_Air_Temp', 'Spring_1_CHLA', 'Spring_2_CHLA',
+        'Summer_1_CHLA', 'Summer_2_CHLA'
     ]
     
     print("Calculating correlations...")

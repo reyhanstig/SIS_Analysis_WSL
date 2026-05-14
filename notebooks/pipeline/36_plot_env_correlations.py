@@ -178,7 +178,8 @@ def main():
         # Get environmental parameter names: only base columns that have a matching _pval column
         parameters = [c for c in df_pc.columns if f"{c}_pval" in df_pc.columns]
         for param in tqdm(parameters, desc=f"Mapping {pc_name}"):
-            output_path = output_dir / f"{pc_name}_{param}_correlation.png"
+            # param is like 'Summer_1_WTEMP' or 'Summer_Stratification'
+            output_path = output_dir / f"{pc_name}_{param}.png"
             create_correlation_map(df_pc, param, output_path, pc_name)
     
     print("\nAll correlation maps generated successfully.")

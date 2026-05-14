@@ -71,11 +71,10 @@ def calculate_station_correlations(pc_series, env_matrices, param_names, min_yea
                 row_pval[pname + '_pval'] = np.nan
                 row_n[pname + '_n'] = n
         
-        corr_records.append({**row_corr})
+        corr_records.append({**row_corr, **row_pval, **row_n})
     
     result = pd.DataFrame(corr_records).set_index('zettaicode')
-    corr_df = result[param_names]
-    return corr_df
+    return result
 
 def main():
     season = 'Summer'
@@ -100,9 +99,15 @@ def main():
     param_names = []
     
     for nutr in nutrients:
-        mat = get_time_series_matrix(merged_df, nutr, 'Summer', saisuipoin=2)
-        env_matrices.append(mat)
-        param_names.append(f'Summer_{nutr.upper()}')
+        # Surface (saisuipoin=1)
+        mat_s = get_time_series_matrix(merged_df, nutr, 'Summer', saisuipoin=1)
+        env_matrices.append(mat_s)
+        param_names.append(f'Summer_1_{nutr.upper()}')
+        
+        # Bottom (saisuipoin=2)
+        mat_b = get_time_series_matrix(merged_df, nutr, 'Summer', saisuipoin=2)
+        env_matrices.append(mat_b)
+        param_names.append(f'Summer_2_{nutr.upper()}')
         
     print("Calculating correlations...")
     corr_df_pc1 = calculate_station_correlations(pca_scores['PC1'], env_matrices, param_names)
