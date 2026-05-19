@@ -29,8 +29,8 @@ def get_time_series_matrix(df, param, season_filter, saisuipoin=None):
 
 def main():
     # Parameters for test
-    pc_name = "PC1"
-    parameter = "Spring_1_CHLA"
+    pc_name = "PC2"
+    parameter = "Summer_Stratification"
     
     print("Loading data...")
     merged_df = pd.read_feather(ProjectPaths.MERGED_DATA_FILE)
@@ -123,7 +123,7 @@ def main():
                 ax.plot(ts_matrix.index, ts_matrix[stn], marker=marker, color=base_color, 
                         alpha=alpha, linewidth=lw, markersize=ms)
                         
-        ax.set_title(region, fontsize=18, fontweight='bold')
+        ax.set_title(region, fontsize=16, fontweight='bold')
         ax.grid(True, linestyle='--', alpha=0.5)
         
     # Hide unused subplots
@@ -134,14 +134,14 @@ def main():
     for j in range(len(unique_regions)):
         # x-labels only on bottom row of the visible grid or if the subplot below it is deleted
         if j >= n_regions - n_cols:
-            axes[j].set_xlabel('Year', fontsize=18)
+            axes[j].set_xlabel('Year', fontsize=14)
         # y-labels only on leftmost column
         if j % n_cols == 0:
-            axes[j].set_ylabel(parameter.replace('_', ' '), fontsize=18)
+            axes[j].set_ylabel(parameter.replace('_', ' '), fontsize=14)
             
     # Super title
     suptitle_text = f"{pc_name} vs {parameter.replace('_', ' ')} Correlation Time Series"
-    fig.suptitle(suptitle_text, fontsize=20, fontweight='bold', y=1.05)
+    fig.suptitle(suptitle_text, fontsize=24, fontweight='bold', y=1.05)
     
     # Legend
     custom_lines = [
@@ -152,7 +152,7 @@ def main():
     
     # Adjust legend position based on layout
     fig.legend(handles=custom_lines, loc='upper center', bbox_to_anchor=(0.5, 1.0), 
-               ncol=3, fontsize=18, frameon=False)
+               ncol=3, fontsize=16, frameon=False)
     
     plt.tight_layout()
     
