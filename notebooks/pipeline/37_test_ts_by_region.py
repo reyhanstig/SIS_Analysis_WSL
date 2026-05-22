@@ -134,10 +134,10 @@ def main():
     for j in range(len(unique_regions)):
         # x-labels only on bottom row of the visible grid or if the subplot below it is deleted
         if j >= n_regions - n_cols:
-            axes[j].set_xlabel('Year', fontsize=14)
+            axes[j].set_xlabel('Year', fontsize=16)
         # y-labels only on leftmost column
         if j % n_cols == 0:
-            axes[j].set_ylabel(parameter.replace('_', ' '), fontsize=14)
+            axes[j].set_ylabel(parameter.replace('_', ' '), fontsize=16)
             
     # Super title
     suptitle_text = f"{pc_name} vs {parameter.replace('_', ' ')} Correlation Time Series"
