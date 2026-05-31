@@ -105,11 +105,16 @@ sis_water_boundary = gpd.read_file(water_boundary_path)
 ```
 
 ### 3.2. Plotting Mask (Landmass Boundary)
-Use the pre-filtered, high-resolution SIS prefecture boundary shapefile to draw intricate coastlines and islands on top of Cartopy maps, instead of using low-resolution `cfeature.LAND`.
+Use the pre-filtered, high-resolution SIS prefecture boundary shapefile or the simplified nation-wide prefectural boundary shapefile to draw intricate coastlines and islands on top of Cartopy maps, instead of using low-resolution `cfeature.LAND`.
+
+For national or multi-region plotting, the pipeline provides a simplified nation-wide prefectural boundary:
+- **Path:** `data/boundaries/Whole nation administrative boundary/N03-20240101_prefecture(simplified0.01).shp`
+- **CRS:** `EPSG:6668` (reprojected to `EPSG:4326` or coordinate system matching visual mapping)
+- **Features:** Simplified to 1% of the original size (14.8 MB vs 178 MB) to optimize plotting speed while retaining high-fidelity coastal outlines.
 
 ```python
 # Dynamic Landmass Boundary Selection
-land_boundary_file = MappingConfig.get_boundary_file(MappingConfig.TARGET_REGION) # Assuming TARGET_REGION is available or passed
+land_boundary_file = MappingConfig.get_boundary_file(MappingConfig.TARGET_REGION) # e.g., 'Japan', 'Seto Inland Sea', etc.
 land_boundary_path = ProjectPaths.BOUNDARIES_DIR / "SIS_prefecture_boundaries" / land_boundary_file
 sis_land_boundary = gpd.read_file(land_boundary_path)
 
@@ -131,6 +136,16 @@ sis_land_boundary.plot(
     zorder=MappingConfig.ZORDER_LAND
 )
 ```
+
+> [!NOTE]
+> When mapping all of Japan or zooming into Seto Inland Sea using the nation-wide boundary, crop the viewport using explicit map bounds:
+> ```python
+> min_lon, max_lon = data_gdf['lon'].min() - 0.2, data_gdf['lon'].max() + 0.2
+> min_lat, max_lat = data_gdf['lat'].min() - 0.2, data_gdf['lat'].max() + 0.2
+> ax.set_xlim(min_lon, max_lon)
+> ax.set_ylim(min_lat, max_lat)
+> ```
+
 
 
 ---

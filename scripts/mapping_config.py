@@ -32,7 +32,8 @@ class MappingConfig:
     BOUNDARY_FILES = {
         'Seto Inland Sea': 'Setonaikai_boundary_2.shp',
         'Tokyo Bay': 'Tokyobay_boundary.shp',
-        'Ise Bay': 'Isebay_boundary.shp'
+        'Ise Bay': 'Isebay_boundary.shp',
+        'Japan': '../Whole nation administrative boundary/N03-20240101_prefecture(simplified0.01).shp'
     }
     
     @staticmethod
