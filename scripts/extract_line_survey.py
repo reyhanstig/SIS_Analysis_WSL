@@ -111,7 +111,7 @@ def extract_fixed_line_survey(pdf_path, output_csv):
 if __name__ == "__main__":
     survey_dir = ProjectPaths.DATA_DIR / "raw" / "Fixed_line_survey"
     pdf_filename = survey_dir / "h28-all.pdf"
-    output_filename = survey_dir / "fixed_line_survey_long.csv"
+    output_filename = survey_dir / "fixed_line_survey_long_osaka.csv"
     
     print(f"Extracting survey data from {pdf_filename}...")
     extract_fixed_line_survey(pdf_filename, output_filename)
