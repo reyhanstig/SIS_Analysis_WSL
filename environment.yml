@@ -19,6 +19,7 @@ dependencies:
   - openpyxl
   - geopy
   - seaborn
+  - statsmodels
   - shapely
   - xarray
   - netcdf4
@@ -28,6 +29,7 @@ dependencies:
   - papermill
   - pyyaml
   - gsw
+  - utide
   - selenium
   - beautifulsoup4
   - pip

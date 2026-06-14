@@ -86,8 +86,8 @@ Validate by cross-tabulating cluster assignments against the hypoxia flag (DO �
 This is the equivalent of the original paper's PERMANOVA result which found R² = 0.10, p = 0.003 showing significant community separation between hypoxic and normoxic zones.
 
 *Data Limitations & Methodological Weaknesses:*
-- **Missing Sediment Chemistry for Osaka & Hyogo:** The sediment survey (`bottom_2023.xlsx`) only covers prefectures `[34, 35, 38, 44]` (Hiroshima, Yamaguchi, Ehime, Oita). There is no sediment data (TOC, sulfides) for Osaka Bay (prefecture 27) or Harima Nada (prefecture 28) in this dataset, preventing their inclusion in the clustering feature set for these regions.
 - **Coordinate-based Alignment Constraint:** Nearest-neighbor spatial matching of sediment data to water column observations is blocked for Hiroshima Bay until station coordinates are extracted from the Hiroshima survey PDF.
+- **Note on Sediment Data Coverage:** Unlike previously assumed, the sediment survey (`bottom_2023.xlsx`) *does* contain comprehensive sediment chemistry data (TOC, sulfides, ORP) for Osaka Bay (Prefecture 27, Stations 2 and 44) and Hyogo (Prefecture 28). This allows their inclusion in the clustering feature set and downstream predictive modeling.
 
 ---
 
@@ -161,7 +161,7 @@ The Seto Inland Sea has been subject to nutrient load regulations since the 1970
 Cross-reference these sediment trends with the Random Forest feature importance output. If TOC is the top predictor of hypoxia and TOC shows a significant declining trend since 2000, this provides a mechanistic explanation for any observed recovery of benthic communities in the same period — directly connecting your ML model outputs to the ecological narrative.
 
 *Data Limitations & Methodological Weaknesses:*
-- **Geographic Bias of Trends:** Since the sediment monitoring dataset (`bottom_2023.xlsx`) only contains data for prefectures 34, 35, 38, and 44, the long-term trend analysis will be biased toward the western and central regions of the Seto Inland Sea. It cannot represent the eastern regions (Osaka Bay and Harima Nada), making it impossible to evaluate long-term sediment oxygen demand trends in the highly urbanized Osaka Bay using this dataset.
+- **Geographic Representation:** The sediment monitoring dataset (`bottom_2023.xlsx`) contains extensive data across multiple prefectures including the eastern regions like Osaka Bay (Prefecture 27) and Hyogo (Prefecture 28). This allows for evaluating long-term sediment oxygen demand trends even in highly urbanized areas like Osaka Bay, making the long-term trend analysis comprehensive across the Seto Inland Sea.
 
 ---
 
