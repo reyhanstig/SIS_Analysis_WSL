@@ -83,6 +83,12 @@ def load_raw_shapefiles(start_year=1981, end_year=2023):
         # Ensure 'watercode' and columns are int before merge
         if 'watercode' in merged_gdf.columns and 'watercode' in codes_df.columns:
             merged_gdf['watercode'] = pd.to_numeric(merged_gdf['watercode'], errors='coerce').fillna(-1).astype(int)
+            
+            # Hotfix: Map Ise Bay sub-codes (201, 202) to the main Ise Bay code (200)
+            # Starting in 2013, the raw shapefiles split Ise Bay into these sub-codes, 
+            # which are missing from the water_manual.xls.
+            merged_gdf['watercode'] = merged_gdf['watercode'].replace({201: 200, 202: 200})
+            
             codes_df['watercode'] = pd.to_numeric(codes_df['watercode'], errors='coerce').fillna(-1).astype(int)
             
             merged_gdf = merged_gdf.merge(codes_df, on='watercode', how='left')

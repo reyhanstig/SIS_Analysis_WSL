@@ -97,9 +97,9 @@ cbar = fig.colorbar(sm, cax=cbar_ax, orientation='horizontal')
 The SIS pipeline relies on two distinct boundary files depending on the task: one for computational masking and one for accurate geospatial plotting.
 
 ### 3.1. Computational Mask (Water Area)
-This file isolates the pure water area of the Seto Inland Sea. Use this to mask land areas during spatial interpolations (Kriging, Diffusion) or to build valid water grids.
+This file isolates the pure water area of the Seto Inland Sea. Use this to mask land areas during spatial interpolations (Kriging, Diffusion) or to build valid water grids. For regional analyses, there are also dedicated masks available for specific bays, such as Tokyo Bay (`sea_area_mask_Tokyo.shp`) and Ise-Mikawa Bay (`sea_area_mask_Ise.shp`).
 ```python
-water_boundary_path = ProjectPaths.BOUNDARIES_DIR / "SIS water mass polygon" / "sea_area_mask_simplified.shp"
+water_boundary_path = ProjectPaths.BOUNDARIES_DIR / "SIS water mass polygon" / "sea_area_mask_sis_simplified.shp"
 sis_water_boundary = gpd.read_file(water_boundary_path)
 # Often projected to UTM (e.g., EPSG:32653) for meter-based distance/mesh calculations
 ```
@@ -220,7 +220,7 @@ fig, ax = plt.subplots(figsize=(10, 8), subplot_kw={'projection': ccrs.PlateCarr
 ax.set_facecolor('lightblue')
 
 # Load Computational Water Mask to get Extents
-water_boundary_path = ProjectPaths.BOUNDARIES_DIR / "SIS water mass polygon" / "sea_area_mask_simplified.shp"
+water_boundary_path = ProjectPaths.BOUNDARIES_DIR / "SIS water mass polygon" / "sea_area_mask_sis_simplified.shp"
 sis_water_boundary = gpd.read_file(water_boundary_path)
 if sis_water_boundary.crs != "EPSG:4326":
     sis_water_boundary = sis_water_boundary.to_crs("EPSG:4326")

@@ -192,5 +192,5 @@ All file paths are centrally managed in `scripts/paths.py`.
 ### 6. `generate_seasonal_plots`
 - **Script:** `scripts/generate_seasonal_plots.py`
 - **Purpose:** Automates the creation of high-quality spatial interpolation matrices and visual maps for seasonal parameters across multiple years, utilizing multiprocessing for maximum CPU efficiency. Creates individual maps, 2x2 seasonal grids, and yearly progressions.
-- **Dependencies:** `scripts/generate_seasonal_plots.py`, `params.yaml`, `data/boundaries/SIS water mass polygon/sea_area_mask_simplified.shp`, `data/processed/merged_gdf.feather`
+- **Dependencies:** `scripts/generate_seasonal_plots.py`, `params.yaml`, `data/boundaries/SIS water mass polygon/sea_area_mask_sis_simplified.shp`, `data/processed/merged_gdf.feather`. For regional plotting, `sea_area_mask_Tokyo.shp` and `sea_area_mask_Ise.shp` are also available.
 - **Output:** Nested directories and mapped figures within `figures/seasonal_plots/`
