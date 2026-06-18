@@ -25,3 +25,4 @@ notebooks/output/*_log.ipynb
 # Ignore session-specific scratch files
 brain/*
 
+scratch/
