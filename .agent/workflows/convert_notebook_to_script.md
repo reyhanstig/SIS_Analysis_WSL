@@ -16,31 +16,15 @@ This workflow converts a selected `.ipynb` notebook file into a `.py` Python scr
    - Confirm the notebook path with the user if ambiguous.
 
 2. **Read and Parse the Notebook**
-   - For small notebooks (< 1MB), use `view_file` to read the contents and parse the JSON.
-   - **CRITICAL for Large Notebooks (> 1MB):** If the notebook contains large embedded outputs (base64 images, long logs), manual parsing is error-prone. Use a programmatic approach instead:
-     - Use `run_command` with a `python3 -c` script to parse the JSON and write the output directly. This ensures no cells are missed due to truncation.
-     - Example robust parser:
-       ```bash
-       python3 -c "
-       import json, sys
-       from datetime import datetime
-       nb = json.load(open('path/to/notebook.ipynb'))
-       print('# -*- coding: utf-8 -*-')
-       print(f'# Auto-generated from: {notebook_path}')
-       # ... header logic ...
-       for cell in nb['cells']:
-           if cell['cell_type'] == 'markdown':
-               print(''.join([f'# {l}' if l.strip() else '#' for l in cell['source']]) + '\n')
-           elif cell['cell_type'] == 'code':
-               print(''.join(cell['source']) + '\n\n')
-       " > path/to/output.py
-       ```
+   - Instead of manually parsing the complex JSON structure of `.ipynb` files, always use the dedicated utility script to extract the code safely and robustly. This avoids token limit issues and handles Jupyter cell types, metadata, and magic commands natively using `nbconvert`.
+   - Use the `agent_notebook_utils.convert_notebook_to_script` function to read and convert the notebook in one step.
+   - Example command to run via `run_command`:
+     ```bash
+     conda run -n sis_analysis python -c "from scripts.agent_notebook_utils import convert_notebook_to_script; convert_notebook_to_script('path/to/notebook.ipynb', 'path/to/output.py')"
+     ```
 
 3. **Build the Python Script Content**
-   - Whether building manually or via script, ensure the following logic:
-     - **Markdown:** Prefix lines with `# `. Preserve blank lines as `#`. Add 1 blank line after the block.
-     - **Code:** Write raw code. Add 2 blank lines after each code cell (PEP 8).
-     - **Metadata:** Add a standard header with the source filename and conversion timestamp.
+   - The utility script handles formatting automatically, preserving markdown cells as comments and formatting code cells properly.
 
 4. **Determine the Output File Path**
    - Default: Replace the `.ipynb` extension with `.py` in the same directory.

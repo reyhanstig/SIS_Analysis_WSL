@@ -42,6 +42,10 @@ This skill guides you through the process of taking an exploration notebook and 
     -   List the notebook path, inputs, and outputs.
     -   Add any new path constants to "4. Key Artifacts".
 
+## Testing and Isolating Functions
+
+During pipeline refactoring, if you need to test or extract a specific function from an exploratory notebook without running the whole notebook, you can dynamically load the notebook as a module. Use the utility script `scripts/agent_notebook_utils.py` and its `load_nb_as_module` function. This allows you to verify components individually before adding them to `dvc.yaml`.
+
 ## Parameters for `run_pipeline_step.py`
 
 When adding a stage to `dvc.yaml`, prefer using `python scripts/run_pipeline_step.py` over raw `papermill` if you need parameter injection from `params.yaml`.

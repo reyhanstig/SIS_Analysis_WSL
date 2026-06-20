@@ -28,8 +28,10 @@ This workflow allows the agent to execute python code (scripts or notebook cells
    - **If running an Existing Script**:
      - Identify the absolute path of the script: `<SCRIPT_PATH>`.
    - **If running a Notebook Chunk / New Snippet**:
-     - You must create a standalone temporary script.
-     - **Context & Dependencies**:
+     - You have two options for testing notebook functions or snippets:
+       1. **Load Dynamic Module**: If you want to test an existing function from a notebook, use `agent_notebook_utils.load_nb_as_module('path/to/nb.ipynb')` inside your temporary test script instead of copy-pasting the function.
+       2. **Create Temporary Script**: If testing a new chunk of code, you must create a standalone temporary script.
+     - **Context & Dependencies (for new snippets)**:
        - Does the code rely on imports? (e.g., `scripts.data_loader`) -> Add `sys.path` setup.
        - Does the code rely on variables? (e.g., `merged_gdf`, `dist_matrix_km`) -> You **MUST** add code to load these variables at the top of the script. Refer to `scripts/data_loader.py` or previous notebook cells for loading logic.
      - **Create the File**:
