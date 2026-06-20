@@ -1,73 +1,46 @@
 ---
-description: Transform an exploration notebook into a pipeline-ready component and integrate it.
+description: Transform a sandbox exploration notebook into a pipeline-ready component and integrate it into the formal step structure.
 ---
 
 # Pipeline Integration Skill
 
-This skill guides you through the process of taking an exploration notebook and integrating it into the project's DVC pipeline.
+This skill guides you through taking an exploratory notebook from `step0_sandbox/` and formally integrating it into the project's step-based DVC pipeline, adhering to the `global_rule.md` standards.
 
 ## Integration Steps
 
-1.  **Format and Structure**:
-    -   Ensure `101_example_notebook.ipynb` structure is followed.
-    -   Replace manual paths with `ProjectPaths`.
-    -   Add `parameters` tag to the parameters cell (if applicable).
-    -   Ensure notebook runs start-to-finish without interaction.
+1.  **Analyze and Align**:
+    -   Analyze the target notebook in `step0_sandbox/`.
+    -   Determine which stage of the pipeline it belongs to based on the current structure:
+        -   `step1_data_processing_cleaning/`
+        -   `step2_hypoxia_frequency_calculation/`
+        -   `step2_decorrelation_scale_analysis/`
+        -   `step3_PCA_analysis/`
+        -   `step5_environmental_factor_correlation_analysis/`
 
-2.  **Move to Pipeline Directory**:
-    -   Move the notebook from `notebooks/exploration/` (or root) to `notebooks/pipeline/`.
-    -   Rename it with a sequential number (e.g., `09_Spatial_Interpolation_v2.ipynb`).
-    -   Use `git mv` if the file was tracked by git.
+2.  **Format and Restructure**:
+    -   Follow `global_rule.md`:
+        -   Extract parameters into a CSV file and load them via Pandas, OR use `params.yaml` with DVC.
+        -   Ensure the code produces exactly **one output** per script. If multiple outputs are needed, wrap the core logic in a loop based on the input parameters.
+        -   Do not hardcode paths; use `utils.paths.ProjectPaths`.
 
-3.  **Update `scripts/paths.py`**:
-    -   If the notebook creates new output files (CSV, Feather, Figures), define constants for them in `ProjectPaths`.
-    -   Example: `NEW_ANALYSIS_FILE = PROCESSED_DATA_DIR / "new_analysis.csv"`
+3.  **Extraction & Module Creation**:
+    -   **Option A (Preferred for Python scripts):** Extract the core logic from the notebook into a new Python script named `processX_descriptive_name.py` inside the chosen `stepX_.../` directory. Update the `main.py` and `__main__.py` in that directory to include this new process.
+    -   **Option B (If keeping as a Notebook):** If it must remain a notebook, use `agent_notebook_utils.py` to enable modular execution and ensure it runs from start-to-finish without interaction. Keep it in the `stepX_.../` directory and number it logically (e.g., `10_...` for step 1, `20_...` for step 2).
 
 4.  **Update `dvc.yaml`**:
-    -   Add a new stage (e.g., `new_analysis`).
-    -   Define `cmd` (using `papermill` or `run_pipeline_step.py`), `deps` (input files/scripts), and `outs` (output files).
-    -   Reference the newly added path constants if possible (though `dvc.yaml` uses relative paths directly).
+    -   Add a new stage to `dvc.yaml`.
+    -   If you used Option A, the `cmd` should be `python -m stepX_directory_name` (or invoking the specific script).
+    -   If you used Option B, the `cmd` should use `papermill` or `admin_scripts/run_pipeline_step.py`.
+    -   Define `deps` and `outs`.
 
-5.  **Update `params.yaml` (Optional)**:
-    -   If the notebook uses configurable parameters, add a section in `params.yaml`.
-    -   Ensure the parameter names in `dvc.yaml` match the keys in `params.yaml`.
-
-6.  **Verify Pipeline**:
-    -   Run `dvc repro`.
-    -   Check that the new stage executes correctly and produces the expected outputs.
-
-7.  **Update Pipeline Summary**:
-    -   Open `notebooks/pipeline/pipeline_summary.md`.
-    -   Add a new section for the added stage under "3. Pipeline Stages".
-    -   List the notebook path, inputs, and outputs.
-    -   Add any new path constants to "4. Key Artifacts".
-
-## Testing and Isolating Functions
-
-During pipeline refactoring, if you need to test or extract a specific function from an exploratory notebook without running the whole notebook, you can dynamically load the notebook as a module. Use the utility script `scripts/agent_notebook_utils.py` and its `load_nb_as_module` function. This allows you to verify components individually before adding them to `dvc.yaml`.
-
-## Parameters for `run_pipeline_step.py`
-
-When adding a stage to `dvc.yaml`, prefer using `python scripts/run_pipeline_step.py` over raw `papermill` if you need parameter injection from `params.yaml`.
-
-Example `dvc.yaml` entry:
-
-```yaml
-  my_new_stage:
-    cmd: python scripts/run_pipeline_step.py notebooks/pipeline/XX_My_Notebook.ipynb notebooks/output/XX_log.ipynb my_stage_params
-    deps:
-      - notebooks/pipeline/XX_My_Notebook.ipynb
-      - data/processed/input_data.csv
-    params:
-      - my_stage_params.threshold
-    outs:
-      - data/processed/output_data.csv
-```
+5.  **Verify Pipeline**:
+    -   Run `python validate_paths.py` (if it exists) to ensure no paths were broken during extraction.
+    -   Run `dvc status` and `dvc repro`.
+    -   Check that the new stage executes correctly and produces the expected outputs in `data/processed/` or `figures/`.
 
 ## Completion Criteria
 
--   Notebook is in `notebooks/pipeline/`.
--   `dvc.yaml` includes the new stage.
--   `dvc repro` runs successfully.
--   `notebooks/pipeline/pipeline_summary.md` is updated.
--   Git tracks the changes (`dvc.yaml`, `scripts/paths.py`, notebook file).
+-   The analytical logic has been moved out of `step0_sandbox/` and into the correct `stepX_` module.
+-   Code adheres to `global_rule.md` (no hardcoded paths, 1 output per script, parameter management).
+-   `dvc.yaml` includes the new stage and successfully resolves dependencies.
+-   `dvc repro` executes cleanly.

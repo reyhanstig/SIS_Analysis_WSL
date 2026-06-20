@@ -1,25 +1,25 @@
 stages:
   process_data:
-    cmd: papermill notebooks/pipeline/01_Data_Processing.ipynb notebooks/output/01_log.ipynb
+    cmd: papermill step0_sandbox/01_Data_Processing.ipynb step0_sandbox/01_log.ipynb
     deps:
-      - notebooks/pipeline/01_Data_Processing.ipynb
-      - scripts/data_loader.py
+      - step0_sandbox/01_Data_Processing.ipynb
+      - utils/data_loader.py
     outs:
       - data/processed/merged_gdf.feather
 
   hypoxia_mapping:
-    cmd: papermill notebooks/pipeline/04_Hypoxia_Mapping.ipynb notebooks/output/04_log.ipynb
+    cmd: papermill step0_sandbox/04_Hypoxia_Mapping.ipynb step0_sandbox/04_log.ipynb
     deps:
-      - notebooks/pipeline/04_Hypoxia_Mapping.ipynb
+      - step0_sandbox/04_Hypoxia_Mapping.ipynb
       - data/processed/merged_gdf.feather
     outs:
       - figures/hypoxia_map_summer_point2.png
 
   create_seasonal_datasets:
-    cmd: python scripts/run_pipeline_step.py notebooks/pipeline/02_Create_Seasonal_Datasets.ipynb notebooks/output/02_log.ipynb seasonal_subsets
+    cmd: python admin_scripts/run_pipeline_step.py step0_sandbox/02_Create_Seasonal_Datasets.ipynb step0_sandbox/02_log.ipynb seasonal_subsets
     deps:
-      - notebooks/pipeline/02_Create_Seasonal_Datasets.ipynb
-      - scripts/paths.py
+      - step0_sandbox/02_Create_Seasonal_Datasets.ipynb
+      - utils/paths.py
       - data/processed/merged_gdf.feather
     params:
       - seasonal_subsets.min_periods
@@ -60,9 +60,9 @@ stages:
       - data/processed/seasonal/winter_bottom/yearly_salt_df.csv
 
   decorrelation:
-    cmd: python scripts/run_pipeline_step.py notebooks/pipeline/08_Decorrelation_Analysis_v3.ipynb notebooks/output/08_log.ipynb decorrelation
+    cmd: python admin_scripts/run_pipeline_step.py step0_sandbox/08_Decorrelation_Analysis_v3.ipynb step0_sandbox/08_log.ipynb decorrelation
     deps:
-      - notebooks/pipeline/08_Decorrelation_Analysis_v3.ipynb
+      - step0_sandbox/08_Decorrelation_Analysis_v3.ipynb
       - data/processed/seasonal/summer_bottom/yearly_do_df.csv
       - data/processed/merged_gdf.feather
     params:
@@ -74,9 +74,9 @@ stages:
       - data/processed/seasonal/summer_bottom/stations_decorrelation_scale.csv
 
   decorrelation_tokyo:
-    cmd: papermill notebooks/pipeline/39a_Decorrelation_Analysis_Tokyo_Bay.ipynb notebooks/output/39a_log.ipynb
+    cmd: papermill step0_sandbox/39a_Decorrelation_Analysis_Tokyo_Bay.ipynb step0_sandbox/39a_log.ipynb
     deps:
-      - notebooks/pipeline/39a_Decorrelation_Analysis_Tokyo_Bay.ipynb
+      - step0_sandbox/39a_Decorrelation_Analysis_Tokyo_Bay.ipynb
       - data/processed/seasonal/summer_bottom/yearly_do_df.csv
       - data/processed/merged_gdf.feather
     outs:
@@ -84,9 +84,9 @@ stages:
       - figures/tokyo_bay_decorrelation_scale.png
 
   decorrelation_ise:
-    cmd: papermill notebooks/pipeline/39b_Decorrelation_Analysis_Ise_Bay.ipynb notebooks/output/39b_log.ipynb
+    cmd: papermill step0_sandbox/39b_Decorrelation_Analysis_Ise_Bay.ipynb step0_sandbox/39b_log.ipynb
     deps:
-      - notebooks/pipeline/39b_Decorrelation_Analysis_Ise_Bay.ipynb
+      - step0_sandbox/39b_Decorrelation_Analysis_Ise_Bay.ipynb
       - data/processed/seasonal/summer_bottom/yearly_do_df.csv
       - data/processed/merged_gdf.feather
     outs:
@@ -94,9 +94,9 @@ stages:
       - figures/ise_bay_decorrelation_scale.png
 
   interpolation:
-    cmd: python scripts/run_pipeline_step.py notebooks/pipeline/09_Spatial_Interpolation_v2.ipynb notebooks/output/09_log.ipynb interpolation
+    cmd: python admin_scripts/run_pipeline_step.py step0_sandbox/09_Spatial_Interpolation_v2.ipynb step0_sandbox/09_log.ipynb interpolation
     deps:
-      - notebooks/pipeline/09_Spatial_Interpolation_v2.ipynb
+      - step0_sandbox/09_Spatial_Interpolation_v2.ipynb
       - data/processed/seasonal/summer_bottom/yearly_do_df.csv
       - data/processed/dist_matrix_km.csv
       - data/processed/seasonal/summer_bottom/stations_decorrelation_scale.csv
@@ -108,9 +108,9 @@ stages:
       - data/processed/seasonal/summer_bottom/interpolated_do_df.csv
 
   pca_analysis:
-    cmd: papermill notebooks/pipeline/10_PCA_Analysis.ipynb notebooks/output/10_log.ipynb
+    cmd: papermill step0_sandbox/10_PCA_Analysis.ipynb step0_sandbox/10_log.ipynb
     deps:
-      - notebooks/pipeline/10_PCA_Analysis.ipynb
+      - step0_sandbox/10_PCA_Analysis.ipynb
       - data/processed/seasonal/summer_bottom/interpolated_do_df.csv
       - data/processed/seasonal/summer_bottom/stations_decorrelation_scale.csv
     outs:
@@ -119,9 +119,9 @@ stages:
       - data/processed/seasonal/summer_bottom/pca_variance.csv
 
   generate_seasonal_plots:
-    cmd: python scripts/generate_seasonal_plots.py
+    cmd: python step0_sandbox/generate_seasonal_plots.py
     deps:
-      - scripts/generate_seasonal_plots.py
+      - step0_sandbox/generate_seasonal_plots.py
       - data/boundaries/SIS water mass polygon/sea_area_mask_simplified.shp
       - data/processed/merged_gdf.feather
     params:
@@ -134,9 +134,9 @@ stages:
       - figures/seasonal_plots/
 
   pca_env_corr:
-    cmd: python notebooks/pipeline/33_DO_PCA_corr.py
+    cmd: python step0_sandbox/33_DO_PCA_corr.py
     deps:
-      - notebooks/pipeline/33_DO_PCA_corr.py
+      - step0_sandbox/33_DO_PCA_corr.py
       - data/processed/merged_gdf.feather
       - data/processed/seasonal/summer_bottom/pca_scores.csv
     outs:

@@ -16,12 +16,23 @@ This project uses a **single Git repository** (`SIS_Analysis_WSL`) cloned in bot
 *   **Windows**: Used for managing high-volume data (`data/`, `figures/`) with DVC.
 *   **WSL**: Used for running analysis code (`notebooks/`, `scripts/`).
 
-**Required Directory Structure:**
+## Directory Structure
+
+```text
+SIS_Analysis_WSL/
+├── admin_scripts/                              <- Shell scripts and DVC utilities
+├── apps/                                       <- Streamlit dashboards
+├── data/                                       <- Data storage (Symlink recommended)
+├── figures/                                    <- Output visualisations (Symlink recommended)
+├── reports/                                    <- Markdown reports and documentation
+├── step0_sandbox/                              <- Jupyter Notebooks for exploration and scratchpad
+├── step1_data_processing_cleaning/             <- Spatial data and river station extraction
+├── step2_hypoxia_frequency_calculation/        <- Hypoxia frequency analysis
+├── step2_decorrelation_scale_analysis/         <- Decorrelation scales
+├── step3_PCA_analysis/                         <- PCA environments
+├── step5_environmental_factor_correlation_analysis/ <- Env factor correlations
+└── utils/                                      <- Shared python utilities (paths, config)
 ```
-C:\Users\reyha\Documents\SIS_Analysis_Windows  (Windows Clone)
-/home/reyha/SIS_Analysis_WSL                   (WSL Clone)
-```
-*Note: The WSL `data/` folder is a symlink to the Windows `data/` folder.*
 
 ### 2. Environment Setup
 The project uses a Conda environment named **`sis_analysis`**.
