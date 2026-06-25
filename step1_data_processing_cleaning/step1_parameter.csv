@@ -1,0 +1,5 @@
+parameter_name,value,type,description
+hiroshima_pdf_filename,587628.pdf,str,Hiroshima survey raw PDF
+osaka_pdf_filename,h28-all.pdf,str,Osaka/general fixed line survey raw PDF
+season,Summer,str,Chosen season for filtering
+layer,bottom,str,Chosen depth layer for filtering

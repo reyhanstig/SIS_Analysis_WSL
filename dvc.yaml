@@ -1,146 +1,29 @@
 stages:
-  process_data:
-    cmd: papermill step0_sandbox/01_Data_Processing.ipynb step0_sandbox/01_log.ipynb
+  step1_data_processing_cleaning:
+    cmd: python -m step1_data_processing_cleaning
     deps:
-      - step0_sandbox/01_Data_Processing.ipynb
-      - utils/data_loader.py
-    outs:
-      - data/processed/merged_gdf.feather
+      - step1_data_processing_cleaning/
 
-  hypoxia_mapping:
-    cmd: papermill step0_sandbox/04_Hypoxia_Mapping.ipynb step0_sandbox/04_log.ipynb
+  step2_decorrelation_scale_analysis:
+    cmd: python -m step2_decorrelation_scale_analysis
     deps:
-      - step0_sandbox/04_Hypoxia_Mapping.ipynb
-      - data/processed/merged_gdf.feather
-    outs:
-      - figures/hypoxia_map_summer_point2.png
+      - step2_decorrelation_scale_analysis/
+      - step1_data_processing_cleaning/
 
-  create_seasonal_datasets:
-    cmd: python admin_scripts/run_pipeline_step.py step0_sandbox/02_Create_Seasonal_Datasets.ipynb step0_sandbox/02_log.ipynb seasonal_subsets
+  step2_hypoxia_frequency_calculation:
+    cmd: python -m step2_hypoxia_frequency_calculation
     deps:
-      - step0_sandbox/02_Create_Seasonal_Datasets.ipynb
-      - utils/paths.py
-      - data/processed/merged_gdf.feather
-    params:
-      - seasonal_subsets.min_periods
-      - seasonal_subsets.representative_months
-      - seasonal_subsets.parameters_to_process
-    outs:
-      - data/processed/seasonal/spring_surface/yearly_do_df.csv
-      - data/processed/seasonal/spring_surface/yearly_temp_df.csv
-      - data/processed/seasonal/spring_surface/yearly_wtemp_df.csv
-      - data/processed/seasonal/spring_surface/yearly_salt_df.csv
-      - data/processed/seasonal/spring_bottom/yearly_do_df.csv
-      - data/processed/seasonal/spring_bottom/yearly_temp_df.csv
-      - data/processed/seasonal/spring_bottom/yearly_wtemp_df.csv
-      - data/processed/seasonal/spring_bottom/yearly_salt_df.csv
-      - data/processed/seasonal/summer_surface/yearly_do_df.csv
-      - data/processed/seasonal/summer_surface/yearly_temp_df.csv
-      - data/processed/seasonal/summer_surface/yearly_wtemp_df.csv
-      - data/processed/seasonal/summer_surface/yearly_salt_df.csv
-      - data/processed/seasonal/summer_bottom/yearly_do_df.csv
-      - data/processed/seasonal/summer_bottom/yearly_temp_df.csv
-      - data/processed/seasonal/summer_bottom/yearly_wtemp_df.csv
-      - data/processed/seasonal/summer_bottom/yearly_salt_df.csv
-      - data/processed/seasonal/autumn_surface/yearly_do_df.csv
-      - data/processed/seasonal/autumn_surface/yearly_temp_df.csv
-      - data/processed/seasonal/autumn_surface/yearly_wtemp_df.csv
-      - data/processed/seasonal/autumn_surface/yearly_salt_df.csv
-      - data/processed/seasonal/autumn_bottom/yearly_do_df.csv
-      - data/processed/seasonal/autumn_bottom/yearly_temp_df.csv
-      - data/processed/seasonal/autumn_bottom/yearly_wtemp_df.csv
-      - data/processed/seasonal/autumn_bottom/yearly_salt_df.csv
-      - data/processed/seasonal/winter_surface/yearly_do_df.csv
-      - data/processed/seasonal/winter_surface/yearly_temp_df.csv
-      - data/processed/seasonal/winter_surface/yearly_wtemp_df.csv
-      - data/processed/seasonal/winter_surface/yearly_salt_df.csv
-      - data/processed/seasonal/winter_bottom/yearly_do_df.csv
-      - data/processed/seasonal/winter_bottom/yearly_temp_df.csv
-      - data/processed/seasonal/winter_bottom/yearly_wtemp_df.csv
-      - data/processed/seasonal/winter_bottom/yearly_salt_df.csv
+      - step2_hypoxia_frequency_calculation/
+      - step1_data_processing_cleaning/
 
-  decorrelation:
-    cmd: python admin_scripts/run_pipeline_step.py step0_sandbox/08_Decorrelation_Analysis_v3.ipynb step0_sandbox/08_log.ipynb decorrelation
+  step3_PCA_analysis:
+    cmd: python -m step3_PCA_analysis
     deps:
-      - step0_sandbox/08_Decorrelation_Analysis_v3.ipynb
-      - data/processed/seasonal/summer_bottom/yearly_do_df.csv
-      - data/processed/merged_gdf.feather
-    params:
-      - decorrelation.min_periods
-      - decorrelation.r_crit_alpha
-      - decorrelation.distance_cutoff_km
-    outs:
-      - data/processed/dist_matrix_km.csv
-      - data/processed/seasonal/summer_bottom/stations_decorrelation_scale.csv
+      - step3_PCA_analysis/
+      - step2_hypoxia_frequency_calculation/
 
-  decorrelation_tokyo:
-    cmd: papermill step0_sandbox/39a_Decorrelation_Analysis_Tokyo_Bay.ipynb step0_sandbox/39a_log.ipynb
+  step5_environmental_factor_correlation_analysis:
+    cmd: python -m step5_environmental_factor_correlation_analysis
     deps:
-      - step0_sandbox/39a_Decorrelation_Analysis_Tokyo_Bay.ipynb
-      - data/processed/seasonal/summer_bottom/yearly_do_df.csv
-      - data/processed/merged_gdf.feather
-    outs:
-      - data/processed/seasonal/summer_bottom/tokyo_bay_decorrelation_scale.csv
-      - figures/tokyo_bay_decorrelation_scale.png
-
-  decorrelation_ise:
-    cmd: papermill step0_sandbox/39b_Decorrelation_Analysis_Ise_Bay.ipynb step0_sandbox/39b_log.ipynb
-    deps:
-      - step0_sandbox/39b_Decorrelation_Analysis_Ise_Bay.ipynb
-      - data/processed/seasonal/summer_bottom/yearly_do_df.csv
-      - data/processed/merged_gdf.feather
-    outs:
-      - data/processed/seasonal/summer_bottom/ise_bay_decorrelation_scale.csv
-      - figures/ise_bay_decorrelation_scale.png
-
-  interpolation:
-    cmd: python admin_scripts/run_pipeline_step.py step0_sandbox/09_Spatial_Interpolation_v2.ipynb step0_sandbox/09_log.ipynb interpolation
-    deps:
-      - step0_sandbox/09_Spatial_Interpolation_v2.ipynb
-      - data/processed/seasonal/summer_bottom/yearly_do_df.csv
-      - data/processed/dist_matrix_km.csv
-      - data/processed/seasonal/summer_bottom/stations_decorrelation_scale.csv
-    params:
-      - interpolation.weighting_func
-      - interpolation.min_weight
-      - interpolation.search_radius_factor
-    outs:
-      - data/processed/seasonal/summer_bottom/interpolated_do_df.csv
-
-  pca_analysis:
-    cmd: papermill step0_sandbox/10_PCA_Analysis.ipynb step0_sandbox/10_log.ipynb
-    deps:
-      - step0_sandbox/10_PCA_Analysis.ipynb
-      - data/processed/seasonal/summer_bottom/interpolated_do_df.csv
-      - data/processed/seasonal/summer_bottom/stations_decorrelation_scale.csv
-    outs:
-      - data/processed/seasonal/summer_bottom/pca_scores.csv
-      - data/processed/seasonal/summer_bottom/pca_loadings.csv
-      - data/processed/seasonal/summer_bottom/pca_variance.csv
-
-  generate_seasonal_plots:
-    cmd: python step0_sandbox/generate_seasonal_plots.py
-    deps:
-      - step0_sandbox/generate_seasonal_plots.py
-      - data/boundaries/SIS water mass polygon/sea_area_mask_simplified.shp
-      - data/processed/merged_gdf.feather
-    params:
-      - seasonal_plots.parameters
-      - seasonal_plots.seasons
-      - seasonal_plots.layers
-      - seasonal_plots.years
-      - seasonal_plots.plot_types
-    outs:
-      - figures/seasonal_plots/
-
-  pca_env_corr:
-    cmd: python step0_sandbox/33_DO_PCA_corr.py
-    deps:
-      - step0_sandbox/33_DO_PCA_corr.py
-      - data/processed/merged_gdf.feather
-      - data/processed/seasonal/summer_bottom/pca_scores.csv
-    outs:
-      - data/processed/seasonal/summer_bottom/pca_env_corr_pc1.csv:
-          cache: false
-      - data/processed/seasonal/summer_bottom/pca_env_corr_pc2.csv:
-          cache: false
+      - step5_environmental_factor_correlation_analysis/
+      - step3_PCA_analysis/

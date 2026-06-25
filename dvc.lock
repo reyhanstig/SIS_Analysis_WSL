@@ -141,3 +141,71 @@ stages:
       md5: 8ccc511bc5ec587d8e2dbaeb6c9f6d56
       size: 26824
       isexec: true
+  step1_data_extraction:
+    cmd: python -m step1_data_extraction
+    deps:
+    - path: step1_data_extraction/
+      hash: md5
+      md5: ba71ba1d108cba11f6c5acf5ac866806.dir
+      size: 177390
+      nfiles: 17
+  step1_data_processing_cleaning:
+    cmd: python -m step1_data_processing_cleaning
+    deps:
+    - path: step1_data_processing_cleaning/
+      hash: md5
+      md5: 67f103652e7495699eba98e5e5f1174f.dir
+      size: 291059
+      nfiles: 16
+  step2_decorrelation_scale_analysis:
+    cmd: python -m step2_decorrelation_scale_analysis
+    deps:
+    - path: step1_data_processing_cleaning/
+      hash: md5
+      md5: 67f103652e7495699eba98e5e5f1174f.dir
+      size: 291059
+      nfiles: 16
+    - path: step2_decorrelation_scale_analysis/
+      hash: md5
+      md5: a107d759f92605423e6becabd46ddb5a.dir
+      size: 32463
+      nfiles: 11
+  step2_hypoxia_frequency_calculation:
+    cmd: python -m step2_hypoxia_frequency_calculation
+    deps:
+    - path: step1_data_processing_cleaning/
+      hash: md5
+      md5: c12f772817e48863663777c4217bf5f7.dir
+      size: 246840
+      nfiles: 15
+    - path: step2_hypoxia_frequency_calculation/
+      hash: md5
+      md5: b568058588d3164dbdaf8586139a4c82.dir
+      size: 75193
+      nfiles: 12
+  step3_PCA_analysis:
+    cmd: python -m step3_PCA_analysis
+    deps:
+    - path: step2_hypoxia_frequency_calculation/
+      hash: md5
+      md5: b568058588d3164dbdaf8586139a4c82.dir
+      size: 75193
+      nfiles: 12
+    - path: step3_PCA_analysis/
+      hash: md5
+      md5: 8e8933e32ff722b888988c64e60d210e.dir
+      size: 43454
+      nfiles: 10
+  step5_environmental_factor_correlation_analysis:
+    cmd: python -m step5_environmental_factor_correlation_analysis
+    deps:
+    - path: step3_PCA_analysis/
+      hash: md5
+      md5: 8e8933e32ff722b888988c64e60d210e.dir
+      size: 43454
+      nfiles: 10
+    - path: step5_environmental_factor_correlation_analysis/
+      hash: md5
+      md5: 9c84b716254921f65b07e496d3e520f7.dir
+      size: 73480
+      nfiles: 12

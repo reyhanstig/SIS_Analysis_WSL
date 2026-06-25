@@ -1,0 +1,2 @@
+parameter_name,value,type,description
+divisions,"Seto Inland Sea, Tokyo Bay, Ise Mikawa Bay, Osaka Bay",str,The specific divisions or bays to process

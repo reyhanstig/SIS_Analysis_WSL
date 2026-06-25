@@ -76,28 +76,24 @@ Key parameters in the dataset have been clarified through statistical analysis (
 
 ## Analysis Pipeline (New!)
 
-We use a **DVC Pipeline** to automate the execution of notebooks. This ensures that when you update an early step (like data cleaning), all downstream analysis (like PCA) is automatically updated. 
-
-**Regional Support**: The pipeline now supports localized analysis. By adjusting `mapping` parameters in `params.yaml`, you can automatically restrict the entire analysis (from subsets to PCA) to specific bays such as **Tokyo Bay** or **Ise Bay**.
+We use a **DVC Pipeline** to automate the execution of our modular Python scripts. The pipeline is strictly organized into numbered step directories (e.g., `step1_data_extraction`, `step2_hypoxia_frequency_calculation`), ensuring downstream dependencies automatically rebuild when early data or parameters change.
 
 ### Core Command
 ```bash
 dvc repro
 ```
-Running this command in the terminal will execute the entire pipeline from start to finish, running only the steps that need to be updated.
+Running this command in the terminal executes the pipeline. DVC tracks each step directory, automatically checking for modified scripts or parameters and only re-running what is necessary.
 
-### Directory Structure
-*   **`notebooks/pipeline/`**: Contains the "Official" analysis notebooks. These are run by DVC.
-*   **`notebooks/exploration/`**: Place for testing ideas.
-*   **`params.yaml`**: Configuration file for parameters (e.g., thresholds, radii).
-*   **`dvc.yaml`**: Defines the dependency graph.
+### Directory Structure & Conventions
+*   **`stepX_.../`**: Each pipeline step has its own directory acting as a python module.
+*   **`stepX_.../10_script.py`**: Scripts are numbered in 10s places (10, 20, 30) for logical execution order. 
+*   **`stepX_.../stepX_parameter.csv`**: Every step folder contains its own parameter CSV. Scripts read from this file rather than hardcoding variables.
+*   **`figures/stepX_.../YY_script/`**: Outputs and generated figures are automatically saved to dynamically mirrored directories in the `figures/` symlink folder.
+*   **`dvc.yaml`**: Defines the dependency graph hooking these modular step folders together.
 
 ### How to Work
-1.  **Edit**: Open a notebook in `notebooks/pipeline/` and modify it interactively.
-2.  **Save**: Save the notebook.
-3.  **Run**: Terminate the kernel and run `dvc repro` in the terminal to propagate your changes to all other notebooks.
-
-For detailed instructions, see `pipeline_manual_prototype.md`.
+1.  **Modify**: Update parameters in the `stepX_parameter.csv` file or edit the `.py` scripts inside a step directory.
+2.  **Run**: Execute `dvc repro` in the terminal. DVC detects changes in the specific folder and re-runs the affected stages automatically.
 
 ---
 
@@ -147,3 +143,18 @@ Occasionally pull code changes to Windows to keep it up to date.
 git pull
 dvc pull  # Pull the latest figures and data changes from the remote
 ``` 
+
+---
+
+## Pipeline Steps Details
+
+The DVC pipeline consists of the following modular steps:
+
+1. **`step1_data_extraction`**: Initial extraction of raw spatial data.
+2. **`step1_data_processing_cleaning`**: Cleans and extracts specific survey data, including fixed stations, Hiroshima survey data, line surveys, spatial data, and river stations.
+3. **`step2_decorrelation_scale_analysis`**: Analyzes the spatial and temporal decorrelation scales of environmental variables, including seasonal variations and permutations.
+4. **`step2_hypoxia_frequency_calculation`**: Calculates the frequency and trends of hypoxia across different stations and divisions, mapping the trends over time.
+5. **`step3_PCA_analysis`**: Performs Principal Component Analysis (PCA) to find correlations between environmental factors, specifically targeting Ise Bay and Tokyo Bay.
+6. **`step5_environmental_factor_correlation_analysis`**: Investigates the drivers of hypoxia, analyzing what environmental factors (e.g., nutrients, temperature) affect dissolved oxygen (DO) levels and comparing these drivers by their trends.
+
+For a comprehensive breakdown of every script in each step and its specific function, please refer to the [Pipeline Details Documentation](pipeline_details.md).
