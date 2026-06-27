@@ -300,12 +300,7 @@ def gdf_to_clip_path(gdf):
 
 def _add_gridlines(ax):
     """Add compact gridlines to a GeoAxes subplot."""
-    gl = ax.gridlines(draw_labels=False,
-                      linestyle=MappingConfig.GRID_LINESTYLE,
-                      color=MappingConfig.GRID_COLOR,
-                      alpha=MappingConfig.GRID_ALPHA,
-                      linewidth=SUBPLOT_GRIDLINE_LW,
-                      zorder=MappingConfig.ZORDER_GRIDLINES)
+    gl = MappingConfig.apply_gridlines(ax)
     return gl
 
 def add_global_scalebar(ax_scale):

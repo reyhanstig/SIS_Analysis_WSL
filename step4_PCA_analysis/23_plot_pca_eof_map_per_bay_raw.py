@@ -14,17 +14,6 @@ CURRENT_SCRIPT = Path(__file__).resolve()
 sys.path.insert(0, str(CURRENT_SCRIPT.parent.parent))
 STEP_DIR = CURRENT_SCRIPT.parent.name
 SCRIPT_NAME = CURRENT_SCRIPT.stem
-import shutil
-
-PROCESSED_DATA_DIR = Path('/home/reyha/SIS_Analysis_WSL/data/processed') / STEP_DIR / SCRIPT_NAME
-if PROCESSED_DATA_DIR.exists():
-    shutil.rmtree(PROCESSED_DATA_DIR, ignore_errors=True)
-PROCESSED_DATA_DIR.mkdir(parents=True, exist_ok=True)
-
-OUTPUT_DIR = Path('/home/reyha/SIS_Analysis_WSL/figures') / STEP_DIR / SCRIPT_NAME
-if OUTPUT_DIR.exists():
-    shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
-OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 step_num = STEP_DIR.split('_')[0].replace('step', '')
 log_file = CURRENT_SCRIPT.parent / f"log_process{step_num}.txt"
@@ -116,7 +105,7 @@ def plot_eof_map(eof_values, station_coords, pc_name, variance_pct, division):
         c=plot_data['EOF'],
         cmap='coolwarm',
         vmin=-vmax, vmax=vmax,
-        s=abs(plot_data['EOF']) * 800, edgecolors='k', linewidths=0.5,
+        s=np.maximum(abs(plot_data['EOF']) * 800, 20), edgecolors='k', linewidths=0.5,
         transform=ccrs.PlateCarree(),
         zorder=MappingConfig.ZORDER_PREDICTED
     )
@@ -131,7 +120,7 @@ def plot_eof_map(eof_values, station_coords, pc_name, variance_pct, division):
     cbar = fig.colorbar(sc, cax=cbar_ax, orientation='horizontal')
     cbar.set_label('EOF Weight')
     
-    out_path = OUTPUT_DIR / f"{division.replace(' ', '_').lower()}_eof_map_{pc_name.lower()}.png"
+    out_path = OUTPUT_DIR / f"{division.replace(' ', '_').lower()}_eof_map_{pc_name.lower()}_raw.png"
     plt.savefig(out_path, bbox_inches='tight', dpi=300)
     plt.close()
 
@@ -140,7 +129,7 @@ def main():
     division = args.division
     out_name = division.replace(' ', '_').lower()
     
-    data_dir = ProjectPaths.PROCESSED_DATA_DIR / STEP_DIR / "21_calculate_pca_explained_variance_per_bay" / out_name
+    data_dir = ProjectPaths.PROCESSED_DATA_DIR / STEP_DIR / "21_calculate_pca_explained_variance_per_bay_raw" / out_name
     eof_file = data_dir / f"{out_name}_eof_patterns.csv"
     var_file = data_dir / f"{out_name}_pca_variance.csv"
     

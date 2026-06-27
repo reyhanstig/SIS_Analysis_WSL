@@ -53,24 +53,8 @@ warnings.filterwarnings('ignore')
 from utils.paths import ProjectPaths
 from utils.mapping_config import MappingConfig
 from utils.data_loader import load_and_process_data
-import argparse
-parser = argparse.ArgumentParser()
-parser.add_argument('--division', type=str, required=True)
-args, unknown = parser.parse_known_args()
 
-PROCESSED_DATA_DIR = Path('/home/reyha/SIS_Analysis_WSL/data/processed') / STEP_DIR / SCRIPT_NAME / args.division.replace(' ', '_').lower()
-if PROCESSED_DATA_DIR.exists():
-    import shutil
-    shutil.rmtree(PROCESSED_DATA_DIR, ignore_errors=True)
-PROCESSED_DATA_DIR.mkdir(parents=True, exist_ok=True)
-
-OUTPUT_DIR = Path('/home/reyha/SIS_Analysis_WSL/figures') / STEP_DIR / SCRIPT_NAME / args.division.replace(' ', '_').lower()
-if OUTPUT_DIR.exists():
-    import shutil
-    shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
-OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
-def plot_pc_timeseries(pc_scores, division):
+def plot_pc_timeseries(pc_scores):
     plt.style.use(str(ProjectPaths.PROJECT_ROOT / 'project_style.mplstyle'))
     fig, ax = plt.subplots(figsize=(10, 5))
     
@@ -80,27 +64,25 @@ def plot_pc_timeseries(pc_scores, division):
     ax.axhline(y=0, color='k', linestyle='--', alpha=0.5)
     ax.set_xlabel('Year')
     ax.set_ylabel('PC Score')
-    ax.set_title(f'{division}: Principal Component Time Series')
+    ax.set_title('Principal Component Time Series')
     ax.legend()
     
-    out_path = OUTPUT_DIR / f"{division.replace(' ', '_').lower()}_pc_timeseries.png"
+    out_path = OUTPUT_DIR / 'pc_timeseries_raw.png'
     plt.savefig(out_path, bbox_inches='tight', dpi=300)
     plt.close()
+    print(f"Saved PC time series plot to: {out_path}")
 
 def main():
     ProjectPaths.ensure_directories()
-    division = args.division
-    out_name = division.replace(' ', '_').lower()
     
-    data_dir = ProjectPaths.PROCESSED_DATA_DIR / STEP_DIR / "21_calculate_pca_explained_variance_per_bay" / out_name
-    pc_scores_file = data_dir / f"{out_name}_pc_scores.csv"
-    
+    data_dir = ProjectPaths.PROCESSED_DATA_DIR / STEP_DIR / "11_calculate_pca_explained_variance_raw"
+    pc_scores_file = data_dir / "pc_scores.csv"
     if not pc_scores_file.exists():
-        print(f"Error: {pc_scores_file} not found.")
+        print("Error: pc_scores.csv not found.")
         return
         
     pc_scores = pd.read_csv(pc_scores_file, index_col=0)
-    plot_pc_timeseries(pc_scores, division)
+    plot_pc_timeseries(pc_scores)
 
 if __name__ == "__main__":
     main()

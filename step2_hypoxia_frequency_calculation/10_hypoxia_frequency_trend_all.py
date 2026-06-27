@@ -363,11 +363,7 @@ for region in regions_info:
 
     ax.set_title(f'Mean Climatological Bottom DO: {name}', fontsize=16)
     
-    gl = ax.gridlines(draw_labels=True, linestyle=MappingConfig.GRID_LINESTYLE,
-                      color=MappingConfig.GRID_COLOR, alpha=MappingConfig.GRID_ALPHA,
-                      linewidth=MappingConfig.GRID_LINEWIDTH, zorder=MappingConfig.ZORDER_GRIDLINES)
-    gl.top_labels = False
-    gl.right_labels = False
+    gl = MappingConfig.apply_gridlines(ax)
     
     cbar = fig.colorbar(c_m, ax=ax, fraction=0.046, pad=0.04)
     cbar.set_label(label, fontsize=14)
@@ -403,11 +399,7 @@ def plot_frequency_map(region_name, df, land_boundary_path, extent, threshold_mi
                     transform=ccrs.PlateCarree(), zorder=MappingConfig.ZORDER_OBSERVATIONS)
     
     ax.set_title(f'{title}: {region_name}', fontsize=16)
-    gl = ax.gridlines(draw_labels=True, linestyle=MappingConfig.GRID_LINESTYLE,
-                      color=MappingConfig.GRID_COLOR, alpha=MappingConfig.GRID_ALPHA,
-                      linewidth=MappingConfig.GRID_LINEWIDTH, zorder=MappingConfig.ZORDER_GRIDLINES)
-    gl.top_labels = False
-    gl.right_labels = False
+    gl = MappingConfig.apply_gridlines(ax)
     
     cbar = fig.colorbar(sc, ax=ax, fraction=0.046, pad=0.04)
     cbar.set_label('Frequency (%)', fontsize=14)
@@ -541,11 +533,7 @@ for region in regions_info:
 
     ax.set_title(f'Spatial DO Trend (Slope mg/L/year): {name}', fontsize=16)
     
-    gl = ax.gridlines(draw_labels=True, linestyle=MappingConfig.GRID_LINESTYLE,
-                      color=MappingConfig.GRID_COLOR, alpha=MappingConfig.GRID_ALPHA,
-                      linewidth=MappingConfig.GRID_LINEWIDTH, zorder=MappingConfig.ZORDER_GRIDLINES)
-    gl.top_labels = False
-    gl.right_labels = False
+    gl = MappingConfig.apply_gridlines(ax)
     
     cbar = fig.colorbar(c_m, ax=ax, fraction=0.046, pad=0.04)
     cbar.set_label("DO Trend Slope (mg/L / yr)", fontsize=14)

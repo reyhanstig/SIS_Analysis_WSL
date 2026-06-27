@@ -161,11 +161,7 @@ def main():
         except Exception as e:
             print(f"Could not load custom boundary for {division}: {e}")
             
-        gl = ax.gridlines(draw_labels=True, linestyle=MappingConfig.GRID_LINESTYLE, 
-                          color=MappingConfig.GRID_COLOR, alpha=MappingConfig.GRID_ALPHA, 
-                          linewidth=MappingConfig.GRID_LINEWIDTH, zorder=MappingConfig.ZORDER_GRIDLINES)
-        gl.top_labels = False
-        gl.right_labels = False
+        gl = MappingConfig.apply_gridlines(ax)
         
         sc = ax.scatter(
             map_gdf['longitude'], map_gdf['latitude'],

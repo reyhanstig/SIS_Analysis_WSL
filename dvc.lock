@@ -209,3 +209,21 @@ stages:
       md5: 9c84b716254921f65b07e496d3e520f7.dir
       size: 73480
       nfiles: 12
+  step4_PCA_analysis:
+    cmd: python -m step4_PCA_analysis
+    deps:
+    - path: step1_data_processing_cleaning/
+      hash: md5
+      md5: f6cd6e54abfd0c21791f1988f9d7e905.dir
+      size: 335808
+      nfiles: 16
+    - path: step3_decorrelation_scale_analysis/
+      hash: md5
+      md5: d5651c02f8072ec02796ac90cba23de9.dir
+      size: 66952
+      nfiles: 16
+    - path: step4_PCA_analysis/
+      hash: md5
+      md5: 98bad1d23fe32505f542ae151197c5ce.dir
+      size: 39928
+      nfiles: 14

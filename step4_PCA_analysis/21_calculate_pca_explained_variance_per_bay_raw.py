@@ -14,17 +14,6 @@ CURRENT_SCRIPT = Path(__file__).resolve()
 sys.path.insert(0, str(CURRENT_SCRIPT.parent.parent))
 STEP_DIR = CURRENT_SCRIPT.parent.name
 SCRIPT_NAME = CURRENT_SCRIPT.stem
-import shutil
-
-PROCESSED_DATA_DIR = Path('/home/reyha/SIS_Analysis_WSL/data/processed') / STEP_DIR / SCRIPT_NAME
-if PROCESSED_DATA_DIR.exists():
-    shutil.rmtree(PROCESSED_DATA_DIR, ignore_errors=True)
-PROCESSED_DATA_DIR.mkdir(parents=True, exist_ok=True)
-
-OUTPUT_DIR = Path('/home/reyha/SIS_Analysis_WSL/figures') / STEP_DIR / SCRIPT_NAME
-if OUTPUT_DIR.exists():
-    shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
-OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 step_num = STEP_DIR.split('_')[0].replace('step', '')
 log_file = CURRENT_SCRIPT.parent / f"log_process{step_num}.txt"
@@ -130,7 +119,7 @@ def plot_explained_variance(pca_model, division):
     ax.set_xticks(components)
     ax.legend()
     
-    out_path = OUTPUT_DIR / f"{division.replace(' ', '_').lower()}_pca_explained_variance.png"
+    out_path = OUTPUT_DIR / f"{division.replace(' ', '_').lower()}_pca_explained_variance_raw.png"
     plt.savefig(out_path, bbox_inches='tight', dpi=300)
     plt.close()
 
@@ -196,8 +185,7 @@ def main():
         print(f"Insufficient interpolated data for {division}.")
         return
         
-    scaler = StandardScaler()
-    scaled_data = scaler.fit_transform(interpolated_do_df.T)
+    pca_input_data = interpolated_do_df.T
     
     n_components = min(10, len(interpolated_do_df), len(interpolated_do_df.columns))
     if n_components < 2:
@@ -205,7 +193,7 @@ def main():
         return
         
     pca_model = PCA(n_components=n_components)
-    pca_result = pca_model.fit_transform(scaled_data)
+    pca_result = pca_model.fit_transform(pca_input_data)
     
     years = interpolated_do_df.columns.astype(int)
     

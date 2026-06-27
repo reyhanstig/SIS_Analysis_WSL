@@ -260,11 +260,7 @@ def plot_simple_decorrelation_scale(division, results_df, merged_gdf):
         zorder=MappingConfig.ZORDER_PREDICTED
     )
     
-    gl = ax.gridlines(draw_labels=True, linestyle=MappingConfig.GRID_LINESTYLE,
-                      color=MappingConfig.GRID_COLOR, alpha=MappingConfig.GRID_ALPHA,
-                      linewidth=MappingConfig.GRID_LINEWIDTH, zorder=MappingConfig.ZORDER_GRIDLINES)
-    gl.top_labels = False
-    gl.right_labels = False
+    gl = MappingConfig.apply_gridlines(ax)
     
     ax.set_extent(map_extent, crs=ccrs.PlateCarree())
     plt.title(f'{division}: Decorrelation Scale (km) [Simple]')

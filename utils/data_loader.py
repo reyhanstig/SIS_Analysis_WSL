@@ -89,6 +89,10 @@ def load_raw_shapefiles(start_year=1981, end_year=2023):
             # which are missing from the water_manual.xls.
             merged_gdf['watercode'] = merged_gdf['watercode'].replace({201: 200, 202: 200})
             
+            # Hotfix: Station 00001352 (Tokyo Bay) is mistakenly assigned an incorrect code in 2022 raw data
+            if 'zettaicode' in merged_gdf.columns:
+                merged_gdf.loc[merged_gdf['zettaicode'] == '00001352', 'watercode'] = 100
+            
             codes_df['watercode'] = pd.to_numeric(codes_df['watercode'], errors='coerce').fillna(-1).astype(int)
             
             merged_gdf = merged_gdf.merge(codes_df, on='watercode', how='left')

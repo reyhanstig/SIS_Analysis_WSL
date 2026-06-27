@@ -72,22 +72,22 @@ def plot_eof_map(eof_values, station_coords, pc_name, variance_pct, target_regio
     ax.add_feature(cfeature.COASTLINE, linewidth=0.5, edgecolor='black', zorder=MappingConfig.ZORDER_CARTOPY_COASTLINE)
     
     try:
-        if target_region == 'Tokyo Bay':
-            land_boundary_path = ProjectPaths.BOUNDARIES_DIR / "SIS_prefecture_boundaries" / "Tokyobay_boundary.shp"
-        elif target_region == 'Ise Bay':
-            land_boundary_path = ProjectPaths.BOUNDARIES_DIR / "SIS_prefecture_boundaries" / "Isebay_boundary.shp"
-        else:
-            land_boundary_path = ProjectPaths.BOUNDARIES_DIR / "SIS_prefecture_boundaries" / "Setonaikai_boundary.shp"
-            
-        if land_boundary_path.exists():
-            land_boundary = gpd.read_file(land_boundary_path)
-            if land_boundary.crs != "EPSG:4326":
-                land_boundary = land_boundary.to_crs("EPSG:4326")
-            land_boundary.plot(ax=ax, facecolor=MappingConfig.COLOR_LAND, edgecolor=MappingConfig.COLOR_LAND_EDGE, 
-                               linewidth=MappingConfig.LINEWIDTH_LAND, transform=ccrs.PlateCarree(), 
-                               zorder=MappingConfig.ZORDER_LAND)
+        boundary_paths = [
+            ProjectPaths.BOUNDARIES_DIR / "SIS_prefecture_boundaries" / "Setonaikai_boundary.shp",
+            ProjectPaths.BOUNDARIES_DIR / "SIS_prefecture_boundaries" / "Tokyobay_boundary.shp",
+            ProjectPaths.BOUNDARIES_DIR / "SIS_prefecture_boundaries" / "Isebay_boundary.shp"
+        ]
+        
+        for land_boundary_path in boundary_paths:
+            if land_boundary_path.exists():
+                land_boundary = gpd.read_file(land_boundary_path)
+                if land_boundary.crs != "EPSG:4326":
+                    land_boundary = land_boundary.to_crs("EPSG:4326")
+                land_boundary.plot(ax=ax, facecolor=MappingConfig.COLOR_LAND, edgecolor=MappingConfig.COLOR_LAND_EDGE, 
+                                   linewidth=MappingConfig.LINEWIDTH_LAND, transform=ccrs.PlateCarree(), 
+                                   zorder=MappingConfig.ZORDER_LAND)
     except Exception as e:
-        print(f"Could not load custom boundary: {e}")
+        print(f"Could not load custom boundaries: {e}")
     
     # Update sizing and colormap to coolwarm
     vmax = max(abs(plot_data['EOF'].min()), abs(plot_data['EOF'].max()))
@@ -97,7 +97,7 @@ def plot_eof_map(eof_values, station_coords, pc_name, variance_pct, target_regio
         c=plot_data['EOF'],
         cmap='coolwarm',
         vmin=-vmax, vmax=vmax,
-        s=abs(plot_data['EOF']) * 800, edgecolors='k', linewidths=0.5,
+        s=np.maximum(abs(plot_data['EOF']) * 800, 50), edgecolors='k', linewidths=0.5,
         transform=ccrs.PlateCarree(),
         zorder=MappingConfig.ZORDER_PREDICTED
     )
@@ -105,14 +105,14 @@ def plot_eof_map(eof_values, station_coords, pc_name, variance_pct, target_regio
     gl = MappingConfig.apply_gridlines(ax)
     
     ax.set_extent(map_extent, crs=ccrs.PlateCarree())
-    plt.title(f'{target_region}: {pc_name} Spatial Pattern ({variance_pct:.1f}%)')
+    plt.title(f'Combined Regions: {pc_name} Spatial Pattern ({variance_pct:.1f}%)')
     
     plt.subplots_adjust(bottom=0.15)
     cbar_ax = fig.add_axes([0.25, 0.05, 0.5, 0.03])
     cbar = fig.colorbar(sc, cax=cbar_ax, orientation='horizontal')
     cbar.set_label('EOF Weight')
     
-    out_path = OUTPUT_DIR / f'eof_map_{pc_name.lower()}.png'
+    out_path = OUTPUT_DIR / f'eof_map_{pc_name.lower()}_raw.png'
     plt.savefig(out_path, bbox_inches='tight', dpi=300)
     plt.close()
     print(f"Saved {pc_name} EOF map to: {out_path}")
@@ -128,7 +128,7 @@ def main():
     except Exception as e:
         TARGET_REGION = 'Seto Inland Sea'
         
-    data_dir = ProjectPaths.PROCESSED_DATA_DIR / STEP_DIR / "11_calculate_pca_explained_variance"
+    data_dir = ProjectPaths.PROCESSED_DATA_DIR / STEP_DIR / "11_calculate_pca_explained_variance_raw"
     eof_file = data_dir / "eof_patterns.csv"
     var_file = data_dir / "pca_variance.csv"
     

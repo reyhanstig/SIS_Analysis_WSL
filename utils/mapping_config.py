@@ -75,6 +75,10 @@ class MappingConfig:
                           color=MappingConfig.GRID_COLOR, alpha=MappingConfig.GRID_ALPHA,
                           linewidth=MappingConfig.GRID_LINEWIDTH, zorder=MappingConfig.ZORDER_GRIDLINES)
         
+        # CRITICAL: The Gridliner object itself must have its zorder set,
+        # otherwise its draw() method is called too early (default zorder=2)
+        gl.set_zorder(MappingConfig.ZORDER_GRIDLINES)
+        
         # In cartopy >= 0.20, xline_artists is a list of lines
         if hasattr(gl, 'xline_artists'):
             for line in gl.xline_artists:

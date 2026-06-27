@@ -71,7 +71,7 @@ def plot_explained_variance(pca_model):
     ax.set_xticks(components)
     ax.legend()
     
-    out_path = OUTPUT_DIR / 'pca_explained_variance.png'
+    out_path = OUTPUT_DIR / 'pca_explained_variance_raw.png'
     plt.savefig(out_path, bbox_inches='tight', dpi=300)
     plt.close()
     print(f"Saved explained variance plot to: {out_path}")
@@ -100,12 +100,11 @@ def main():
     # Fill remaining NaNs with the temporal mean
     interpolated_do_df = interpolated_do_df.fillna(interpolated_do_df.mean(axis=0))
     
-    print("Performing PCA analysis...")
-    scaler = StandardScaler()
-    scaled_data = scaler.fit_transform(interpolated_do_df.T)
+    print("Performing PCA analysis (RAW)...")
+    pca_input_data = interpolated_do_df.T
     
     pca_model = PCA(n_components=10)
-    pca_result = pca_model.fit_transform(scaled_data)
+    pca_result = pca_model.fit_transform(pca_input_data)
     
     years = interpolated_do_df.columns.astype(int)
     
