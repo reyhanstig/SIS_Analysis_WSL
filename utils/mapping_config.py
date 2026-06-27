@@ -6,7 +6,7 @@ class MappingConfig:
     ZORDER_CARTOPY_LAND = 0.5      # Cartopy low-res land feature
     ZORDER_CARTOPY_COASTLINE = 0.6 # Cartopy low-res coastline
     ZORDER_LAND = 4                # Setonaikai high-res land boundary shapefile
-    ZORDER_GRIDLINES = 2           # Cartopy gridlines
+    ZORDER_GRIDLINES = 10          # Cartopy gridlines (now on top of everything)
     ZORDER_PREDICTED = 3           # Interpolated grids, contours, or scatters
     ZORDER_OBSERVATIONS = 5        # Actual observation scatter points
     
@@ -67,6 +67,25 @@ class MappingConfig:
     GRID_ALPHA = 0.5
     GRID_LINESTYLE = '--'
     GRID_LINEWIDTH = 0.5
+    
+    @staticmethod
+    def apply_gridlines(ax):
+        """Helper method to draw gridlines with correct z-orders."""
+        gl = ax.gridlines(draw_labels=True, linestyle=MappingConfig.GRID_LINESTYLE,
+                          color=MappingConfig.GRID_COLOR, alpha=MappingConfig.GRID_ALPHA,
+                          linewidth=MappingConfig.GRID_LINEWIDTH, zorder=MappingConfig.ZORDER_GRIDLINES)
+        
+        # In cartopy >= 0.20, xline_artists is a list of lines
+        if hasattr(gl, 'xline_artists'):
+            for line in gl.xline_artists:
+                line.set_zorder(MappingConfig.ZORDER_GRIDLINES)
+        if hasattr(gl, 'yline_artists'):
+            for line in gl.yline_artists:
+                line.set_zorder(MappingConfig.ZORDER_GRIDLINES)
+                
+        gl.top_labels = False
+        gl.right_labels = False
+        return gl
     
     # --- Variable-Specific Mappings ---
     # Defines the colormaps, bounds, and labels dynamically based on the dataset variable

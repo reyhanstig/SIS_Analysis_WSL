@@ -28,8 +28,8 @@ SIS_Analysis_WSL/
 ├── step0_sandbox/                              <- Jupyter Notebooks for exploration and scratchpad
 ├── step1_data_processing_cleaning/             <- Spatial data and river station extraction
 ├── step2_hypoxia_frequency_calculation/        <- Hypoxia frequency analysis
-├── step2_decorrelation_scale_analysis/         <- Decorrelation scales
-├── step3_PCA_analysis/                         <- PCA environments
+├── step3_decorrelation_scale_analysis/         <- Decorrelation scales
+├── step4_PCA_analysis/                         <- PCA environments
 ├── step5_environmental_factor_correlation_analysis/ <- Env factor correlations
 └── utils/                                      <- Shared python utilities (paths, config)
 ```
@@ -152,9 +152,9 @@ The DVC pipeline consists of the following modular steps:
 
 1. **`step1_data_extraction`**: Initial extraction of raw spatial data.
 2. **`step1_data_processing_cleaning`**: Cleans and extracts specific survey data, including fixed stations, Hiroshima survey data, line surveys, spatial data, and river stations.
-3. **`step2_decorrelation_scale_analysis`**: Analyzes the spatial and temporal decorrelation scales of environmental variables, including seasonal variations and permutations.
+3. **`step3_decorrelation_scale_analysis`**: Analyzes the spatial and temporal decorrelation scales of environmental variables, including seasonal variations and permutations.
 4. **`step2_hypoxia_frequency_calculation`**: Calculates the frequency and trends of hypoxia across different stations and divisions, mapping the trends over time.
-5. **`step3_PCA_analysis`**: Performs Principal Component Analysis (PCA) to find correlations between environmental factors, specifically targeting Ise Bay and Tokyo Bay.
+5. **`step4_PCA_analysis`**: Performs Principal Component Analysis (PCA) to find correlations between environmental factors, specifically targeting Ise Bay and Tokyo Bay.
 6. **`step5_environmental_factor_correlation_analysis`**: Investigates the drivers of hypoxia, analyzing what environmental factors (e.g., nutrients, temperature) affect dissolved oxygen (DO) levels and comparing these drivers by their trends.
 
-For a comprehensive breakdown of every script in each step and its specific function, please refer to the [Pipeline Details Documentation](pipeline_details.md).
+For a comprehensive breakdown of every script in each step and its specific function, please refer to the [Pipeline Details Documentation](pipeline_details.md).

@@ -15,11 +15,13 @@ This step parses, cleans, and standardizes heterogeneous data formats (including
 - **`60_retrieve_sis_river_stations.py`**: A web-scraping script using Selenium and headless Chrome to retrieve river water level and flow rate station coordinates from the MLIT database. It automatically filters nationwide stations by Seto Inland Sea prefectures and performs a spatial intersection (`geopandas`) to save only those falling strictly within the Seto Inland Sea boundaries.
 - **`util_convert_to_geojson.py`**: A utility tool to batch convert shapefiles to standardized GeoJSON formats for easier web mapping and integration.
 
-## 3. `step2_decorrelation_scale_analysis`
+## 3. `step3_decorrelation_scale_analysis`
 This step calculates spatial and temporal decorrelation scales—metrics that define how far from a monitoring station the data remains statistically representative.
 - **`10_calculate_bay_decorrelation_scales.py`**: Focuses on Summer Bottom Dissolved Oxygen (DO). It calculates a pairwise distance matrix between all stations, correlates multi-year DO time-series, and fits a Gaussian decay model constrained by a significance threshold (`r_crit`) to compute the exact spatial decorrelation radius (in km) for Ise Bay and Tokyo Bay.
 - **`20_decorrelation_analysis_permutations.py`**: Runs permutation analyses and bootstrap sampling to robustly estimate confidence intervals for the calculated decorrelation scales.
 - **`30_decorrelation_seasonal.py`**: Extends the decorrelation scale logic to calculate representative radii across different seasons (Spring, Summer, Autumn, Winter) rather than just summer bottom hypoxia.
+- **`40_calculate_decorrelation_scale_per_bay.py`**: Separates all selected water masses (e.g., Seto Inland Sea) into their individual sub-basins first, then calculates the decorrelation scale for each basin dynamically. Outputs simple spatial visualizations for each region.
+- **`50_plot_decorrelation_scale_complete.py`**: Generates the formal, high-resolution map figures for the decorrelation scales calculated in script 40, applying accurate land boundaries and shapefiles.
 
 ## 4. `step2_hypoxia_frequency_calculation`
 This step evaluates how often different regions experience severe oxygen depletion and models long-term trends.
@@ -28,10 +30,10 @@ This step evaluates how often different regions experience severe oxygen depleti
 - **`30_hypoxia_frequency_trend_v2.py`**: An updated methodology for calculating DO trends that applies stricter data completeness thresholds and different interpolation weighting.
 - **`40_hypoxia_tendecy_per_station.py`**: Outputs time-series plots and trend statistics for individual monitoring stations, identifying specific local hotspots of oxygen depletion.
 
-## 5. `step3_PCA_analysis`
+## 5. `step4_PCA_analysis`
 This step uses Principal Component Analysis to distill complex environmental parameters into primary drivers.
-- **`10_PCA_env_corr_Ise_bay.py`**: Calculates seawater density (using `gsw-python`) and seasonal climatologies (Temperature, Salinity, Wind, Chlorophyll-a). Fills spatial data gaps using the decorrelation scale derived in Step 2. Runs PCA on the environmental matrix to extract PC1 and PC2. Finally, maps the per-station Pearson correlation between the PC scores and physical factors, highlighting the primary physical drivers of water quality in Ise Bay.
-- **`20_PCA_env_corr_Tokyo_bay.py`**: Executes the identical PCA and spatial gap-filling methodology on the Tokyo Bay subset, isolating the dominant environmental forcings unique to that basin.
+- **`10_PCA_analysis.py`**: Loads the spatially interpolated dissolved oxygen (DO) data for the target region (e.g. Seto Inland Sea). It scales the data and performs PCA to extract the dominant spatial and temporal patterns (PC1 and PC2). Generates explained variance plots, PC time series, and spatial EOF maps.
+- **`20_PCA_analysis_per_bay.py`**: Conducts the identical PCA dynamically for each individual sub-basin. It iterates through the divisions, dynamically interpolates missing DO data using a Gaussian weight function bounded by that basin's specific decorrelation scale, and saves per-basin PCA scores and EOF maps.
 
 ## 6. `step5_environmental_factor_correlation_analysis`
 This step uses statistical modeling to directly link dissolved oxygen (DO) depletion to specific environmental predictors.

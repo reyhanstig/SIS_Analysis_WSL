@@ -156,6 +156,9 @@ sis_land_boundary.plot(
 gl = ax.gridlines(draw_labels=True, linestyle=MappingConfig.GRID_LINESTYLE, 
                   color=MappingConfig.GRID_COLOR, alpha=MappingConfig.GRID_ALPHA, 
                   linewidth=MappingConfig.GRID_LINEWIDTH, zorder=MappingConfig.ZORDER_GRIDLINES)
+# CRITICAL: Cartopy requires explicit zorder on the line artists themselves
+gl.xlines.set_zorder(MappingConfig.ZORDER_GRIDLINES)
+gl.ylines.set_zorder(MappingConfig.ZORDER_GRIDLINES)
 gl.top_labels = False
 gl.right_labels = False
 ```

@@ -1,16 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
+import argparse
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 # --- BOILERPLATE INJECTED BY AGENT ---
 import os
-import sys
 import pandas as pd
 import logging
 import matplotlib.pyplot as plt
-from pathlib import Path
 
 CURRENT_SCRIPT = Path(__file__).resolve()
 # Fix namespace shadowing by inserting project root at index 0
@@ -18,7 +17,11 @@ sys.path.insert(0, str(CURRENT_SCRIPT.parent.parent))
 STEP_DIR = CURRENT_SCRIPT.parent.name
 SCRIPT_NAME = CURRENT_SCRIPT.stem
 import shutil
-PROCESSED_DATA_DIR = Path('/home/reyha/SIS_Analysis_WSL/data/processed') / STEP_DIR / SCRIPT_NAME
+parser = argparse.ArgumentParser()
+parser.add_argument('--division', type=str, required=True)
+args, unknown = parser.parse_known_args()
+
+PROCESSED_DATA_DIR = Path('/home/reyha/SIS_Analysis_WSL/data/processed') / STEP_DIR / SCRIPT_NAME / args.division.replace(' ', '_').lower()
 if PROCESSED_DATA_DIR.exists():
     shutil.rmtree(PROCESSED_DATA_DIR, ignore_errors=True)
 PROCESSED_DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -195,7 +198,7 @@ def compute_decorrelation_for_division(division, yearly_do_df, merged_gdf):
     print(f"Successfully calculated decorrelation scales for {len(results_df)} stations in {division}.")
     return results_df
 
-def plot_decorrelation_scale(division, results_df, merged_gdf):
+def plot_simple_decorrelation_scale(division, results_df, merged_gdf):
     if results_df.empty:
         print(f"No results to plot for {division}")
         return
@@ -205,56 +208,53 @@ def plot_decorrelation_scale(division, results_df, merged_gdf):
     import cartopy.feature as cfeature
     from utils.mapping_config import MappingConfig
     
-    # Merge results with station coordinates
+    plt.style.use(str(ProjectPaths.PROJECT_ROOT / 'project_style.mplstyle'))
+    try:
+        import cmocean
+        import xarray as xr
+        gebco_path = ProjectPaths.BOUNDARIES_DIR / "gebco_2024_n35.5_s34.0_w139.0_e140.5.nc"
+        gebco = xr.open_dataset(gebco_path)
+        has_gebco = True
+    except:
+        has_gebco = False
+        cmocean = None
+
     station_coords_wgs84 = merged_gdf[['zettaicode', 'latitude', 'longitude']].drop_duplicates('zettaicode')
     station_coords_wgs84['zettaicode_str'] = station_coords_wgs84['zettaicode'].astype(str).str.zfill(8)
     plot_data = station_coords_wgs84.merge(results_df, left_on='zettaicode_str', right_on='Station_ID')
     
     if plot_data.empty:
-        print(f"No coordinates found for plotting {division}")
+        print(f"No coordinates found for simple plot of {division}")
         return
         
-    fig, ax = plt.subplots(figsize=(10, 8), subplot_kw={'projection': ccrs.PlateCarree()})
-    ax.set_facecolor(MappingConfig.COLOR_OCEAN)
-    
-    # Cartopy land and coastline
-    ax.add_feature(cfeature.LAND, facecolor=MappingConfig.COLOR_LAND, zorder=MappingConfig.ZORDER_CARTOPY_LAND)
-    ax.add_feature(cfeature.COASTLINE, linewidth=0.5, edgecolor='black', zorder=MappingConfig.ZORDER_CARTOPY_COASTLINE)
-    
-    # Optional boundary plotting
-    try:
-        db_division = division
-        if division in ['Ise Mikawa Bay', 'Ise-Mikawa Bay']:
-            db_division = 'Ise Bay'
-            
-        if db_division == 'Tokyo Bay':
-            land_boundary_path = ProjectPaths.BOUNDARIES_DIR / "SIS_prefecture_boundaries" / "Tokyobay_boundary.shp"
-        elif db_division == 'Ise Bay':
-            land_boundary_path = ProjectPaths.BOUNDARIES_DIR / "SIS_prefecture_boundaries" / "Isebay_boundary.shp"
-        else:
-            land_boundary_path = ProjectPaths.BOUNDARIES_DIR / "SIS_prefecture_boundaries" / "Setonaikai_boundary.shp"
-            
-        if land_boundary_path.exists():
-            land_boundary = gpd.read_file(land_boundary_path)
-            if land_boundary.crs != "EPSG:4326":
-                land_boundary = land_boundary.to_crs("EPSG:4326")
-            land_boundary.plot(ax=ax, facecolor=MappingConfig.COLOR_LAND, edgecolor=MappingConfig.COLOR_LAND_EDGE, 
-                               linewidth=MappingConfig.LINEWIDTH_LAND, transform=ccrs.PlateCarree(), 
-                               zorder=MappingConfig.ZORDER_LAND)
-    except Exception as e:
-        print(f"Could not load custom boundary for {division}: {e}")
-        
-    # Map extent
     min_lon, max_lon = plot_data['longitude'].min(), plot_data['longitude'].max()
     min_lat, max_lat = plot_data['latitude'].min(), plot_data['latitude'].max()
     buffer = 0.2
     map_extent = [min_lon - buffer, max_lon + buffer, min_lat - buffer, max_lat + buffer]
     
-    # Scatter plot of decorrelation scale
+    fig, ax = plt.subplots(figsize=(8, 6), subplot_kw={'projection': ccrs.PlateCarree()})
+    ax.set_facecolor(MappingConfig.COLOR_OCEAN)
+    
+    ax.add_feature(cfeature.LAND, facecolor=MappingConfig.COLOR_LAND, zorder=MappingConfig.ZORDER_CARTOPY_LAND)
+    ax.add_feature(cfeature.COASTLINE, linewidth=0.5, edgecolor='black', zorder=MappingConfig.ZORDER_CARTOPY_COASTLINE)
+    
+    db_division = division
+    if division in ['Ise Mikawa Bay', 'Ise-Mikawa Bay']:
+        db_division = 'Ise Bay'
+        
+    if has_gebco and db_division == 'Tokyo Bay' and cmocean is not None:
+        bath = gebco['elevation'].values
+        lons = gebco['lon'].values
+        lats = gebco['lat'].values
+        bath_masked = np.where(bath < 0, bath, np.nan)
+        ax.pcolormesh(lons, lats, bath_masked, cmap=cmocean.cm.deep, 
+                      transform=ccrs.PlateCarree(), zorder=0.1)
+    
+    cmap_to_use = cmocean.cm.thermal if cmocean is not None else 'viridis'
     sc = ax.scatter(
         plot_data['longitude'], plot_data['latitude'],
         c=plot_data['Decorrelation_Scale_km'],
-        cmap='viridis',
+        cmap=cmap_to_use,
         s=60, edgecolors='k', linewidths=0.5,
         transform=ccrs.PlateCarree(),
         zorder=MappingConfig.ZORDER_PREDICTED
@@ -267,20 +267,21 @@ def plot_decorrelation_scale(division, results_df, merged_gdf):
     gl.right_labels = False
     
     ax.set_extent(map_extent, crs=ccrs.PlateCarree())
-    plt.title(f'{division}: Decorrelation Scale (km)', pad=20, fontsize=14, fontweight='bold')
+    plt.title(f'{division}: Decorrelation Scale (km) [Simple]')
     
-    # Add colorbar
     plt.subplots_adjust(bottom=0.15)
     cbar_ax = fig.add_axes([0.25, 0.05, 0.5, 0.03])
     cbar = fig.colorbar(sc, cax=cbar_ax, orientation='horizontal')
     cbar.set_label('Decorrelation Scale (km)')
     
-    figures_dir = ProjectPaths.FIGURES_DIR / "step2_decorrelation_scale_analysis" / "10_calculate_bay_decorrelation_scales"
+    figures_dir = ProjectPaths.FIGURES_DIR / STEP_DIR / SCRIPT_NAME / division.replace(' ', '_').lower()
+    if figures_dir.exists():
+        shutil.rmtree(figures_dir, ignore_errors=True)
     figures_dir.mkdir(parents=True, exist_ok=True)
-    out_img = figures_dir / f"{division.replace(' ', '_').lower()}_decorrelation_scale.png"
+    out_img = figures_dir / f"{division.replace(' ', '_').lower()}_decorrelation_scale_simple.png"
     plt.savefig(out_img, bbox_inches='tight', dpi=300)
     plt.close()
-    print(f"Saved decorrelation scale plot for {division} to: {out_img}")
+    print(f"Saved simple decorrelation scale plot for {division} to: {out_img}")
 
 def main():
     ProjectPaths.ensure_directories()
@@ -304,21 +305,17 @@ def main():
     yearly_do_df = pd.read_csv(yearly_do_file, index_col=0)
     yearly_do_df.index = yearly_do_df.index.astype(str).str.zfill(8)
     
-    divisions_param = PARAMS.get('divisions', 'Seto Inland Sea, Tokyo Bay, Ise Bay, Osaka Bay')
-    divisions = [d.strip() for d in divisions_param.split(',')]
-    
+    division = args.division
     merged_gdf = load_and_process_data(force_reload=False)
-    
-    for division in divisions:
-        df = compute_decorrelation_for_division(division, yearly_do_df, merged_gdf)
-        if not df.empty:
-            out_name = division.replace(' ', '_').lower()
-            out_path = PROCESSED_DATA_DIR / f"{out_name}_decorrelation_scale.csv"
-            df.to_csv(out_path, index=False)
-            print(f"Saved {division} decorrelation scales to: {out_path}")
-            
-            # Plot the decorrelation scale map
-            plot_decorrelation_scale(division, df, merged_gdf)
+    df = compute_decorrelation_for_division(division, yearly_do_df, merged_gdf)
+    if not df.empty:
+        out_name = division.replace(' ', '_').lower()
+        out_path = PROCESSED_DATA_DIR / f"{out_name}_decorrelation_scale.csv"
+        df.to_csv(out_path, index=False)
+        print(f"Saved {division} decorrelation scales to: {out_path}")
+        
+        # Plot the simple decorrelation scale map
+        plot_simple_decorrelation_scale(division, df, merged_gdf)
 
 if __name__ == "__main__":
     main()

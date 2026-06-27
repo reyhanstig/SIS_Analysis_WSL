@@ -4,10 +4,10 @@ stages:
     deps:
       - step1_data_processing_cleaning/
 
-  step2_decorrelation_scale_analysis:
-    cmd: python -m step2_decorrelation_scale_analysis
+  step3_decorrelation_scale_analysis:
+    cmd: python -m step3_decorrelation_scale_analysis
     deps:
-      - step2_decorrelation_scale_analysis/
+      - step3_decorrelation_scale_analysis/
       - step1_data_processing_cleaning/
 
   step2_hypoxia_frequency_calculation:
@@ -16,14 +16,15 @@ stages:
       - step2_hypoxia_frequency_calculation/
       - step1_data_processing_cleaning/
 
-  step3_PCA_analysis:
-    cmd: python -m step3_PCA_analysis
+  step4_PCA_analysis:
+    cmd: python -m step4_PCA_analysis
     deps:
-      - step3_PCA_analysis/
-      - step2_hypoxia_frequency_calculation/
+      - step4_PCA_analysis/
+      - step1_data_processing_cleaning/
+      - step3_decorrelation_scale_analysis/
 
   step5_environmental_factor_correlation_analysis:
     cmd: python -m step5_environmental_factor_correlation_analysis
     deps:
       - step5_environmental_factor_correlation_analysis/
-      - step3_PCA_analysis/
+      - step4_PCA_analysis/

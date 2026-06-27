@@ -162,14 +162,14 @@ stages:
     deps:
     - path: step1_data_processing_cleaning/
       hash: md5
-      md5: 67f103652e7495699eba98e5e5f1174f.dir
-      size: 291059
+      md5: f6cd6e54abfd0c21791f1988f9d7e905.dir
+      size: 335808
       nfiles: 16
     - path: step2_decorrelation_scale_analysis/
       hash: md5
-      md5: a107d759f92605423e6becabd46ddb5a.dir
-      size: 32463
-      nfiles: 11
+      md5: 5936c4d4ae1c6001e2dfe25314df09d8.dir
+      size: 57804
+      nfiles: 13
   step2_hypoxia_frequency_calculation:
     cmd: python -m step2_hypoxia_frequency_calculation
     deps:
@@ -188,13 +188,13 @@ stages:
     deps:
     - path: step2_hypoxia_frequency_calculation/
       hash: md5
-      md5: b568058588d3164dbdaf8586139a4c82.dir
-      size: 75193
+      md5: 72df9ad931b425e96c24e7a62ea50e79.dir
+      size: 75961
       nfiles: 12
     - path: step3_PCA_analysis/
       hash: md5
-      md5: 8e8933e32ff722b888988c64e60d210e.dir
-      size: 43454
+      md5: fa71492bf4a8997c1ac7723fe8bbfe95.dir
+      size: 28195
       nfiles: 10
   step5_environmental_factor_correlation_analysis:
     cmd: python -m step5_environmental_factor_correlation_analysis
