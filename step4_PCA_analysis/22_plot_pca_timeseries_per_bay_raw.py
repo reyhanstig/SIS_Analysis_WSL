@@ -59,20 +59,39 @@ if OUTPUT_DIR.exists():
     shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-def plot_pc_timeseries(pc_scores, division):
+def plot_pc_timeseries(pc_scores, division, var_df):
     plt.style.use(str(ProjectPaths.PROJECT_ROOT / 'project_style.mplstyle'))
+    
+    # Extract variance percentages
+    pc1_var = var_df[var_df['PC'] == 'PC1']['Variance_Pct'].values[0] if var_df is not None and not var_df.empty else 0.0
+    pc2_var = var_df[var_df['PC'] == 'PC2']['Variance_Pct'].values[0] if var_df is not None and not var_df.empty else 0.0
+
+    # 1. Determine dynamic tick years
+    first_year = pc_scores.index[0]
+    last_year = pc_scores.index[-1]
+    target_type = type(first_year)
+    mid_ticks = [target_type(y) for y in range(1985, 2021, 5) if target_type(y) in pc_scores.index]
+    tick_years = sorted(list(set([first_year] + mid_ticks + [last_year])), key=lambda x: int(x))
+
     fig, ax = plt.subplots(figsize=(10, 5))
     
-    ax.plot(pc_scores.index, pc_scores['PC1'], marker='o', label='PC1', color='indianred')
-    ax.plot(pc_scores.index, pc_scores['PC2'], marker='s', label='PC2', color='steelblue')
+    ax.plot(pc_scores.index, pc_scores['PC1'], marker='o', label=f'PC1 ({pc1_var:.1f}%)', color='tab:blue')
+    ax.plot(pc_scores.index, pc_scores['PC2'], marker='s', label=f'PC2 ({pc2_var:.1f}%)', color='darkgoldenrod')
     
-    ax.axhline(y=0, color='k', linestyle='--', alpha=0.5)
+    ax.axhline(y=0, color='red', linestyle='--', alpha=0.7)
     ax.set_xlabel('Year')
     ax.set_ylabel('PC Score')
-    ax.set_title(f'{division}: Principal Component Time Series')
-    ax.legend()
+    ax.set_title(f'{division}: Principal Component Time Series', fontsize=20, fontweight='bold')
+    
+    # grid lines at the same positions
+    ax.set_xticks(tick_years)
+    ax.tick_params(axis='x', rotation=45)
+    ax.grid(True, linestyle='--', alpha=0.6)
+    
+    ax.legend(fontsize=16)
     
     out_path = OUTPUT_DIR / f"{division.replace(' ', '_').lower()}_pc_timeseries_raw.png"
+    plt.tight_layout()
     plt.savefig(out_path, bbox_inches='tight', dpi=300)
     plt.close()
 
@@ -83,13 +102,15 @@ def main():
     
     data_dir = ProjectPaths.PROCESSED_DATA_DIR / STEP_DIR / "21_calculate_pca_explained_variance_per_bay_raw" / out_name
     pc_scores_file = data_dir / f"{out_name}_pc_scores.csv"
+    var_file = data_dir / f"{out_name}_pca_variance.csv"
     
     if not pc_scores_file.exists():
         print(f"Error: {pc_scores_file} not found.")
         return
         
     pc_scores = pd.read_csv(pc_scores_file, index_col=0)
-    plot_pc_timeseries(pc_scores, division)
+    var_df = pd.read_csv(var_file) if var_file.exists() else None
+    plot_pc_timeseries(pc_scores, division, var_df)
 
 if __name__ == "__main__":
     main()

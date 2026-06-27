@@ -219,11 +219,11 @@ stages:
       nfiles: 16
     - path: step3_decorrelation_scale_analysis/
       hash: md5
-      md5: d5651c02f8072ec02796ac90cba23de9.dir
-      size: 66952
+      md5: ac647c78b3c6bbf5449949cd75be6fc9.dir
+      size: 65544
       nfiles: 16
     - path: step4_PCA_analysis/
       hash: md5
-      md5: 98bad1d23fe32505f542ae151197c5ce.dir
-      size: 39928
+      md5: 9e1be840fe0bc8f94174d32adc7623b6.dir
+      size: 41955
       nfiles: 14

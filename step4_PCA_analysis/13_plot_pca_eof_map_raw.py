@@ -99,7 +99,7 @@ def plot_eof_map(eof_values, station_coords, pc_name, variance_pct, target_regio
         vmin=-vmax, vmax=vmax,
         s=np.maximum(abs(plot_data['EOF']) * 800, 50), edgecolors='k', linewidths=0.5,
         transform=ccrs.PlateCarree(),
-        zorder=MappingConfig.ZORDER_PREDICTED
+        zorder=MappingConfig.ZORDER_OBSERVATIONS
     )
     
     gl = MappingConfig.apply_gridlines(ax)
