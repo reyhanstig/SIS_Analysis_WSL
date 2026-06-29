@@ -92,6 +92,10 @@ def load_raw_shapefiles(start_year=1981, end_year=2023):
             # Hotfix: Station 00001352 (Tokyo Bay) is mistakenly assigned an incorrect code in 2022 raw data
             if 'zettaicode' in merged_gdf.columns:
                 merged_gdf.loc[merged_gdf['zettaicode'] == '00001352', 'watercode'] = 100
+                
+            # Hotfix: Force boundary station with inconsistent labels to Hiroshima Bay (Code 312)
+            if 'zettaicode' in merged_gdf.columns:
+                merged_gdf.loc[merged_gdf['zettaicode'] == '00034390', 'watercode'] = 312
             
             codes_df['watercode'] = pd.to_numeric(codes_df['watercode'], errors='coerce').fillna(-1).astype(int)
             

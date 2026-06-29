@@ -13,7 +13,7 @@ def main():
         '30_extract_fixed_station.py',
         '40_extract_hiroshima_survey.py',
         '50_extract_line_survey.py',
-        '60_retrieve_sis_river_stations.py',
+        # '60_retrieve_sis_river_stations.py',
     ]
     
     step_dir = Path(__file__).parent

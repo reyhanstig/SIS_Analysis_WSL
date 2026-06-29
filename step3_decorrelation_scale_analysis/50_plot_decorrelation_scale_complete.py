@@ -106,7 +106,7 @@ def plot_decorrelation_scale(division, results_df, merged_gdf):
         plot_data['longitude'], plot_data['latitude'],
         c=plot_data['Decorrelation_Scale_km'],
         cmap='viridis',
-        s=60, edgecolors='k', linewidths=0.5,
+        s=100, edgecolors='k', linewidths=0.5,
         transform=ccrs.PlateCarree(),
         zorder=MappingConfig.ZORDER_PREDICTED
     )

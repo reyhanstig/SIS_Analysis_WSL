@@ -214,16 +214,29 @@ stages:
     deps:
     - path: step1_data_processing_cleaning/
       hash: md5
-      md5: f6cd6e54abfd0c21791f1988f9d7e905.dir
-      size: 335808
+      md5: 4a2136f7fda3d641af78e0613aa141cd.dir
+      size: 375133
       nfiles: 16
     - path: step3_decorrelation_scale_analysis/
       hash: md5
-      md5: ac647c78b3c6bbf5449949cd75be6fc9.dir
-      size: 65544
+      md5: 9d736a584559bd83e2ff0cbf2ae8a4ce.dir
+      size: 65545
       nfiles: 16
     - path: step4_PCA_analysis/
       hash: md5
-      md5: 9e1be840fe0bc8f94174d32adc7623b6.dir
-      size: 41955
+      md5: 79fe365c3e49cc4bc4a022d65a92882b.dir
+      size: 41961
       nfiles: 14
+  step3_decorrelation_scale_analysis:
+    cmd: python -m step3_decorrelation_scale_analysis
+    deps:
+    - path: step1_data_processing_cleaning/
+      hash: md5
+      md5: 4a2136f7fda3d641af78e0613aa141cd.dir
+      size: 375133
+      nfiles: 16
+    - path: step3_decorrelation_scale_analysis/
+      hash: md5
+      md5: 9d736a584559bd83e2ff0cbf2ae8a4ce.dir
+      size: 65545
+      nfiles: 16
