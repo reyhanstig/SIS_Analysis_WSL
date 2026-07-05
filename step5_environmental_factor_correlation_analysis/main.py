@@ -8,10 +8,10 @@ logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 def main():
     scripts = [
-        '10_driver_comparison_by_trend.py',
-        '20_what_affects_do.py',
-        '30_what_affects_do_v3.py',
-        '40_what_nutrients_affect_do_a.py',
+        'process01_driver_comparison_by_trend.py',
+        'process02_what_affects_do.py',
+        'process03_what_affects_do_v3.py',
+        'process04_what_nutrients_affect_do_a.py',
     ]
     
     step_dir = Path(__file__).parent

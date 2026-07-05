@@ -8,10 +8,10 @@ logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 def main():
     scripts = [
-        '10_hypoxia_frequency_trend_all.py',
-        '20_hypoxia_frequency_trend_mapping_all_division.py',
-        '30_hypoxia_frequency_trend_v2.py',
-        '40_hypoxia_tendecy_per_station.py',
+        'process01_hypoxia_frequency_trend_all.py',
+        'process02_hypoxia_frequency_trend_mapping_all_division.py',
+        'process03_hypoxia_frequency_trend_v2.py',
+        'process04_hypoxia_tendecy_per_station.py',
     ]
     
     step_dir = Path(__file__).parent

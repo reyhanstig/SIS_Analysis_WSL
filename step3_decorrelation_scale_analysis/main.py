@@ -12,14 +12,14 @@ def main():
     project_root = step_dir.parent
     
     global_scripts = [
-        '10_calculate_bay_decorrelation_scales.py',
-        '20_decorrelation_analysis_permutations.py',
-        '30_decorrelation_seasonal.py',
+        'process01_calculate_bay_decorrelation_scales.py',
+        'process02_decorrelation_analysis_permutations.py',
+        'process03_decorrelation_seasonal.py',
     ]
     
     per_bay_scripts = [
-        '40_calculate_decorrelation_scale_per_bay.py',
-        '50_plot_decorrelation_scale_complete.py',
+        'process11_calculate_decorrelation_scale_per_bay.py',
+        'process12_plot_decorrelation_scale_complete.py',
     ]
     
     env = os.environ.copy()

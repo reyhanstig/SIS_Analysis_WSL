@@ -8,12 +8,12 @@ logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 def main():
     scripts = [
-        '10_extract_spatial_data.py',
-        '20_create_seasonal_subset.py',
-        '30_extract_fixed_station.py',
-        '40_extract_hiroshima_survey.py',
-        '50_extract_line_survey.py',
-        # '60_retrieve_sis_river_stations.py',
+        'process01_extract_spatial_data.py',
+        'process02_create_seasonal_subset.py',
+        'process03_extract_fixed_station.py',
+        'process04_extract_hiroshima_survey.py',
+        'process05_extract_line_survey.py',
+        # 'process06_retrieve_sis_river_stations.py',
     ]
     
     step_dir = Path(__file__).parent

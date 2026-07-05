@@ -12,15 +12,15 @@ def main():
     project_root = step_dir.parent
     
     global_scripts = [
-        '11_calculate_pca_explained_variance_raw.py',
-        '12_plot_pca_timeseries_raw.py',
-        '13_plot_pca_eof_map_raw.py',
+        'process01_calculate_pca_explained_variance_raw.py',
+        'process02_plot_pca_timeseries_raw.py',
+        'process03_plot_pca_eof_map_raw.py',
     ]
     
     per_bay_scripts = [
-        '21_calculate_pca_explained_variance_per_bay_raw.py',
-        '22_plot_pca_timeseries_per_bay_raw.py',
-        '23_plot_pca_eof_map_per_bay_raw.py',
+        'process11_calculate_pca_explained_variance_per_bay_raw.py',
+        'process12_plot_pca_timeseries_per_bay_raw.py',
+        'process13_plot_pca_eof_map_per_bay_raw.py',
     ]
     
     env = os.environ.copy()
