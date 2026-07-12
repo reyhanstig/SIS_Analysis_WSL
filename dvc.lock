@@ -199,16 +199,16 @@ stages:
   step5_environmental_factor_correlation_analysis:
     cmd: python -m step5_environmental_factor_correlation_analysis
     deps:
-    - path: step3_PCA_analysis/
+    - path: step4_PCA_analysis/
       hash: md5
-      md5: 8e8933e32ff722b888988c64e60d210e.dir
-      size: 43454
-      nfiles: 10
+      md5: c5bdb62de2dc6a734f35cc0065c0b349.dir
+      size: 42003
+      nfiles: 14
     - path: step5_environmental_factor_correlation_analysis/
       hash: md5
-      md5: 9c84b716254921f65b07e496d3e520f7.dir
-      size: 73480
-      nfiles: 12
+      md5: 9427b94c34d98d2e5334e814bdddd294.dir
+      size: 129943
+      nfiles: 18
   step4_PCA_analysis:
     cmd: python -m step4_PCA_analysis
     deps:

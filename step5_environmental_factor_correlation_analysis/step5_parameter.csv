@@ -1,1 +1,4 @@
 parameter_name,value,type,description
+season,Summer,string,Season for analysis
+layer,bottom,string,Layer for analysis
+target_region,"Seto Inland Sea, Tokyo Bay, Ise Bay",string,Target regions for mapping (comma separated)
