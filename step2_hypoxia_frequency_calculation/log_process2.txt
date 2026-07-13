@@ -1,0 +1,151 @@
+INFO: Loading data for division: Aki Nada
+INFO: Generating Figure 1: Yearly Mean DO Distribution Map
+INFO: Generating Figure 2: Hypoxia Frequency Map
+INFO: Generating Figure 3: DO Trend Spatial Mapping
+INFO: Finished processing Aki Nada.
+INFO: Loading data for division: Bingo Nada
+INFO: Generating Figure 1: Yearly Mean DO Distribution Map
+INFO: Generating Figure 2: Hypoxia Frequency Map
+INFO: Generating Figure 3: DO Trend Spatial Mapping
+INFO: Finished processing Bingo Nada.
+INFO: Loading data for division: Bisan Seto
+INFO: Loading data for division: Aki Nada
+INFO: Generating Figure 1: Yearly Mean DO Distribution Map
+INFO: Generating Figure 2: Hypoxia Frequency Map
+INFO: Generating Figure 3: DO Trend Spatial Mapping
+INFO: Finished processing Aki Nada.
+INFO: Loading data for division: Bingo Nada
+INFO: Generating Figure 1: Yearly Mean DO Distribution Map
+INFO: Generating Figure 2: Hypoxia Frequency Map
+INFO: Generating Figure 3: DO Trend Spatial Mapping
+INFO: Finished processing Bingo Nada.
+INFO: Loading data for division: Bisan Seto
+INFO: Generating Figure 1: Yearly Mean DO Distribution Map
+INFO: Generating Figure 2: Hypoxia Frequency Map
+INFO: Generating Figure 3: DO Trend Spatial Mapping
+INFO: Finished processing Bisan Seto.
+INFO: Loading data for division: Bungo Channel
+INFO: Generating Figure 1: Yearly Mean DO Distribution Map
+INFO: Generating Figure 2: Hypoxia Frequency Map
+INFO: Generating Figure 3: DO Trend Spatial Mapping
+INFO: Finished processing Bungo Channel.
+INFO: Loading data for division: Harima Nada
+INFO: Generating Figure 1: Yearly Mean DO Distribution Map
+INFO: Generating Figure 2: Hypoxia Frequency Map
+INFO: Generating Figure 3: DO Trend Spatial Mapping
+INFO: Finished processing Harima Nada.
+INFO: Loading data for division: Hibiki Nada
+INFO: Generating Figure 1: Yearly Mean DO Distribution Map
+INFO: Generating Figure 2: Hypoxia Frequency Map
+INFO: Generating Figure 3: DO Trend Spatial Mapping
+INFO: Finished processing Hibiki Nada.
+INFO: Loading data for division: Hiroshima Bay
+INFO: Generating Figure 1: Yearly Mean DO Distribution Map
+INFO: Generating Figure 2: Hypoxia Frequency Map
+INFO: Generating Figure 3: DO Trend Spatial Mapping
+INFO: Finished processing Hiroshima Bay.
+INFO: Loading data for division: Hiuchi Nada
+INFO: Generating Figure 1: Yearly Mean DO Distribution Map
+INFO: Generating Figure 2: Hypoxia Frequency Map
+INFO: Generating Figure 3: DO Trend Spatial Mapping
+INFO: Finished processing Hiuchi Nada.
+INFO: Loading data for division: Ise Bay
+INFO: Generating Figure 1: Yearly Mean DO Distribution Map
+INFO: Generating Figure 2: Hypoxia Frequency Map
+INFO: Generating Figure 3: DO Trend Spatial Mapping
+INFO: Finished processing Ise Bay.
+INFO: Loading data for division: Iyo Nada
+INFO: Generating Figure 1: Yearly Mean DO Distribution Map
+INFO: Generating Figure 2: Hypoxia Frequency Map
+INFO: Generating Figure 3: DO Trend Spatial Mapping
+INFO: Finished processing Iyo Nada.
+INFO: Loading data for division: Kii Channel
+INFO: Generating Figure 1: Yearly Mean DO Distribution Map
+INFO: Generating Figure 2: Hypoxia Frequency Map
+INFO: Generating Figure 3: DO Trend Spatial Mapping
+INFO: Finished processing Kii Channel.
+INFO: Loading data for division: Osaka Bay
+INFO: Generating Figure 1: Yearly Mean DO Distribution Map
+INFO: Generating Figure 2: Hypoxia Frequency Map
+INFO: Generating Figure 3: DO Trend Spatial Mapping
+INFO: Finished processing Osaka Bay.
+INFO: Loading data for division: Suo Nada
+INFO: Generating Figure 1: Yearly Mean DO Distribution Map
+INFO: Generating Figure 2: Hypoxia Frequency Map
+INFO: Generating Figure 3: DO Trend Spatial Mapping
+INFO: Finished processing Suo Nada.
+INFO: Loading data for division: Tokyo Bay
+INFO: Generating Figure 1: Yearly Mean DO Distribution Map
+INFO: Generating Figure 2: Hypoxia Frequency Map
+INFO: Generating Figure 3: DO Trend Spatial Mapping
+INFO: Finished processing Tokyo Bay.
+INFO: Target Region: Aki Nada (Column: division)
+INFO: Representative Summer Month: 7
+INFO: Heatmap saved to /home/reyha/SIS_Analysis_WSL/figures/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/hypoxia_status_comparison_aki_nada_summer.png
+INFO: Histogram saved to /home/reyha/SIS_Analysis_WSL/figures/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/do_trends_distribution_aki_nada_summer.png
+INFO: Slopes saved to: /home/reyha/SIS_Analysis_WSL/data/processed/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/hypoxia_tendency_slopes_aki_nada_summer.csv
+INFO: Target Region: Bingo Nada (Column: division)
+INFO: Representative Summer Month: 7
+INFO: Heatmap saved to /home/reyha/SIS_Analysis_WSL/figures/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/hypoxia_status_comparison_bingo_nada_summer.png
+INFO: Histogram saved to /home/reyha/SIS_Analysis_WSL/figures/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/do_trends_distribution_bingo_nada_summer.png
+INFO: Slopes saved to: /home/reyha/SIS_Analysis_WSL/data/processed/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/hypoxia_tendency_slopes_bingo_nada_summer.csv
+INFO: Target Region: Bisan Seto (Column: division)
+INFO: Representative Summer Month: 7
+INFO: Heatmap saved to /home/reyha/SIS_Analysis_WSL/figures/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/hypoxia_status_comparison_bisan_seto_summer.png
+INFO: Histogram saved to /home/reyha/SIS_Analysis_WSL/figures/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/do_trends_distribution_bisan_seto_summer.png
+INFO: Slopes saved to: /home/reyha/SIS_Analysis_WSL/data/processed/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/hypoxia_tendency_slopes_bisan_seto_summer.csv
+INFO: Target Region: Bungo Channel (Column: division)
+INFO: Representative Summer Month: 7
+INFO: Heatmap saved to /home/reyha/SIS_Analysis_WSL/figures/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/hypoxia_status_comparison_bungo_channel_summer.png
+INFO: Histogram saved to /home/reyha/SIS_Analysis_WSL/figures/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/do_trends_distribution_bungo_channel_summer.png
+INFO: Slopes saved to: /home/reyha/SIS_Analysis_WSL/data/processed/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/hypoxia_tendency_slopes_bungo_channel_summer.csv
+INFO: Target Region: Harima Nada (Column: division)
+INFO: Representative Summer Month: 7
+INFO: Heatmap saved to /home/reyha/SIS_Analysis_WSL/figures/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/hypoxia_status_comparison_harima_nada_summer.png
+INFO: Histogram saved to /home/reyha/SIS_Analysis_WSL/figures/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/do_trends_distribution_harima_nada_summer.png
+INFO: Slopes saved to: /home/reyha/SIS_Analysis_WSL/data/processed/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/hypoxia_tendency_slopes_harima_nada_summer.csv
+INFO: Target Region: Hibiki Nada (Column: division)
+INFO: Representative Summer Month: 7
+INFO: Heatmap saved to /home/reyha/SIS_Analysis_WSL/figures/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/hypoxia_status_comparison_hibiki_nada_summer.png
+INFO: Histogram saved to /home/reyha/SIS_Analysis_WSL/figures/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/do_trends_distribution_hibiki_nada_summer.png
+INFO: Slopes saved to: /home/reyha/SIS_Analysis_WSL/data/processed/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/hypoxia_tendency_slopes_hibiki_nada_summer.csv
+INFO: Target Region: Hiroshima Bay (Column: division)
+INFO: Representative Summer Month: 7
+INFO: Heatmap saved to /home/reyha/SIS_Analysis_WSL/figures/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/hypoxia_status_comparison_hiroshima_bay_summer.png
+INFO: Histogram saved to /home/reyha/SIS_Analysis_WSL/figures/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/do_trends_distribution_hiroshima_bay_summer.png
+INFO: Slopes saved to: /home/reyha/SIS_Analysis_WSL/data/processed/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/hypoxia_tendency_slopes_hiroshima_bay_summer.csv
+INFO: Target Region: Hiuchi Nada (Column: division)
+INFO: Representative Summer Month: 7
+INFO: Heatmap saved to /home/reyha/SIS_Analysis_WSL/figures/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/hypoxia_status_comparison_hiuchi_nada_summer.png
+INFO: Histogram saved to /home/reyha/SIS_Analysis_WSL/figures/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/do_trends_distribution_hiuchi_nada_summer.png
+INFO: Slopes saved to: /home/reyha/SIS_Analysis_WSL/data/processed/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/hypoxia_tendency_slopes_hiuchi_nada_summer.csv
+INFO: Target Region: Ise Bay (Column: watermass_name)
+INFO: Representative Summer Month: 7
+INFO: Heatmap saved to /home/reyha/SIS_Analysis_WSL/figures/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/hypoxia_status_comparison_ise_bay_summer.png
+INFO: Histogram saved to /home/reyha/SIS_Analysis_WSL/figures/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/do_trends_distribution_ise_bay_summer.png
+INFO: Slopes saved to: /home/reyha/SIS_Analysis_WSL/data/processed/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/hypoxia_tendency_slopes_ise_bay_summer.csv
+INFO: Target Region: Iyo Nada (Column: division)
+INFO: Representative Summer Month: 7
+INFO: Heatmap saved to /home/reyha/SIS_Analysis_WSL/figures/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/hypoxia_status_comparison_iyo_nada_summer.png
+INFO: Histogram saved to /home/reyha/SIS_Analysis_WSL/figures/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/do_trends_distribution_iyo_nada_summer.png
+INFO: Slopes saved to: /home/reyha/SIS_Analysis_WSL/data/processed/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/hypoxia_tendency_slopes_iyo_nada_summer.csv
+INFO: Target Region: Kii Channel (Column: division)
+INFO: Representative Summer Month: 7
+INFO: Heatmap saved to /home/reyha/SIS_Analysis_WSL/figures/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/hypoxia_status_comparison_kii_channel_summer.png
+INFO: Histogram saved to /home/reyha/SIS_Analysis_WSL/figures/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/do_trends_distribution_kii_channel_summer.png
+INFO: Slopes saved to: /home/reyha/SIS_Analysis_WSL/data/processed/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/hypoxia_tendency_slopes_kii_channel_summer.csv
+INFO: Target Region: Osaka Bay (Column: division)
+INFO: Representative Summer Month: 7
+INFO: Heatmap saved to /home/reyha/SIS_Analysis_WSL/figures/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/hypoxia_status_comparison_osaka_bay_summer.png
+INFO: Histogram saved to /home/reyha/SIS_Analysis_WSL/figures/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/do_trends_distribution_osaka_bay_summer.png
+INFO: Slopes saved to: /home/reyha/SIS_Analysis_WSL/data/processed/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/hypoxia_tendency_slopes_osaka_bay_summer.csv
+INFO: Target Region: Suo Nada (Column: division)
+INFO: Representative Summer Month: 7
+INFO: Heatmap saved to /home/reyha/SIS_Analysis_WSL/figures/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/hypoxia_status_comparison_suo_nada_summer.png
+INFO: Histogram saved to /home/reyha/SIS_Analysis_WSL/figures/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/do_trends_distribution_suo_nada_summer.png
+INFO: Slopes saved to: /home/reyha/SIS_Analysis_WSL/data/processed/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/hypoxia_tendency_slopes_suo_nada_summer.csv
+INFO: Target Region: Tokyo Bay (Column: watermass_name)
+INFO: Representative Summer Month: 7
+INFO: Heatmap saved to /home/reyha/SIS_Analysis_WSL/figures/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/hypoxia_status_comparison_tokyo_bay_summer.png
+INFO: Histogram saved to /home/reyha/SIS_Analysis_WSL/figures/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/do_trends_distribution_tokyo_bay_summer.png
+INFO: Slopes saved to: /home/reyha/SIS_Analysis_WSL/data/processed/step2_hypoxia_frequency_calculation/process12_hypoxia_tendency_per_station/hypoxia_tendency_slopes_tokyo_bay_summer.csv
