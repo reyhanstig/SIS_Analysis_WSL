@@ -43,6 +43,8 @@ def main():
     # Clean orchestration directories to prevent stale data
     for script_name in [p.stem for p in step_dir.glob("process*.py")]:
         shutil.rmtree(project_root_path / 'figures' / step_dir.name / script_name, ignore_errors=True)
+    import time
+    time.sleep(1) # Wait for WSL to release directory locks
 
     # --- Group 20: Decorrelation Scale ---
     code = run_script(step_dir, env, 'process21_decorrelation_drivers.py', '--season', season, '--layer', layer)
@@ -64,8 +66,9 @@ def main():
         code = run_script(step_dir, env, 'process14_significance_comparison.py', '--target_region', target_region, '--season', season, '--layer', layer)
         if code != 0: sys.exit(code)
         
-        for p_idx in range(20):
-            code = run_script(step_dir, env, 'process15_local_mechanism_ts.py', '--target_region', target_region, '--season', season, '--layer', layer, '--param_idx', str(p_idx))
+        ts_params_df = pd.read_csv(step_dir / 'step5_ts_parameters.csv')
+        for p_idx in range(len(ts_params_df)):
+            code = run_script(step_dir, env, 'process15_parameter_timeseries_plotting.py', '--target_region', target_region, '--season', season, '--layer', layer, '--param_idx', str(p_idx))
             if code != 0: sys.exit(code)
 
         # --- Group 30: Correlation (Env & Nutr) ---
@@ -112,6 +115,12 @@ def main():
                 
                 for param in parameters:
                     code = run_script(step_dir, env, 'process41_spatial_correlation_maps.py', '--pc_name', pc, '--param', param, '--target_region', target_region, '--season', season, '--layer', layer, '--data_type', data_type)
+                    if code != 0: sys.exit(code)
+                    
+                    code = run_script(step_dir, env, 'process42_time_series_significant_stations_PC_correlation.py', '--pc_name', pc, '--param', param, '--target_region', target_region, '--season', season, '--layer', layer, '--data_type', data_type)
+                    if code != 0: sys.exit(code)
+
+                    code = run_script(step_dir, env, 'process43_confirm_env_parameter_relationship.py', '--pc_name', pc, '--param', param, '--target_region', target_region, '--season', season, '--layer', layer, '--data_type', data_type)
                     if code != 0: sys.exit(code)
 
     logging.info("All orchestrations completed successfully.")

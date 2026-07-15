@@ -7,11 +7,11 @@ from pathlib import Path
 import warnings
 
 # Add project root to sys.path to import scripts.paths
-project_root = Path(__file__).resolve().parents[2]
+project_root = Path(__file__).resolve().parents[1]
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
-from scripts.paths import ProjectPaths
+from utils.paths import ProjectPaths
 
 warnings.filterwarnings('ignore')
 
@@ -139,16 +139,32 @@ def main():
     depth_diff_matrix = bottom_depth_matrix - surface_depth_matrix
     depth_diff_matrix = depth_diff_matrix.replace(0, np.nan)
     stratification_matrix = (density_2_matrix - density_1_matrix) / depth_diff_matrix
+
+    print("Computing Winter density matrices...")
+    wtemp_1_matrix_w = get_time_series_matrix(merged_df, 'wtemp', 'Winter', saisuipoin=1)
+    wtemp_2_matrix_w = get_time_series_matrix(merged_df, 'wtemp', 'Winter', saisuipoin=2)
+    salt2_1_matrix_w = get_time_series_matrix(merged_df, 'salt2', 'Winter', saisuipoin=1)
+    salt2_2_matrix_w = get_time_series_matrix(merged_df, 'salt2', 'Winter', saisuipoin=2)
+    
+    density_1_matrix_w = compute_density_matrix(wtemp_1_matrix_w, salt2_1_matrix_w, station_coords)
+    density_2_matrix_w = compute_density_matrix(wtemp_2_matrix_w, salt2_2_matrix_w, station_coords)
+    
+    surface_depth_matrix_w = get_time_series_matrix(merged_df, 'saisuidept', 'Winter', saisuipoin=1)
+    bottom_depth_matrix_w = get_time_series_matrix(merged_df, 'saisuidept', 'Winter', saisuipoin=2)
+    
+    depth_diff_matrix_w = bottom_depth_matrix_w - surface_depth_matrix_w
+    depth_diff_matrix_w = depth_diff_matrix_w.replace(0, np.nan)
+    winter_stratification_matrix = (density_2_matrix_w - density_1_matrix_w) / depth_diff_matrix_w
     
     env_matrices = [
         wtemp_1_matrix, wtemp_2_matrix, salt2_1_matrix, salt2_2_matrix,
-        density_1_matrix, density_2_matrix, stratification_matrix,
+        density_1_matrix, density_2_matrix, stratification_matrix, winter_stratification_matrix,
         wind_matrix, air_t_matrix, spring_chla_1_matrix, spring_chla_2_matrix,
         chla_1_matrix, chla_2_matrix
     ]
     param_names = [
         'Summer_1_WTEMP', 'Summer_2_WTEMP', 'Summer_1_SALT2', 'Summer_2_SALT2',
-        'Summer_1_DENSITY', 'Summer_2_DENSITY', 'Summer_Stratification',
+        'Summer_1_DENSITY', 'Summer_2_DENSITY', 'Summer_Stratification', 'Winter_Stratification',
         'Summer_Wind_Speed', 'Winter_Air_Temp', 'Spring_1_CHLA', 'Spring_2_CHLA',
         'Summer_1_CHLA', 'Summer_2_CHLA'
     ]

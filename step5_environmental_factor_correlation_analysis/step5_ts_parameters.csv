@@ -1,0 +1,22 @@
+title,col,layer,season,unit
+Surface Summer DO,do_,1,Summer,mg/L
+Bottom Summer DO,do_,2,Summer,mg/L
+Summer SST,wtemp,1,Summer,°C
+Summer SBT,wtemp,2,Summer,°C
+Summer SSS,salt,1,Summer,PSU
+Summer SBS,salt,2,Summer,PSU
+Surface Summer Chl-a,chlorophyl,1,Summer,μg/L
+Bottom Summer Chl-a,chlorophyl,2,Summer,μg/L
+Surface Summer TN,tn,1,Summer,mg/L
+Bottom Summer TN,tn,2,Summer,mg/L
+Surface Summer TP,tp,1,Summer,mg/L
+Bottom Summer TP,tp,2,Summer,mg/L
+Surface Summer DIN,din,1,Summer,mg/L
+Bottom Summer DIN,din,2,Summer,mg/L
+Surface Summer DIP,po4p,1,Summer,mg/L
+Bottom Summer DIP,po4p,2,Summer,mg/L
+Surface Summer COD,cod,1,Summer,mg/L
+Bottom Summer COD,cod,2,Summer,mg/L
+Surface Summer DOC,doc,1,Summer,mg/L
+Bottom Summer DOC,doc,2,Summer,mg/L
+Winter Stratification,stratification,2,Winter,kg/m³

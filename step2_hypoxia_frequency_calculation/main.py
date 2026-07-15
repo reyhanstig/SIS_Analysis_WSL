@@ -16,8 +16,10 @@ def main():
     ]
     
     per_bay_scripts = [
-        'process11_hypoxia_frequency_trend_mapping_per_bay.py',
-        'process12_hypoxia_tendency_per_station.py',
+        'process11_mean_climatological_do_map.py',
+        'process12_hypoxia_frequency_map.py',
+        'process13_do_trend_spatial_mapping.py',
+        'process14_hypoxia_tendency_per_station.py',
     ]
     
     env = os.environ.copy()

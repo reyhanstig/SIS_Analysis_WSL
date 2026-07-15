@@ -35,11 +35,8 @@ if param_file.exists():
 # -------------------------------------
 
 """
-Hypoxia Frequency & Trend Mapping — Per Bay
-Produces three figures for a specified division:
-  1. Yearly Mean DO Distribution Map
-  2. Hypoxia Frequency Map (Hypoxic 0-2 mg/L)
-  3. DO Trend and Severity Spatial Mapping
+DO Trend Spatial Mapping — Per Bay
+Produces DO Trend and Severity Spatial Mapping for a specified division.
 Uses a uniform spatial extent based on Iyo Nada (UNIFORM_DX=1.264, UNIFORM_DY=0.709).
 """
 
@@ -74,8 +71,6 @@ SUBPLOT_STATION_SIZE = 16
 SUBPLOT_LAND_LW = 0.3
 OUTPUT_DPI = 250
 
-UNIFORM_DX = 1.264
-UNIFORM_DY = 0.709
 
 GRID_RES = 1000
 MAX_ITERS = 500
@@ -250,20 +245,20 @@ def gdf_to_clip_path(gdf):
 def _add_gridlines(ax):
     return MappingConfig.apply_gridlines(ax)
 
-def add_global_scalebar(ax_scale):
+def add_global_scalebar(ax_scale, dx, dy):
     ax_scale.set_visible(True)
     ax_scale.axis('off')
-    ax_scale.set_extent([0, UNIFORM_DX, 0, UNIFORM_DY], crs=ccrs.PlateCarree())
+    ax_scale.set_extent([0, dx, 0, dy], crs=ccrs.PlateCarree())
     
     km_per_deg_lon = 111.32 * np.cos(np.radians(34.0))
     deg_20km = 20.0 / km_per_deg_lon
     
-    lon_start = UNIFORM_DX * 0.4
+    lon_start = dx * 0.4
     lon_end = lon_start + deg_20km
-    lat_pos = UNIFORM_DY * 0.1
+    lat_pos = dy * 0.1
     
     ax_scale.plot([lon_start, lon_end], [lat_pos, lat_pos], color='black', lw=3, transform=ccrs.PlateCarree())
-    ax_scale.text((lon_start + lon_end)/2, lat_pos + 0.05, '20 km', ha='center', va='bottom', 
+    ax_scale.text((lon_start + lon_end)/2, lat_pos + dy * 0.05, '20 km', ha='center', va='bottom', 
                   fontsize=SUBPLOT_LABEL_SIZE, fontweight='bold', transform=ccrs.PlateCarree())
 
 def load_spatial_data(division):
@@ -305,9 +300,12 @@ def main():
     
     minx, maxx = df['longitude'].min(), df['longitude'].max()
     miny, maxy = df['latitude'].min(), df['latitude'].max()
-    cx, cy = (minx + maxx) / 2, (miny + maxy) / 2
+    buffer = 0.2
     
-    uniform_extent = [cx - UNIFORM_DX/2, cx + UNIFORM_DX/2, cy - UNIFORM_DY/2, cy + UNIFORM_DY/2]
+    uniform_extent = [minx - buffer, maxx + buffer, miny - buffer, maxy + buffer]
+    dx = uniform_extent[1] - uniform_extent[0]
+    dy = uniform_extent[3] - uniform_extent[2]
+    
     bbox_geom = box(uniform_extent[0], uniform_extent[2], uniform_extent[1], uniform_extent[3])
     clean_geom = water_mask.geometry.union_all().buffer(0).intersection(bbox_geom).buffer(0)
     clipped_water_mask = gpd.GeoDataFrame(geometry=[clean_geom], crs="EPSG:4326")
@@ -319,71 +317,6 @@ def main():
     if grid_info is None:
         logging.warning("Could not set up grid info.")
         return
-
-    # Figure 1: Yearly Mean DO
-    logging.info("Generating Figure 1: Yearly Mean DO Distribution Map")
-    station_mean = df.groupby('zettaicode')[['do_', 'longitude', 'latitude']].mean()
-    stations_gdf = gpd.GeoDataFrame(
-        station_mean, geometry=[Point(xy) for xy in zip(station_mean.longitude, station_mean.latitude)], crs='EPSG:4326'
-    ).to_crs(grid_info['utm_crs'])
-
-    Z_mean = run_diffusion_interpolation(stations_gdf['do_'].values, stations_gdf.geometry.x.values, stations_gdf.geometry.y.values, grid_info)
-    
-    var_cfg = MappingConfig.get_var_settings('do_')
-    
-    fig, ax = plt.subplots(1, 1, figsize=(8, 6), subplot_kw={'projection': ccrs.PlateCarree()})
-    ax.set_facecolor(MappingConfig.COLOR_OCEAN)
-    add_land_to_ax(ax, land_patches_data)
-    ax.set_extent(uniform_extent, crs=ccrs.PlateCarree())
-    
-    c_m = ax.pcolormesh(grid_info['lon_wgs'], grid_info['lat_wgs'], Z_mean,
-                        transform=ccrs.PlateCarree(), cmap=var_cfg['cmap'], shading='nearest',
-                        zorder=MappingConfig.ZORDER_PREDICTED, vmin=var_cfg['vmin'], vmax=var_cfg['vmax'])
-    c_m.set_clip_path(PathPatch(gdf_to_clip_path(clipped_water_mask), transform=ax.transData))
-    ax.scatter(station_mean['longitude'], station_mean['latitude'], c='black', s=SUBPLOT_STATION_SIZE, zorder=MappingConfig.ZORDER_OBSERVATIONS, transform=ccrs.PlateCarree())
-    
-    ax.set_title(f"Mean Climatological Bottom DO\n{division}", fontsize=SUBPLOT_TITLE_SIZE, fontweight='bold')
-    _add_gridlines(ax)
-    
-    cbar = fig.colorbar(c_m, ax=ax, orientation='vertical', fraction=0.046, pad=0.04)
-    cbar.set_label(var_cfg['label'], fontsize=SUBPLOT_CBAR_LABEL_SIZE)
-    cbar.ax.tick_params(labelsize=SUBPLOT_CBAR_TICK_SIZE)
-    MappingConfig.format_colorbar_ticks(cbar, 'do_')
-    add_global_scalebar(fig.add_axes([0.65, 0.15, 0.2, 0.1], projection=ccrs.PlateCarree()))
-    
-    out_path = OUTPUT_DIR / f"mean_climatological_do_{div_clean}_{TARGET_SEASON.lower()}.png"
-    plt.savefig(out_path, dpi=OUTPUT_DPI, bbox_inches='tight')
-    plt.close()
-
-    # Figure 2: Hypoxia Frequency (0-2 mg/L)
-    logging.info("Generating Figure 2: Hypoxia Frequency Map")
-    def calc_freq(group):
-        total_years = group['year'].nunique()
-        cond_years = group[(group['do_'] >= 0.0) & (group['do_'] <= 2.0)]['year'].nunique()
-        return (cond_years / total_years) * 100
-
-    freq_df = df.groupby(['zettaicode', 'longitude', 'latitude']).apply(calc_freq).reset_index(name='frequency')
-    
-    fig, ax = plt.subplots(1, 1, figsize=(8, 6), subplot_kw={'projection': ccrs.PlateCarree()})
-    ax.set_facecolor(MappingConfig.COLOR_OCEAN)
-    add_land_to_ax(ax, land_patches_data)
-    ax.set_extent(uniform_extent, crs=ccrs.PlateCarree())
-    
-    marker_sizes = freq_df['frequency'] * 2.4 + 24
-    sc = ax.scatter(freq_df['longitude'], freq_df['latitude'], c=freq_df['frequency'], cmap='Reds', vmin=0, vmax=100,
-                    s=marker_sizes, edgecolor='k', linewidth=0.3, transform=ccrs.PlateCarree(), zorder=MappingConfig.ZORDER_OBSERVATIONS)
-    
-    ax.set_title(f"Hypoxia Frequency (0-2 mg/L)\n{division}", fontsize=SUBPLOT_TITLE_SIZE, fontweight='bold')
-    _add_gridlines(ax)
-    
-    cbar = fig.colorbar(sc, ax=ax, orientation='vertical', fraction=0.046, pad=0.04)
-    cbar.set_label('Frequency (%)', fontsize=SUBPLOT_CBAR_LABEL_SIZE)
-    cbar.ax.tick_params(labelsize=SUBPLOT_CBAR_TICK_SIZE)
-    add_global_scalebar(fig.add_axes([0.65, 0.15, 0.2, 0.1], projection=ccrs.PlateCarree()))
-    
-    out_path = OUTPUT_DIR / f"hypoxia_freq_0_2_{div_clean}_{TARGET_SEASON.lower()}.png"
-    plt.savefig(out_path, dpi=OUTPUT_DPI, bbox_inches='tight')
-    plt.close()
 
     # Figure 3: DO Trend Spatial Mapping
     logging.info("Generating Figure 3: DO Trend Spatial Mapping")
@@ -423,7 +356,7 @@ def main():
         cbar = fig.colorbar(c_m, ax=ax, orientation='vertical', fraction=0.046, pad=0.04)
         cbar.set_label('DO Trend Slope (mg/L / yr)', fontsize=SUBPLOT_CBAR_LABEL_SIZE)
         cbar.ax.tick_params(labelsize=SUBPLOT_CBAR_TICK_SIZE)
-        add_global_scalebar(fig.add_axes([0.65, 0.15, 0.2, 0.1], projection=ccrs.PlateCarree()))
+        add_global_scalebar(fig.add_axes([0.65, 0.15, 0.2, 0.1], projection=ccrs.PlateCarree()), dx, dy)
         
         out_path = OUTPUT_DIR / f"do_trend_{div_clean}_{TARGET_SEASON.lower()}.png"
         plt.savefig(out_path, dpi=OUTPUT_DPI, bbox_inches='tight')

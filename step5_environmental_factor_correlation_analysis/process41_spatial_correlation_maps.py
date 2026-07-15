@@ -38,7 +38,26 @@ from utils.mapping_config import MappingConfig
 # Apply the global project style
 plt.style.use(str(ProjectPaths.PROJECT_ROOT / 'project_style.mplstyle'))
 
+
 def create_correlation_map(corr_df, parameter, output_path, pc_name, target_region="Seto Inland Sea"):
+    # Filter data first to get data bounds
+    merged_df = pd.read_feather(ProjectPaths.MERGED_DATA_FILE)
+    if target_region in ['Tokyo Bay', 'Ise Bay', 'Seto Inland Sea']:
+        merged_df = merged_df[merged_df['watermass_name'] == target_region]
+    else:
+        merged_df = merged_df[merged_df['division'] == target_region]
+
+    stations = merged_df[['zettaicode', 'latitude', 'longitude']].drop_duplicates('zettaicode').set_index('zettaicode')
+    stations.index = stations.index.astype(str).str.zfill(8)
+    corr_df.index = corr_df.index.astype(str).str.zfill(8)
+    
+    p_col = parameter + '_pval'
+    plot_data = stations.join(corr_df[[parameter, p_col]], how='inner').dropna(subset=[parameter, p_col])
+
+    if plot_data.empty:
+        logging.warning(f"No correlation data available for {target_region}")
+        return
+
     # 1. Calculation for Figure Dimensions (Maintaining Aspect Ratio)
     water_boundary_files = {
         'Seto Inland Sea': 'sea_area_mask_sis_simplified.shp',
@@ -54,12 +73,12 @@ def create_correlation_map(corr_df, parameter, output_path, pc_name, target_regi
         sis_water_boundary = sis_water_boundary.to_crs("EPSG:4326")
     bounds = sis_water_boundary.total_bounds
     
-    x_range = bounds[2] - bounds[0]
-    y_range = bounds[3] - bounds[1]
-    x_buffer = x_range * 0.05
-    y_buffer = y_range * 0.05
-    
-    extent = [bounds[0] - x_buffer, bounds[2] + x_buffer, bounds[1] - y_buffer, bounds[3] + y_buffer]
+    # Use dynamic extent with 0.2 buffer
+    minx, maxx = plot_data['longitude'].min(), plot_data['longitude'].max()
+    miny, maxy = plot_data['latitude'].min(), plot_data['latitude'].max()
+    buffer = 0.2
+    extent = [minx - buffer, maxx + buffer, miny - buffer, maxy + buffer]
+
     aspect_ratio = (extent[3] - extent[2]) / (extent[1] - extent[0])
     
     if aspect_ratio > 1:
@@ -103,16 +122,7 @@ def create_correlation_map(corr_df, parameter, output_path, pc_name, target_regi
     # 4. Add Gridlines
     gl = MappingConfig.apply_gridlines(ax)
     
-    # 4. Prepare Data for Plotting
-    merged_df = pd.read_feather(ProjectPaths.MERGED_DATA_FILE)
-    stations = merged_df[['zettaicode', 'latitude', 'longitude']].drop_duplicates('zettaicode').set_index('zettaicode')
-    stations.index = stations.index.astype(str).str.zfill(8)
-    corr_df.index = corr_df.index.astype(str).str.zfill(8)
-    
-    p_col = parameter + '_pval'
-    
-    plot_data = stations.join(corr_df[[parameter, p_col]], how='inner').dropna(subset=[parameter, p_col])
-    
+    # 5. Determine Colors and Sizes
     colors = []
     sizes = []
     
@@ -136,7 +146,7 @@ def create_correlation_map(corr_df, parameter, output_path, pc_name, target_regi
         else: color = cmap(1.0)
         colors.append(color)
 
-    # 5. Scatter Plot
+    # 6. Scatter Plot
     sc = ax.scatter(
         plot_data['longitude'],
         plot_data['latitude'],
@@ -150,7 +160,7 @@ def create_correlation_map(corr_df, parameter, output_path, pc_name, target_regi
     )
     
     # 7. Add Title and Colorbar
-    plt.title(f"{pc_name} vs {parameter.replace('_', ' ')} Correlation", pad=20, fontsize=20, fontweight='bold')
+    plt.title(f"{pc_name} vs {parameter.replace('_', ' ')} Correlation\n{target_region}", pad=20, fontsize=20, fontweight='bold')
     
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
     sm.set_array([])
@@ -195,7 +205,12 @@ def main():
     
     region_str = args.target_region.replace(" ", "_")
     safe_param = args.param.replace(' ', '_').replace('/', '_')
-    output_path = OUTPUT_DIR / f"spatial_corr_map_{data_type}_{args.pc_name}_{safe_param}_{region_str}_{season}_{layer}.png"
+    
+    # Separate outputs based on selected basins
+    region_output_dir = OUTPUT_DIR / region_str
+    region_output_dir.mkdir(parents=True, exist_ok=True)
+    
+    output_path = region_output_dir / f"spatial_corr_map_{data_type}_{args.pc_name}_{safe_param}_{region_str}_{season}_{layer}.png"
     
     create_correlation_map(df_pc, args.param, output_path, args.pc_name, args.target_region)
     logging.info(f"Correlation map generated: {output_path.name}")

@@ -206,9 +206,9 @@ stages:
       nfiles: 14
     - path: step5_environmental_factor_correlation_analysis/
       hash: md5
-      md5: 9427b94c34d98d2e5334e814bdddd294.dir
-      size: 129943
-      nfiles: 18
+      md5: aaee86f26dc760ce3a940fec7fddde50.dir
+      size: 410655
+      nfiles: 21
   step4_PCA_analysis:
     cmd: python -m step4_PCA_analysis
     deps:
