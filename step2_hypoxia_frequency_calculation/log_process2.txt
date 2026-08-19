@@ -597,3 +597,12 @@ INFO: Finished processing Suo Nada.
 INFO: Loading data for division: Tokyo Bay
 INFO: Generating Figure 3: DO Trend Spatial Mapping
 INFO: Finished processing Tokyo Bay.
+INFO: Loading data for division: Tokyo Bay
+INFO: Generating Figure 3: DO Trend Spatial Mapping
+INFO: Finished processing Tokyo Bay.
+INFO: Loading data for division: Ise Bay
+INFO: Generating Figure 3: DO Trend Spatial Mapping
+INFO: Finished processing Ise Bay.
+INFO: Loading data for division: Seto Inland Sea
+INFO: Generating Figure 3: DO Trend Spatial Mapping
+INFO: Finished processing Seto Inland Sea.

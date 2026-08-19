@@ -127,10 +127,13 @@ def main():
     pval_col = f"{param_str}_pval"
     
     # 3. Filter stations (pval <= 0.05 AND |r| > 0)
-    sig_stations = df_corr[(df_corr[pval_col] <= 0.05) & (df_corr[param_str].abs() > 0)].index.tolist()
+    sig_df = df_corr[(df_corr[pval_col] <= 0.05) & (df_corr[param_str].abs() > 0)]
+    sig_stations = sig_df.index.tolist()
     if not sig_stations:
         logging.info(f"No significant stations found for {param_str} with {pc_name}")
         return
+
+    corr_dict = sig_df[param_str].to_dict()
 
     # 4. Load raw data
     merged_gdf = load_and_process_data(force_reload=False)
@@ -192,7 +195,8 @@ def main():
     safe_title = param_str.replace(' ', '_').replace('/', '_')
 
     legend_elements = [
-        Line2D([0], [0], color='steelblue', marker='o', markersize=10, label=f'Significantly Correlated with {pc_name}', linewidth=2)
+        Line2D([0], [0], color='red', marker='o', markersize=10, label=f'Positive Correlation with {pc_name}', linewidth=2),
+        Line2D([0], [0], color='blue', marker='o', markersize=10, label=f'Negative Correlation with {pc_name}', linewidth=2)
     ]
 
     for basin in basins:
@@ -210,7 +214,9 @@ def main():
             if st_df.empty or st_df[p_info['col']].isna().all():
                 continue
                 
-            ax.plot(st_df['surveyyear'], st_df[p_info['col']], color='steelblue', 
+            r_val = corr_dict.get(st, 0)
+            line_color = 'red' if r_val > 0 else 'blue'
+            ax.plot(st_df['surveyyear'], st_df[p_info['col']], color=line_color, 
                     marker='o', markersize=5, alpha=0.7, linewidth=2)
             plotted_any = True
             

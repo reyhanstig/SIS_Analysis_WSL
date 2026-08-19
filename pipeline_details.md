@@ -44,3 +44,8 @@ This step uses statistical modeling to directly link dissolved oxygen (DO) deple
 - **`process04_what_nutrients_affect_do_a.py`**: Specifically isolates chemical and biological predictors (Nitrogen, Phosphorus, Chlorophyll) to evaluate how nutrient loading drives bottom-water hypoxia.
 - **`process42_time_series_significant_stations_PC_correlation.py`**: Dynamically filters monitoring stations based on significant (p <= 0.05) and positive correlations with Principal Components, and plots their specific environmental time series directly from the raw dataset, separating output per sub-basin.
 - **`process43_confirm_env_parameter_relationship.py`**: Validates the robustness of the relationships identified in the spatial correlation mapping by calculating the regional average of a specific environmental parameter across significantly correlated stations, and plotting it against the PC score to confirm the physical relationship over time.
+
+## 6. `step6_pick_up_area_location`
+This step integrates the temporal analysis of specific regional sub-basins over varying time periods, determining how environmental parameters correlate with PC scores dynamically.
+- **`step6_parameters.csv`**: Contains the target region, PC name, and year period bounds for the required localized analyses.
+- **`process01_pc_driver_temporal_analysis.py`**: Generates spatial correlation maps mapping how the specified PC score for a target region correlates with environmental drivers over a specified subset of years.

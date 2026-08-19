@@ -240,3 +240,16 @@ stages:
       md5: 9d736a584559bd83e2ff0cbf2ae8a4ce.dir
       size: 65545
       nfiles: 16
+  step6_pick_up_area_location:
+    cmd: python -m step6_pick_up_area_location
+    deps:
+    - path: step4_PCA_analysis/
+      hash: md5
+      md5: c5bdb62de2dc6a734f35cc0065c0b349.dir
+      size: 42003
+      nfiles: 14
+    - path: step6_pick_up_area_location/
+      hash: md5
+      md5: 58b3eebe9380a23382c7e625224565d5.dir
+      size: 31092
+      nfiles: 7

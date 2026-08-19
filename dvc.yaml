@@ -28,3 +28,9 @@ stages:
     deps:
       - step5_environmental_factor_correlation_analysis/
       - step4_PCA_analysis/
+
+  step6_pick_up_area_location:
+    cmd: python -m step6_pick_up_area_location
+    deps:
+      - step6_pick_up_area_location/
+      - step4_PCA_analysis/

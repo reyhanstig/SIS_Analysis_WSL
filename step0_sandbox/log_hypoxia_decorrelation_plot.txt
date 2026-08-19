@@ -1,0 +1,134 @@
+INFO: Loading merged data...
+INFO: Loading decorrelation scales...
+INFO: Available watermass_name: ['Ise Bay' 'Seto Inland Sea' 'Tokyo Bay']
+INFO: Available division: ['—' 'Osaka Bay' 'Kii Channel' 'Harima Nada' 'Iyo Nada' 'Suo Nada'
+ 'Bisan Seto' 'Bungo Channel' 'Bingo Nada' 'Hibiki Nada' 'Aki Nada'
+ 'Hiuchi Nada' 'Hiroshima Bay']
+INFO: Processing region: Seto Inland Sea
+INFO: Successfully generated plots for Seto Inland Sea
+INFO: Processing region: Tokyo Bay
+WARNING: Not enough data points for Tokyo Bay after merging. Skipping.
+INFO: Processing region: Ise Bay
+WARNING: Not enough data points for Ise Bay after merging. Skipping.
+INFO: Loading merged data...
+INFO: Processing region: Seto Inland Sea
+INFO: Successfully generated plots for Seto Inland Sea
+INFO: Processing region: Tokyo Bay
+WARNING: Not enough data points for Tokyo Bay after merging. Skipping.
+INFO: Processing region: Ise Bay
+INFO: Successfully generated plots for Ise Bay
+INFO: Loading merged data...
+INFO: Processing region: Seto Inland Sea
+INFO: Successfully generated plots for Seto Inland Sea
+INFO: Processing region: Tokyo Bay
+WARNING: Not enough data points for Tokyo Bay after merging. Skipping.
+INFO: Processing region: Ise Bay
+INFO: Successfully generated plots for Ise Bay
+INFO: Loading merged data...
+INFO: Processing region: Seto Inland Sea
+INFO: Successfully generated plots for Seto Inland Sea
+INFO: Processing region: Tokyo Bay
+WARNING: Not enough data points for Tokyo Bay after merging. Skipping.
+INFO: Processing region: Ise Bay
+INFO: Successfully generated plots for Ise Bay
+INFO: Loading merged data...
+INFO: Processing region: Seto Inland Sea
+INFO: Successfully generated plots for Seto Inland Sea
+INFO: Processing region: Tokyo Bay
+WARNING: Not enough data points for Tokyo Bay after merging. Skipping.
+INFO: Processing region: Ise Bay
+INFO: Successfully generated plots for Ise Bay
+INFO: Loading merged data...
+INFO: Processing region: Seto Inland Sea
+INFO: Successfully generated plots for Seto Inland Sea
+INFO: Processing region: Tokyo Bay
+INFO: Successfully generated plots for Tokyo Bay
+INFO: Processing region: Ise Bay
+INFO: Successfully generated plots for Ise Bay
+INFO: Loading merged data...
+INFO: Processing region: Osaka Bay
+INFO: Successfully generated plots for Osaka Bay
+INFO: Processing region: Kii Channel
+INFO: Successfully generated plots for Kii Channel
+INFO: Processing region: Harima Nada
+INFO: Successfully generated plots for Harima Nada
+INFO: Processing region: Iyo Nada
+INFO: Successfully generated plots for Iyo Nada
+INFO: Processing region: Suo Nada
+INFO: Successfully generated plots for Suo Nada
+INFO: Processing region: Bisan Seto
+INFO: Successfully generated plots for Bisan Seto
+INFO: Processing region: Bungo Channel
+INFO: Successfully generated plots for Bungo Channel
+INFO: Processing region: Bingo Nada
+INFO: Successfully generated plots for Bingo Nada
+INFO: Processing region: Hibiki Nada
+ERROR: Decorrelation file not found for Hibiki Nada: /home/reyha/SIS_Analysis_WSL/data/processed/step3_decorrelation_scale_analysis/process11_calculate_decorrelation_scale_per_bay/hibiki_nada_decorrelation_scale.csv
+INFO: Processing region: Aki Nada
+INFO: Successfully generated plots for Aki Nada
+INFO: Processing region: Hiuchi Nada
+INFO: Successfully generated plots for Hiuchi Nada
+INFO: Processing region: Hiroshima Bay
+INFO: Successfully generated plots for Hiroshima Bay
+INFO: Processing region: Tokyo Bay
+INFO: Successfully generated plots for Tokyo Bay
+INFO: Processing region: Ise Bay
+INFO: Successfully generated plots for Ise Bay
+INFO: Loading merged data...
+INFO: Processing region: Osaka Bay
+INFO: Successfully generated plots for Osaka Bay
+INFO: Processing region: Kii Channel
+INFO: Successfully generated plots for Kii Channel
+INFO: Processing region: Harima Nada
+INFO: Successfully generated plots for Harima Nada
+INFO: Processing region: Iyo Nada
+INFO: Successfully generated plots for Iyo Nada
+INFO: Processing region: Suo Nada
+INFO: Successfully generated plots for Suo Nada
+INFO: Processing region: Bisan Seto
+INFO: Successfully generated plots for Bisan Seto
+INFO: Processing region: Bungo Channel
+INFO: Successfully generated plots for Bungo Channel
+INFO: Processing region: Bingo Nada
+INFO: Successfully generated plots for Bingo Nada
+INFO: Processing region: Hibiki Nada
+ERROR: Decorrelation file not found for Hibiki Nada: /home/reyha/SIS_Analysis_WSL/data/processed/step3_decorrelation_scale_analysis/process11_calculate_decorrelation_scale_per_bay/hibiki_nada_decorrelation_scale.csv
+INFO: Processing region: Aki Nada
+INFO: Successfully generated plots for Aki Nada
+INFO: Processing region: Hiuchi Nada
+INFO: Successfully generated plots for Hiuchi Nada
+INFO: Processing region: Hiroshima Bay
+INFO: Successfully generated plots for Hiroshima Bay
+INFO: Processing region: Tokyo Bay
+INFO: Successfully generated plots for Tokyo Bay
+INFO: Processing region: Ise Bay
+INFO: Successfully generated plots for Ise Bay
+INFO: Loading merged data...
+INFO: Processing region: Osaka Bay
+INFO: Successfully generated plots for Osaka Bay
+INFO: Processing region: Kii Channel
+INFO: Successfully generated plots for Kii Channel
+INFO: Processing region: Harima Nada
+INFO: Successfully generated plots for Harima Nada
+INFO: Processing region: Iyo Nada
+INFO: Successfully generated plots for Iyo Nada
+INFO: Processing region: Suo Nada
+INFO: Successfully generated plots for Suo Nada
+INFO: Processing region: Bisan Seto
+INFO: Successfully generated plots for Bisan Seto
+INFO: Processing region: Bungo Channel
+INFO: Successfully generated plots for Bungo Channel
+INFO: Processing region: Bingo Nada
+INFO: Successfully generated plots for Bingo Nada
+INFO: Processing region: Hibiki Nada
+ERROR: Decorrelation file not found for Hibiki Nada: /home/reyha/SIS_Analysis_WSL/data/processed/step3_decorrelation_scale_analysis/process11_calculate_decorrelation_scale_per_bay/hibiki_nada_decorrelation_scale.csv
+INFO: Processing region: Aki Nada
+INFO: Successfully generated plots for Aki Nada
+INFO: Processing region: Hiuchi Nada
+INFO: Successfully generated plots for Hiuchi Nada
+INFO: Processing region: Hiroshima Bay
+INFO: Successfully generated plots for Hiroshima Bay
+INFO: Processing region: Tokyo Bay
+INFO: Successfully generated plots for Tokyo Bay
+INFO: Processing region: Ise Bay
+INFO: Successfully generated plots for Ise Bay
