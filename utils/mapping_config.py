@@ -40,6 +40,63 @@ class MappingConfig:
     def get_boundary_file(target_region):
         """Returns the appropriate boundary filename for the given region."""
         return MappingConfig.BOUNDARY_FILES.get(target_region, MappingConfig.LAND_BOUNDARY_FILENAME)
+        
+    @staticmethod
+    def get_dynamic_extent(target_region, plot_data=None):
+        """
+        Returns the [xmin, xmax, ymin, ymax] extent for mapping.
+        For Seto Inland Sea, it loads the fixed computational water polygon bounds.
+        For others, it dynamically calculates a proportional 11% buffer around the data bounds.
+        """
+        import geopandas as gpd
+        from utils.paths import ProjectPaths
+        if target_region == 'Seto Inland Sea':
+            water_boundary_path = ProjectPaths.BOUNDARIES_DIR / "SIS water mass polygon" / "sea_area_mask_sis_simplified.shp"
+            if water_boundary_path.exists():
+                sis_water_boundary = gpd.read_file(water_boundary_path)
+                if sis_water_boundary.crs != "EPSG:4326":
+                    sis_water_boundary = sis_water_boundary.to_crs("EPSG:4326")
+                bounds = sis_water_boundary.total_bounds
+                return [bounds[0] + 0.1, bounds[2] + 0.1, bounds[1] - 0, bounds[3] + 0.2]
+        
+        if plot_data is not None:
+            if hasattr(plot_data, 'total_bounds'):
+                bounds = plot_data.total_bounds
+                minx, maxx, miny, maxy = bounds[0], bounds[2], bounds[1], bounds[3]
+            else:
+                # Handle standard pandas DataFrame
+                if 'longitude' in plot_data.columns and 'latitude' in plot_data.columns:
+                    minx, maxx = plot_data['longitude'].min(), plot_data['longitude'].max()
+                    miny, maxy = plot_data['latitude'].min(), plot_data['latitude'].max()
+                elif 'lon' in plot_data.columns and 'lat' in plot_data.columns:
+                    minx, maxx = plot_data['lon'].min(), plot_data['lon'].max()
+                    miny, maxy = plot_data['lat'].min(), plot_data['lat'].max()
+                else:
+                    raise ValueError("plot_data must have 'longitude'/'latitude' or 'lon'/'lat' columns")
+                
+            x_range = maxx - minx
+            y_range = maxy - miny
+            
+            x_buffer = max(x_range * 0.11, 0.06)
+            y_buffer = max(y_range * 0.11, 0.06)
+            
+            return [minx - x_buffer, maxx + x_buffer, miny - y_buffer, maxy + y_buffer]
+            
+        return [130.8, 135.3, 33.0, 34.9] # Fallback for SIS
+
+    @staticmethod
+    def get_dynamic_figsize(extent, base_width=8, is_subplot=False, n_rows=1, n_cols=1):
+        """
+        Calculates the appropriate figsize to prevent Cartopy squishing due to aspect ratio.
+        """
+        aspect_ratio = (extent[3] - extent[2]) / (extent[1] - extent[0])
+        if is_subplot:
+            width_per_subplot = base_width / n_cols
+            height_per_subplot = (width_per_subplot * aspect_ratio) + 0.3
+            fig_height = (height_per_subplot * n_rows) + 1.5 
+            return (base_width, fig_height)
+        else:
+            return (base_width, base_width * aspect_ratio)
     
     @staticmethod
     def load_target_region():

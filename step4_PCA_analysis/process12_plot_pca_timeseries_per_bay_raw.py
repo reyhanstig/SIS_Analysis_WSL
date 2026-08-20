@@ -100,7 +100,7 @@ def main():
     division = args.division
     out_name = division.replace(' ', '_').lower()
     
-    data_dir = ProjectPaths.PROCESSED_DATA_DIR / STEP_DIR / "21_calculate_pca_explained_variance_per_bay_raw" / out_name
+    data_dir = ProjectPaths.PROCESSED_DATA_DIR / STEP_DIR / "process11_calculate_pca_explained_variance_per_bay_raw" / out_name
     pc_scores_file = data_dir / f"{out_name}_pc_scores.csv"
     var_file = data_dir / f"{out_name}_pca_variance.csv"
     

@@ -131,11 +131,10 @@ def main():
             
         map_gdf = gpd.GeoDataFrame(map_data, geometry=gpd.points_from_xy(map_data.longitude, map_data.latitude), crs="EPSG:4326")
         
-        minx, miny, maxx, maxy = map_gdf.total_bounds
-        buffer = 0.2
-        extent = [minx - buffer, maxx + buffer, miny - buffer, maxy + buffer]
+        extent = MappingConfig.get_dynamic_extent(division, plot_data=map_gdf)
         
-        fig, ax = plt.subplots(figsize=(10, 8), subplot_kw={'projection': ccrs.PlateCarree()})
+        fig_width, fig_height = MappingConfig.get_dynamic_figsize(extent, base_width=10)
+        fig, ax = plt.subplots(figsize=(fig_width, fig_height), subplot_kw={'projection': ccrs.PlateCarree()})
         ax.set_facecolor(MappingConfig.COLOR_OCEAN)
         
         # Load land boundary

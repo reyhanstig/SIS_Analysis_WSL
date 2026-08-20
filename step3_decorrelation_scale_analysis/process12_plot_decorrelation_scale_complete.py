@@ -65,7 +65,9 @@ def plot_decorrelation_scale(division, results_df, merged_gdf):
         print(f"No coordinates found for plotting {division}")
         return
         
-    fig, ax = plt.subplots(figsize=(10, 8), subplot_kw={'projection': ccrs.PlateCarree()})
+    map_extent = MappingConfig.get_dynamic_extent(division, plot_data=plot_data)
+    fig_width, fig_height = MappingConfig.get_dynamic_figsize(map_extent, base_width=10)
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height), subplot_kw={'projection': ccrs.PlateCarree()})
     ax.set_facecolor(MappingConfig.COLOR_OCEAN)
     
     # Cartopy land and coastline
@@ -96,10 +98,7 @@ def plot_decorrelation_scale(division, results_df, merged_gdf):
         print(f"Could not load custom boundary for {division}: {e}")
         
     # Map extent
-    min_lon, max_lon = plot_data['longitude'].min(), plot_data['longitude'].max()
-    min_lat, max_lat = plot_data['latitude'].min(), plot_data['latitude'].max()
-    buffer = 0.2
-    map_extent = [min_lon - buffer, max_lon + buffer, min_lat - buffer, max_lat + buffer]
+    # map_extent was already calculated above
     
     # Scatter plot of decorrelation scale
     sc = ax.scatter(
@@ -143,7 +142,7 @@ def main():
     division = args.division
     div_folder = division.replace(' ', '_').lower()
     
-    data_dir_40 = ProjectPaths.PROCESSED_DATA_DIR / STEP_DIR / "40_calculate_decorrelation_scale_per_bay" / div_folder
+    data_dir_40 = ProjectPaths.PROCESSED_DATA_DIR / STEP_DIR / "process11_calculate_decorrelation_scale_per_bay" / div_folder
     csv_file = data_dir_40 / f"{div_folder}_decorrelation_scale.csv"
     
     if not csv_file.exists():

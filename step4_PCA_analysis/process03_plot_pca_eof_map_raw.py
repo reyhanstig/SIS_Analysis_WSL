@@ -60,12 +60,10 @@ def plot_eof_map(eof_values, station_coords, pc_name, variance_pct, target_regio
     plot_data = station_coords.copy()
     plot_data['EOF'] = eof_values
     
-    min_lon, max_lon = plot_data['longitude'].min(), plot_data['longitude'].max()
-    min_lat, max_lat = plot_data['latitude'].min(), plot_data['latitude'].max()
-    buffer = 0.2
-    map_extent = [min_lon - buffer, max_lon + buffer, min_lat - buffer, max_lat + buffer]
+    map_extent = MappingConfig.get_dynamic_extent(target_region, plot_data=plot_data)
     
-    fig, ax = plt.subplots(figsize=(10, 8), subplot_kw={'projection': ccrs.PlateCarree()})
+    fig_width, fig_height = MappingConfig.get_dynamic_figsize(map_extent, base_width=10)
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height), subplot_kw={'projection': ccrs.PlateCarree()})
     ax.set_facecolor(MappingConfig.COLOR_OCEAN)
     
     ax.add_feature(cfeature.LAND, facecolor=MappingConfig.COLOR_LAND, zorder=MappingConfig.ZORDER_CARTOPY_LAND)
@@ -128,7 +126,7 @@ def main():
     except Exception as e:
         TARGET_REGION = 'Seto Inland Sea'
         
-    data_dir = ProjectPaths.PROCESSED_DATA_DIR / STEP_DIR / "11_calculate_pca_explained_variance_raw"
+    data_dir = ProjectPaths.PROCESSED_DATA_DIR / STEP_DIR / "process01_calculate_pca_explained_variance_raw"
     eof_file = data_dir / "eof_patterns.csv"
     var_file = data_dir / "pca_variance.csv"
     

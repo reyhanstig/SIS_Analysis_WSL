@@ -170,7 +170,7 @@ def main():
         print(f"No station data found in yearly_do_df for {division}.")
         return
         
-    decorrelation_file = ProjectPaths.PROCESSED_DATA_DIR / "step3_decorrelation_scale_analysis" / "40_calculate_decorrelation_scale_per_bay" / division.replace(' ', '_').lower() / f"{division.replace(' ', '_').lower()}_decorrelation_scale.csv"
+    decorrelation_file = ProjectPaths.PROCESSED_DATA_DIR / "step3_decorrelation_scale_analysis" / "process11_calculate_decorrelation_scale_per_bay" / division.replace(' ', '_').lower() / f"{division.replace(' ', '_').lower()}_decorrelation_scale.csv"
     if not decorrelation_file.exists():
         print(f"Decorrelation scale file not found for {division}. Skipping.")
         return

@@ -227,12 +227,10 @@ def plot_simple_decorrelation_scale(division, results_df, merged_gdf):
         print(f"No coordinates found for simple plot of {division}")
         return
         
-    min_lon, max_lon = plot_data['longitude'].min(), plot_data['longitude'].max()
-    min_lat, max_lat = plot_data['latitude'].min(), plot_data['latitude'].max()
-    buffer = 0.2
-    map_extent = [min_lon - buffer, max_lon + buffer, min_lat - buffer, max_lat + buffer]
+    map_extent = MappingConfig.get_dynamic_extent(division, plot_data=plot_data)
     
-    fig, ax = plt.subplots(figsize=(8, 6), subplot_kw={'projection': ccrs.PlateCarree()})
+    fig_width, fig_height = MappingConfig.get_dynamic_figsize(map_extent, base_width=8)
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height), subplot_kw={'projection': ccrs.PlateCarree()})
     ax.set_facecolor(MappingConfig.COLOR_OCEAN)
     
     ax.add_feature(cfeature.LAND, facecolor=MappingConfig.COLOR_LAND, zorder=MappingConfig.ZORDER_CARTOPY_LAND)

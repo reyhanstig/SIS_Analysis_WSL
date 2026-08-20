@@ -59,35 +59,8 @@ def create_correlation_map(corr_df, parameter, output_path, pc_name, target_regi
         return
 
     # 1. Calculation for Figure Dimensions (Maintaining Aspect Ratio)
-    water_boundary_files = {
-        'Seto Inland Sea': 'sea_area_mask_sis_simplified.shp',
-        'Tokyo Bay': 'sea_area_mask_Tokyo.shp',
-        'Ise Bay': 'sea_area_mask_Ise.shp'
-    }
-    water_boundary_file = water_boundary_files.get(target_region, 'sea_area_mask_sis_simplified.shp')
-    water_boundary_path = ProjectPaths.BOUNDARIES_DIR / "SIS water mass polygon" / water_boundary_file
-    
-    if water_boundary_path.exists():
-        sis_water_boundary = gpd.read_file(water_boundary_path)
-    if sis_water_boundary.crs != "EPSG:4326":
-        sis_water_boundary = sis_water_boundary.to_crs("EPSG:4326")
-    bounds = sis_water_boundary.total_bounds
-    
-    # Use dynamic extent with 0.2 buffer
-    minx, maxx = plot_data['longitude'].min(), plot_data['longitude'].max()
-    miny, maxy = plot_data['latitude'].min(), plot_data['latitude'].max()
-    buffer = 0.2
-    extent = [minx - buffer, maxx + buffer, miny - buffer, maxy + buffer]
-
-    aspect_ratio = (extent[3] - extent[2]) / (extent[1] - extent[0])
-    
-    if aspect_ratio > 1:
-        fig_height = 10
-        fig_width = fig_height / aspect_ratio
-    else:
-        fig_width = 10
-        fig_height = fig_width * aspect_ratio
-        
+    extent = MappingConfig.get_dynamic_extent(target_region, plot_data=plot_data)
+    fig_width, fig_height = MappingConfig.get_dynamic_figsize(extent, base_width=10)
     single_fig_height = fig_height + 1.4
     
     # 2. Base Figure Setup

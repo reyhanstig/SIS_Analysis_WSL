@@ -94,7 +94,7 @@ def plot_pc_timeseries(pc_scores, var_df):
 def main():
     ProjectPaths.ensure_directories()
     
-    data_dir = ProjectPaths.PROCESSED_DATA_DIR / STEP_DIR / "11_calculate_pca_explained_variance_raw"
+    data_dir = ProjectPaths.PROCESSED_DATA_DIR / STEP_DIR / "process01_calculate_pca_explained_variance_raw"
     pc_scores_file = data_dir / "pc_scores.csv"
     var_file = data_dir / "pca_variance.csv"
     if not pc_scores_file.exists():

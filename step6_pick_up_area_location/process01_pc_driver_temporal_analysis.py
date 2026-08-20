@@ -136,28 +136,8 @@ def create_correlation_map(corr_df, parameter, output_path, title_prefix, target
     if plot_data.empty:
         return
 
-    water_boundary_files = {
-        'Seto Inland Sea': 'sea_area_mask_sis_simplified.shp',
-        'Tokyo Bay': 'sea_area_mask_Tokyo.shp',
-        'Ise Bay': 'sea_area_mask_Ise.shp'
-    }
-    water_boundary_file = water_boundary_files.get(target_region, 'sea_area_mask_sis_simplified.shp')
-    water_boundary_path = ProjectPaths.BOUNDARIES_DIR / "SIS water mass polygon" / water_boundary_file
-    
-    minx, maxx = plot_data['longitude'].min(), plot_data['longitude'].max()
-    miny, maxy = plot_data['latitude'].min(), plot_data['latitude'].max()
-    buffer = 0.2
-    extent = [minx - buffer, maxx + buffer, miny - buffer, maxy + buffer]
-
-    aspect_ratio = (extent[3] - extent[2]) / (extent[1] - extent[0])
-    
-    if aspect_ratio > 1:
-        fig_height = 10
-        fig_width = fig_height / aspect_ratio
-    else:
-        fig_width = 10
-        fig_height = fig_width * aspect_ratio
-        
+    extent = MappingConfig.get_dynamic_extent(target_region, plot_data=plot_data)
+    fig_width, fig_height = MappingConfig.get_dynamic_figsize(extent, base_width=10)
     single_fig_height = fig_height + 1.4
     
     fig = plt.figure(figsize=(fig_width, single_fig_height))

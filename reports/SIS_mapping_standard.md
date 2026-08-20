@@ -171,17 +171,24 @@ gl.right_labels = False
 
 ## 5. Map Extent
 
-Dynamically crop to the dataset being visualized, with a 0.2° buffer:
+Dynamically crop to the dataset being visualized using a proportional 11% buffer, ensuring that narrow bays (e.g. Tokyo Bay) do not end up with excessive ocean padding:
 
 ```python
-bounds = data_gdf.total_bounds  # [minx, miny, maxx, maxy]
-ax.set_extent([
-    bounds[0] + 0.1,  # xmin
-    bounds[2] + 0.1,  # xmax
-    bounds[1] - 0,  # ymin
-    bounds[3] + 0.2   # ymax
-], crs=ccrs.PlateCarree())
+# 1. First, fetch the dynamically calculated extent bounds from MappingConfig
+extent = MappingConfig.get_dynamic_extent(MappingConfig.TARGET_REGION, plot_data=data_gdf)
+
+# 2. Automatically calculate the perfect figsize to avoid Cartopy aspect ratio squishing
+fig_width, fig_height = MappingConfig.get_dynamic_figsize(extent, base_width=8)
+fig, ax = plt.subplots(figsize=(fig_width, fig_height), subplot_kw={'projection': ccrs.PlateCarree()})
+
+# ... other map setups ...
+
+# 3. Set the extent
+ax.set_extent(extent, crs=ccrs.PlateCarree())
 ```
+
+> [!TIP]
+> `MappingConfig.get_dynamic_extent()` automatically handles the Seto Inland Sea by bypassing the 11% proportional buffer and applying the exact fixed geographical bounding box based on the `sea_area_mask_sis_simplified.shp` bounds to maintain historical standard consistency.
 
 ---
 

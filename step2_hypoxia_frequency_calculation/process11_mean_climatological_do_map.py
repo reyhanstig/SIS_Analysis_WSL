@@ -298,11 +298,7 @@ def main():
 
     land_boundary, water_mask = load_spatial_data(division)
     
-    minx, maxx = df['longitude'].min(), df['longitude'].max()
-    miny, maxy = df['latitude'].min(), df['latitude'].max()
-    buffer = 0.2
-    
-    uniform_extent = [minx - buffer, maxx + buffer, miny - buffer, maxy + buffer]
+    uniform_extent = MappingConfig.get_dynamic_extent(division, plot_data=df)
     dx = uniform_extent[1] - uniform_extent[0]
     dy = uniform_extent[3] - uniform_extent[2]
     
@@ -329,7 +325,8 @@ def main():
     
     var_cfg = MappingConfig.get_var_settings('do_')
     
-    fig, ax = plt.subplots(1, 1, figsize=(8, 6), subplot_kw={'projection': ccrs.PlateCarree()})
+    fig_width, fig_height = MappingConfig.get_dynamic_figsize(uniform_extent, base_width=8)
+    fig, ax = plt.subplots(1, 1, figsize=(fig_width, fig_height), subplot_kw={'projection': ccrs.PlateCarree()})
     ax.set_facecolor(MappingConfig.COLOR_OCEAN)
     add_land_to_ax(ax, land_patches_data)
     ax.set_extent(uniform_extent, crs=ccrs.PlateCarree())
