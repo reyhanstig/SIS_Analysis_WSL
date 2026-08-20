@@ -20,6 +20,8 @@ test_*
 # Generated outputs
 *.png
 *.gif
+*.log
+log_*.txt
 notebooks/output/*_log.ipynb
 
 # Ignore session-specific scratch files
