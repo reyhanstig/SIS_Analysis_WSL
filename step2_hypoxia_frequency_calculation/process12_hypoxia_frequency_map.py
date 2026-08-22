@@ -181,7 +181,8 @@ def main():
     add_land_to_ax(ax, land_patches_data)
     ax.set_extent(uniform_extent, crs=ccrs.PlateCarree())
     
-    marker_sizes = freq_df['frequency'] * 2.4 + 24
+    zoom_factor = max(4.5 / dx, 1.0)
+    marker_sizes = (freq_df['frequency'] * 2.4 + 24) * zoom_factor
     sc = ax.scatter(freq_df['longitude'], freq_df['latitude'], c=freq_df['frequency'], cmap='Reds', vmin=0, vmax=100,
                     s=marker_sizes, edgecolor='k', linewidth=0.3, transform=ccrs.PlateCarree(), zorder=MappingConfig.ZORDER_OBSERVATIONS)
     

@@ -345,7 +345,8 @@ def main():
                             transform=ccrs.PlateCarree(), cmap='RdYlBu', shading='nearest',
                             zorder=MappingConfig.ZORDER_PREDICTED, vmin=global_vmin, vmax=global_vmax)
         c_m.set_clip_path(PathPatch(gdf_to_clip_path(clipped_water_mask), transform=ax.transData))
-        ax.scatter(lons, lats, c='black', s=SUBPLOT_STATION_SIZE, zorder=MappingConfig.ZORDER_OBSERVATIONS, transform=ccrs.PlateCarree())
+        zoom_factor = max(4.5 / dx, 1.0)
+        ax.scatter(lons, lats, c='black', s=SUBPLOT_STATION_SIZE * zoom_factor, zorder=MappingConfig.ZORDER_OBSERVATIONS, transform=ccrs.PlateCarree())
         
         ax.set_title(f"Spatial DO Trend (Slope mg/L/year)\n{division}", fontsize=SUBPLOT_TITLE_SIZE, fontweight='bold')
         _add_gridlines(ax)

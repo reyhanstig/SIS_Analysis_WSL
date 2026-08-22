@@ -162,11 +162,14 @@ def main():
             
         gl = MappingConfig.apply_gridlines(ax)
         
+        extent_width = extent[1] - extent[0]
+        zoom_factor = max(4.5 / extent_width, 1.0)
+        
         sc = ax.scatter(
             map_gdf['longitude'], map_gdf['latitude'],
             c=map_gdf['Decorrelation_Scale_km'],
             cmap='viridis',
-            s=80, alpha=0.9,
+            s=80 * zoom_factor, alpha=0.9,
             edgecolors='black', linewidths=0.5,
             transform=ccrs.PlateCarree(),
             zorder=MappingConfig.ZORDER_PREDICTED

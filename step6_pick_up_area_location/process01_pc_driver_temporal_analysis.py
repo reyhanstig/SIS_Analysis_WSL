@@ -137,6 +137,8 @@ def create_correlation_map(corr_df, parameter, output_path, title_prefix, target
         return
 
     extent = MappingConfig.get_dynamic_extent(target_region, plot_data=plot_data)
+    extent_width = extent[1] - extent[0]
+    zoom_factor = max(4.5 / extent_width, 1.0)
     fig_width, fig_height = MappingConfig.get_dynamic_figsize(extent, base_width=10)
     single_fig_height = fig_height + 1.4
     
@@ -181,7 +183,7 @@ def create_correlation_map(corr_df, parameter, output_path, title_prefix, target
         elif p_val <= 0.01: size = 300
         elif p_val <= 0.05: size = 150
         else: size = 20
-        sizes.append(size)
+        sizes.append(size * zoom_factor)
         
         if val < -0.75: color = cmap(0.0)
         elif val < -0.5: color = cmap(0.15)

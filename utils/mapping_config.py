@@ -85,18 +85,26 @@ class MappingConfig:
         return [130.8, 135.3, 33.0, 34.9] # Fallback for SIS
 
     @staticmethod
-    def get_dynamic_figsize(extent, base_width=8, is_subplot=False, n_rows=1, n_cols=1):
+    def get_dynamic_figsize(extent, base_width=8, is_subplot=False, n_rows=1, n_cols=1, max_height=8.0):
         """
         Calculates the appropriate figsize to prevent Cartopy squishing due to aspect ratio.
+        Includes a max_height cap to ensure font sizes do not appear diminished on tall/square regions (like Tokyo Bay) when viewed on screen.
         """
         aspect_ratio = (extent[3] - extent[2]) / (extent[1] - extent[0])
         if is_subplot:
             width_per_subplot = base_width / n_cols
             height_per_subplot = (width_per_subplot * aspect_ratio) + 0.3
             fig_height = (height_per_subplot * n_rows) + 1.5 
+            if fig_height > max_height:
+                scale = max_height / fig_height
+                return (base_width * scale, fig_height * scale)
             return (base_width, fig_height)
         else:
-            return (base_width, base_width * aspect_ratio)
+            fig_height = base_width * aspect_ratio
+            if fig_height > max_height:
+                scale = max_height / fig_height
+                return (base_width * scale, fig_height * scale)
+            return (base_width, fig_height)
     
     @staticmethod
     def load_target_region():

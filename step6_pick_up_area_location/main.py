@@ -36,6 +36,8 @@ def main():
     import time
     time.sleep(1) # Wait for WSL to release directory locks
 
+    process01_dir = project_root_path / 'data' / 'processed' / step_dir.name / 'process01_pc_driver_temporal_analysis'
+
     for _, row in df_params.iterrows():
         target_region = str(row['target_region'])
         pc_name = str(row['pc_name'])
@@ -45,6 +47,7 @@ def main():
         
         logging.info(f"=== Starting analysis for: {output_prefix} {pc_name} {start_year}-{end_year} ===")
         
+        # Process 01
         code = run_script(
             step_dir, env, 'process01_pc_driver_temporal_analysis.py',
             '--target_region', target_region,
@@ -55,6 +58,46 @@ def main():
         )
         if code != 0:
             sys.exit(code)
+
+        # Process 02 & 03
+        prefix_str = output_prefix.replace(' ', '_').replace('-', '_')
+        year_period = f"{start_year}-{end_year}"
+        
+        corr_file = process01_dir / prefix_str / year_period / f"{prefix_str}_{pc_name}_{start_year}_{end_year}_correlations.csv"
+        
+        if not corr_file.exists():
+            logging.warning(f"Correlation file not found: {corr_file}, skipping process02 and process03")
+            continue
+            
+        df_corr = pd.read_csv(corr_file, nrows=1)
+        parameters = [c for c in df_corr.columns if f"{c}_pval" in df_corr.columns]
+        
+        for param in parameters:
+            # Process 02
+            code = run_script(
+                step_dir, env, 'process02_time_series_significant_stations_PC_correlation.py',
+                '--target_region', target_region,
+                '--pc_name', pc_name,
+                '--start_year', start_year,
+                '--end_year', end_year,
+                '--output_prefix', output_prefix,
+                '--param', param
+            )
+            if code != 0:
+                sys.exit(code)
+                
+            # Process 03
+            code = run_script(
+                step_dir, env, 'process03_confirm_env_parameter_relationship.py',
+                '--target_region', target_region,
+                '--pc_name', pc_name,
+                '--start_year', start_year,
+                '--end_year', end_year,
+                '--output_prefix', output_prefix,
+                '--param', param
+            )
+            if code != 0:
+                sys.exit(code)
 
     logging.info("All orchestrations completed successfully.")
 

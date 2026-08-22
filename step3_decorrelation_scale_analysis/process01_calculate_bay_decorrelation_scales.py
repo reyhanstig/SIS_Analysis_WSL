@@ -245,12 +245,15 @@ def plot_simple_decorrelation_scale(division, results_df, merged_gdf):
         ax.pcolormesh(lons, lats, bath_masked, cmap=cmocean.cm.deep, 
                       transform=ccrs.PlateCarree(), zorder=0.1)
     
+    extent_width = map_extent[1] - map_extent[0]
+    zoom_factor = max(4.5 / extent_width, 1.0)
+    
     cmap_to_use = cmocean.cm.thermal if cmocean is not None else 'viridis'
     sc = ax.scatter(
         plot_data['longitude'], plot_data['latitude'],
         c=plot_data['Decorrelation_Scale_km'],
         cmap=cmap_to_use,
-        s=60, edgecolors='k', linewidths=0.5,
+        s=60 * zoom_factor, edgecolors='k', linewidths=0.5,
         transform=ccrs.PlateCarree(),
         zorder=MappingConfig.ZORDER_PREDICTED
     )
@@ -328,12 +331,15 @@ def plot_decorrelation_scale(division, results_df, merged_gdf):
     # Map extent
     # map_extent was already calculated above
     
+    extent_width = map_extent[1] - map_extent[0]
+    zoom_factor = max(4.5 / extent_width, 1.0)
+    
     # Scatter plot of decorrelation scale
     sc = ax.scatter(
         plot_data['longitude'], plot_data['latitude'],
         c=plot_data['Decorrelation_Scale_km'],
         cmap='viridis',
-        s=60, edgecolors='k', linewidths=0.5,
+        s=60 * zoom_factor, edgecolors='k', linewidths=0.5,
         transform=ccrs.PlateCarree(),
         zorder=MappingConfig.ZORDER_PREDICTED
     )

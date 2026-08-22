@@ -98,12 +98,20 @@ def plot_eof_map(eof_values, station_coords, pc_name, variance_pct, division):
     
     vmax = max(abs(plot_data['EOF'].min()), abs(plot_data['EOF'].max()))
     
+    # Calculate dynamic circle size based on zoom level
+    extent_width = map_extent[1] - map_extent[0]
+    base_width_deg = 4.5 # Approx width of Seto Inland Sea
+    zoom_factor = max(base_width_deg / extent_width, 1.0)
+    
+    s_multiplier = 800 * zoom_factor
+    s_min = 50 * zoom_factor
+    
     sc = ax.scatter(
         plot_data['longitude'], plot_data['latitude'],
         c=plot_data['EOF'],
         cmap='coolwarm',
         vmin=-vmax, vmax=vmax,
-        s=np.maximum(abs(plot_data['EOF']) * 800, 20), edgecolors='k', linewidths=0.5,
+        s=np.maximum(abs(plot_data['EOF']) * s_multiplier, s_min), edgecolors='k', linewidths=0.5,
         transform=ccrs.PlateCarree(),
         zorder=MappingConfig.ZORDER_OBSERVATIONS
     )

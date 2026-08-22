@@ -101,11 +101,14 @@ def plot_decorrelation_scale(division, results_df, merged_gdf):
     # map_extent was already calculated above
     
     # Scatter plot of decorrelation scale
+    extent_width = map_extent[1] - map_extent[0]
+    zoom_factor = max(4.5 / extent_width, 1.0)
+    
     sc = ax.scatter(
         plot_data['longitude'], plot_data['latitude'],
         c=plot_data['Decorrelation_Scale_km'],
         cmap='viridis',
-        s=100, edgecolors='k', linewidths=0.5,
+        s=100 * zoom_factor, edgecolors='k', linewidths=0.5,
         transform=ccrs.PlateCarree(),
         zorder=MappingConfig.ZORDER_PREDICTED
     )

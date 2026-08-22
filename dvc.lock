@@ -219,13 +219,13 @@ stages:
       nfiles: 16
     - path: step3_decorrelation_scale_analysis/
       hash: md5
-      md5: 093f6648c0fd26fdffa28db318eb6e04.dir
-      size: 65413
+      md5: 448f7174c7d80875508fcefb49c76fd2.dir
+      size: 65992
       nfiles: 16
     - path: step4_PCA_analysis/
       hash: md5
-      md5: 7146c2bcd4adc623e476899a1535459f.dir
-      size: 41919
+      md5: db9e2285d96c3efc2086874bae108778.dir
+      size: 45541
       nfiles: 14
   step3_decorrelation_scale_analysis:
     cmd: python -m step3_decorrelation_scale_analysis
@@ -245,11 +245,11 @@ stages:
     deps:
     - path: step4_PCA_analysis/
       hash: md5
-      md5: d335cedd9d16f57bdefba4690b795259.dir
-      size: 41891
+      md5: db9e2285d96c3efc2086874bae108778.dir
+      size: 45541
       nfiles: 14
     - path: step6_pick_up_area_location/
       hash: md5
-      md5: b2e300295633f62edc7f635023ebf686.dir
-      size: 38745
-      nfiles: 7
+      md5: 6c3069f8e206beea618b21d54b97ab4f.dir
+      size: 275727
+      nfiles: 10

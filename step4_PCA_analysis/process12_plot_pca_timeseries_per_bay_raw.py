@@ -73,6 +73,7 @@ def plot_pc_timeseries(pc_scores, division, var_df):
     mid_ticks = [target_type(y) for y in range(1985, 2021, 5) if target_type(y) in pc_scores.index]
     tick_years = sorted(list(set([first_year] + mid_ticks + [last_year])), key=lambda x: int(x))
 
+    # --- Plot Combined ---
     fig, ax = plt.subplots(figsize=(10, 5))
     
     ax.plot(pc_scores.index, pc_scores['PC1'], marker='o', label=f'PC1 ({pc1_var:.1f}%)', color='tab:blue')
@@ -93,6 +94,46 @@ def plot_pc_timeseries(pc_scores, division, var_df):
     out_path = OUTPUT_DIR / f"{division.replace(' ', '_').lower()}_pc_timeseries_raw.png"
     plt.tight_layout()
     plt.savefig(out_path, bbox_inches='tight', dpi=300)
+    plt.close()
+
+    # --- Plot PC1 only ---
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.plot(pc_scores.index, pc_scores['PC1'], marker='o', label=f'PC1 ({pc1_var:.1f}%)', color='tab:blue')
+    
+    ax.axhline(y=0, color='red', linestyle='--', alpha=0.7)
+    ax.set_xlabel('Year')
+    ax.set_ylabel('PC1 Score')
+    ax.set_title(f'{division}: PC1 Time Series', fontsize=20, fontweight='bold')
+    
+    ax.set_xticks(tick_years)
+    ax.tick_params(axis='x', rotation=45)
+    ax.grid(True, linestyle='--', alpha=0.6)
+    
+    ax.legend(fontsize=16)
+    
+    out_path1 = OUTPUT_DIR / f"{division.replace(' ', '_').lower()}_pc1_timeseries_raw.png"
+    plt.tight_layout()
+    plt.savefig(out_path1, bbox_inches='tight', dpi=300)
+    plt.close()
+
+    # --- Plot PC2 only ---
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.plot(pc_scores.index, pc_scores['PC2'], marker='s', label=f'PC2 ({pc2_var:.1f}%)', color='darkgoldenrod')
+    
+    ax.axhline(y=0, color='red', linestyle='--', alpha=0.7)
+    ax.set_xlabel('Year')
+    ax.set_ylabel('PC2 Score')
+    ax.set_title(f'{division}: PC2 Time Series', fontsize=20, fontweight='bold')
+    
+    ax.set_xticks(tick_years)
+    ax.tick_params(axis='x', rotation=45)
+    ax.grid(True, linestyle='--', alpha=0.6)
+    
+    ax.legend(fontsize=16)
+    
+    out_path2 = OUTPUT_DIR / f"{division.replace(' ', '_').lower()}_pc2_timeseries_raw.png"
+    plt.tight_layout()
+    plt.savefig(out_path2, bbox_inches='tight', dpi=300)
     plt.close()
 
 def main():
