@@ -121,6 +121,7 @@ def main():
         })
 
     comp_df = pd.DataFrame(comp_data).set_index('Parameter')
+    comp_df.index = comp_df.index.str.replace('NH4N', 'NH4-N').str.replace('NO3N', 'NO3-N').str.replace('NO2N', 'NO2-N').str.replace('PO4P', 'PO4-P')
     log_df = -np.log10(comp_df + 1e-10)
 
     annot_df = comp_df.copy()

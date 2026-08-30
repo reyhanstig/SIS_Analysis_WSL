@@ -82,7 +82,14 @@ def parse_param(param_str):
     
     unit = unit_map.get(display_col, '')
     layer_str = "Surface" if layer == 1 else "Bottom"
-    title = f"{layer_str} {season} {display_col.upper()}"
+    
+    display_name = display_col.upper()
+    if display_name == 'NH4N': display_name = 'NH4-N'
+    elif display_name == 'NO3N': display_name = 'NO3-N'
+    elif display_name == 'NO2N': display_name = 'NO2-N'
+    elif display_name == 'PO4P': display_name = 'PO4-P'
+    
+    title = f"{layer_str} {season} {display_name}"
     
     return {'season': season, 'layer': layer, 'col': df_col, 'title': title, 'unit': unit}
 
@@ -199,6 +206,8 @@ def main():
         layer_data = layer_data.groupby(['zettaicode', 'surveyyear'])[p_info['col']].mean().reset_index()
 
     safe_title = param_str.replace(' ', '_').replace('/', '_')
+    for old, new in [('NH4N2', 'NH4-N'), ('NH4N', 'NH4-N'), ('NO3N2', 'NO3-N'), ('NO3N', 'NO3-N'), ('NO2N2', 'NO2-N'), ('NO2N', 'NO2-N'), ('PO4P2', 'PO4-P'), ('PO4P', 'PO4-P')]:
+        safe_title = safe_title.replace(old, new)
 
     if layer_data.empty or layer_data[p_info['col']].isna().all():
         logging.info("No valid data for regional average.")

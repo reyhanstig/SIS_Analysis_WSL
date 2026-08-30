@@ -69,6 +69,9 @@ def main():
         
     param = ts_params[param_idx]
     
+    for old, new in [('NH4N2', 'NH4-N'), ('NH4N', 'NH4-N'), ('NO3N2', 'NO3-N'), ('NO3N', 'NO3-N'), ('NO2N2', 'NO2-N'), ('NO2N', 'NO2-N'), ('PO4P2', 'PO4-P'), ('PO4P', 'PO4-P')]:
+        param['title'] = param['title'].replace(old, new)
+    
     logging.info(f"Running process15 for {target_region}, param: {param['title']}")
     
     # Load grouped stations

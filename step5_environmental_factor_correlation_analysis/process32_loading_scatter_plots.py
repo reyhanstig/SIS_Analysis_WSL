@@ -109,6 +109,8 @@ def main():
                     bbox=dict(boxstyle="round,pad=0.2", fc="white", alpha=0.5, ec="none"))
                     
     param_title = param_col.replace('_', ' ')
+    for old, new in [('NH4N2', 'NH4-N'), ('NH4N', 'NH4-N'), ('NO3N2', 'NO3-N'), ('NO3N', 'NO3-N'), ('NO2N2', 'NO2-N'), ('NO2N', 'NO2-N'), ('PO4P2', 'PO4-P'), ('PO4P', 'PO4-P')]:
+        param_title = param_title.replace(old, new)
     ax.set_title(f"DO ({y_col}) vs. {param_title} Correlation ({target_region})", fontsize=15, fontweight='bold')
     ax.set_xlabel(f"{param_title} (Pearson r with {pc_name})", fontsize=13)
     ax.set_ylabel(f"DO ({y_col})", fontsize=13)
@@ -116,6 +118,8 @@ def main():
 
     plt.tight_layout()
     safe_param = param_col.replace(' ', '_').replace('/', '_')
+    for old, new in [('NH4N2', 'NH4-N'), ('NH4N', 'NH4-N'), ('NO3N2', 'NO3-N'), ('NO3N', 'NO3-N'), ('NO2N2', 'NO2-N'), ('NO2N', 'NO2-N'), ('PO4P2', 'PO4-P'), ('PO4P', 'PO4-P')]:
+        safe_param = safe_param.replace(old, new)
     plt.savefig(OUTPUT_DIR / f'do_loading_scatter_{data_type}_{pc_name}_{safe_param}_{region_slug}_{season}_{layer}.png', bbox_inches='tight', dpi=300)
     plt.close()
 

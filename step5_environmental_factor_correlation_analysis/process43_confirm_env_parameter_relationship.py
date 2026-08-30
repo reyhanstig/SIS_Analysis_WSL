@@ -81,7 +81,14 @@ def parse_param(param_str):
     
     col, unit = col_map.get(raw_col, (raw_col, ''))
     layer_str = "Surface" if layer == 1 else "Bottom"
-    title = f"{layer_str} {season} {raw_col.upper()}"
+    
+    display_name = raw_col.upper()
+    if display_name == 'NH4N': display_name = 'NH4-N'
+    elif display_name == 'NO3N': display_name = 'NO3-N'
+    elif display_name == 'NO2N': display_name = 'NO2-N'
+    elif display_name == 'PO4P': display_name = 'PO4-P'
+    
+    title = f"{layer_str} {season} {display_name}"
     
     return {'season': season, 'layer': layer, 'col': col, 'title': title, 'unit': unit}
 
@@ -198,6 +205,8 @@ def main():
             st_division_map[st] = target_region
             
     safe_title = param_str.replace(' ', '_').replace('/', '_')
+    for old, new in [('NH4N2', 'NH4-N'), ('NH4N', 'NH4-N'), ('NO3N2', 'NO3-N'), ('NO3N', 'NO3-N'), ('NO2N2', 'NO2-N'), ('NO2N', 'NO2-N'), ('PO4P2', 'PO4-P'), ('PO4P', 'PO4-P')]:
+        safe_title = safe_title.replace(old, new)
 
     for basin in basins:
         basin_slug = basin.replace(' ', '_')

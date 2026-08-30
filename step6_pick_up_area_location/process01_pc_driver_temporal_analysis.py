@@ -207,8 +207,12 @@ def create_correlation_map(corr_df, parameter, output_path, title_prefix, target
         alpha=1
     )
     
+    formatted_param = parameter.replace('_', ' ')
+    for old, new in [('NH4N2', 'NH4-N'), ('NH4N', 'NH4-N'), ('NO3N2', 'NO3-N'), ('NO3N', 'NO3-N'), ('NO2N2', 'NO2-N'), ('NO2N', 'NO2-N'), ('PO4P2', 'PO4-P'), ('PO4P', 'PO4-P')]:
+        formatted_param = formatted_param.replace(old, new)
+        
     display_name = output_prefix if output_prefix else target_region
-    plt.title(f"{title_prefix} vs {parameter.replace('_', ' ')} Correlation\n{display_name}", pad=20, fontsize=20, fontweight='bold')
+    plt.title(f"{title_prefix} vs {formatted_param} Correlation\n{display_name}", pad=20, fontsize=20, fontweight='bold')
     
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
     sm.set_array([])
@@ -369,6 +373,8 @@ def main():
         if param not in corr_df.columns:
             continue
         safe_param = param.replace(' ', '_').replace('/', '_')
+        for old, new in [('NH4N2', 'NH4-N'), ('NH4N', 'NH4-N'), ('NO3N2', 'NO3-N'), ('NO3N', 'NO3-N'), ('NO2N2', 'NO2-N'), ('NO2N', 'NO2-N'), ('PO4P2', 'PO4-P'), ('PO4P', 'PO4-P')]:
+            safe_param = safe_param.replace(old, new)
         output_path = region_output_dir / f"spatial_corr_map_env_{args.pc_name}_{safe_param}_{prefix_str}_{args.start_year}_{args.end_year}.png"
         create_correlation_map(corr_df, param, output_path, title_prefix=f"{args.pc_name} ({args.start_year}-{args.end_year})", target_region=args.target_region, output_prefix=display_name, merged_df=merged_df)
         

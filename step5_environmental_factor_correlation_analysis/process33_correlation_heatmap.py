@@ -84,7 +84,12 @@ def main():
         sys.exit(42)
 
     chunk = chunks[chunk_idx]
-    param_names = [n.replace('_', '\n') for n in r_cols]
+    def format_param_name(n):
+        n = n.replace('_', '\n')
+        for old, new in [('NH4N2', 'NH4-N'), ('NH4N', 'NH4-N'), ('NO3N2', 'NO3-N'), ('NO3N', 'NO3-N'), ('NO2N2', 'NO2-N'), ('NO2N', 'NO2-N'), ('PO4P2', 'PO4-P'), ('PO4P', 'PO4-P')]:
+            n = n.replace(old, new)
+        return n
+    param_names = [format_param_name(n) for n in r_cols]
 
     fig, axes = plt.subplots(2, 1, figsize=(20, 14))
 

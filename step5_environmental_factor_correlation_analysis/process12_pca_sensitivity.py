@@ -161,7 +161,9 @@ def main():
     plt.title(f"Significance of Environmental Drivers Between Trend Groups\n{target_region}", pad=25)
     plt.ylabel("Pearson Correlation (r) with PCA PC1")
     plt.xlabel("Environmental Factors")
-    plt.xticks(rotation=45, ha='right')
+    labels = [item.get_text() for item in ax.get_xticklabels()]
+    new_labels = [l.replace('NH4N', 'NH4-N').replace('NO3N', 'NO3-N').replace('NO2N', 'NO2-N').replace('PO4P', 'PO4-P') for l in labels]
+    ax.set_xticklabels(new_labels, rotation=45, ha='right')
 
     handles, labels = ax.get_legend_handles_labels()
     plt.legend(handles[0:2], labels[0:2], title="Group", loc='upper right', frameon=True, shadow=True)

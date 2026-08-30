@@ -180,6 +180,8 @@ def main():
     
     region_str = args.target_region.replace(" ", "_")
     safe_param = args.param.replace(' ', '_').replace('/', '_')
+    for old, new in [('NH4N2', 'NH4-N'), ('NH4N', 'NH4-N'), ('NO3N2', 'NO3-N'), ('NO3N', 'NO3-N'), ('NO2N2', 'NO2-N'), ('NO2N', 'NO2-N'), ('PO4P2', 'PO4-P'), ('PO4P', 'PO4-P')]:
+        safe_param = safe_param.replace(old, new)
     
     # Separate outputs based on selected basins
     region_output_dir = OUTPUT_DIR / region_str
