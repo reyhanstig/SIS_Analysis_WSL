@@ -214,6 +214,38 @@ class MappingConfig:
             'label': 'Salinity (PSU)',
             'extend': 'min',
             'tick_step': 1.0
+        },
+        'salt2': { # Alias for Salinity
+            'cmap': 'viridis',
+            'vmin': 31.0,
+            'vmax': 35.0,
+            'label': 'Salinity (PSU)',
+            'extend': 'min',
+            'tick_step': 1.0
+        },
+        'doc': {
+            'cmap': 'YlGnBu',
+            'vmin': 0.0,
+            'vmax': 5.0,
+            'label': 'DOC (mg/L)',
+            'extend': 'max',
+            'tick_step': 1.0
+        },
+        'doc2': {
+            'cmap': 'YlGnBu',
+            'vmin': 0.0,
+            'vmax': 5.0,
+            'label': 'DOC (mg/L)',
+            'extend': 'max',
+            'tick_step': 1.0
+        },
+        'density': {
+            'cmap': 'cividis',
+            'vmin': 15.0,
+            'vmax': 27.0,
+            'label': 'Density (kg/m\u00b3)',
+            'extend': 'both',
+            'tick_step': 3.0
         }
     }
     

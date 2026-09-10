@@ -200,13 +200,20 @@ for i in range(num_panes):
             pane_df = pane_df.sort_values('date')
             pane_df['zettaicode_str'] = pane_df['zettaicode'].astype(str)
             
+            display_param = selected_param.upper()
+            if display_param.endswith('2'): display_param = display_param[:-1]
+            if display_param == 'NH4N': display_param = 'NH4-N'
+            elif display_param == 'NO3N': display_param = 'NO3-N'
+            elif display_param == 'NO2N': display_param = 'NO2-N'
+            elif display_param == 'PO4P': display_param = 'PO4-P'
+            
             if pane_df[selected_param].isna().all():
-                 st.warning(f"All values for {selected_param.upper()} are missing in Pane {pane_id}.")
+                 st.warning(f"All values for {display_param} are missing in Pane {pane_id}.")
             else:
                 # Create interactive Plotly figure
                 fig = px.line(pane_df, x='date', y=selected_param, color='zettaicode_str', markers=True,
                               title=f"Pane {pane_id} | Layer: {selected_layer} | {selected_year_range[0]}-{selected_year_range[1]}",
-                              labels={selected_param: selected_param.upper(), 'date': 'Date', 'zettaicode_str': 'Station ID'},
+                              labels={selected_param: display_param, 'date': 'Date', 'zettaicode_str': 'Station ID'},
                               template="plotly_white")
                 
                 fig.update_traces(line=dict(width=2), marker=dict(size=6))
