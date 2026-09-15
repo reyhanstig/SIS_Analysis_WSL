@@ -1,5 +1,5 @@
 parameter_name,value,type,description
-season,Summer,string,Season for analysis
-layer,bottom,string,Layer for analysis
+seasons,"Spring, Summer, Autumn, Winter",string,Seasons for analysis
+layers,"surface, bottom",string,Layers for analysis
 target_region,"Seto Inland Sea, Tokyo Bay, Ise Bay",string,Target regions for mapping (comma separated)
 ts_params_file,step5_ts_parameters.csv,file,File containing the time series parameters table

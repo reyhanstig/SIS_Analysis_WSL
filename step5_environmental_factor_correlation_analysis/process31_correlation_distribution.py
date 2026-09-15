@@ -24,14 +24,14 @@ log_file = CURRENT_SCRIPT.parent / f"log_process{step_num}.txt"
 logging.basicConfig(level=logging.INFO, filename=log_file, format='%(levelname)s: %(message)s')
 # -------------------------------------
 
-project_root = CURRENT_SCRIPT.parents[2]
+project_root = CURRENT_SCRIPT.parents[1]
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
 from utils.paths import ProjectPaths
 
 # Configure plots
-plt.rcParams['font.family'] = 'sans-serif'
+plt.style.use(str(project_root / 'project_style.mplstyle'))
 plt.rcParams['figure.dpi'] = 150
 
 def main():
@@ -52,8 +52,15 @@ def main():
     
     subset_dir = ProjectPaths.get_subset_dir(season, layer)
     
-    corr_df_pc1 = pd.read_csv(subset_dir / f'pca_{data_type}_corr_pc1.csv', dtype={'zettaicode': str}).set_index('zettaicode')
-    corr_df_pc2 = pd.read_csv(subset_dir / f'pca_{data_type}_corr_pc2.csv', dtype={'zettaicode': str}).set_index('zettaicode')
+    pc1_path = subset_dir / f'pca_{data_type}_corr_pc1.csv'
+    pc2_path = subset_dir / f'pca_{data_type}_corr_pc2.csv'
+    
+    if not pc1_path.exists() or not pc2_path.exists():
+        logging.warning(f"Correlation files not found for {target_region} {season} {layer}. Skipping.")
+        return
+        
+    corr_df_pc1 = pd.read_csv(pc1_path, dtype={'zettaicode': str}).set_index('zettaicode')
+    corr_df_pc2 = pd.read_csv(pc2_path, dtype={'zettaicode': str}).set_index('zettaicode')
     
     merged_df = pd.read_feather(ProjectPaths.MERGED_DATA_FILE)
     merged_df['zettaicode'] = merged_df['zettaicode'].astype(str).str.zfill(8)
@@ -69,6 +76,7 @@ def main():
 
     # 1. Distribution Boxplot
     fig, axes = plt.subplots(1, 2, figsize=(16, 6))
+    fig.suptitle(f"Environmental Factor PCA Correlation Distribution - {target_region} (Season: {season} | Layer: {layer} | Data: {data_type})", fontsize=20)
 
     for ax, corr_df, pc_name in zip(axes, [corr_df_pc1, corr_df_pc2], ['PC1', 'PC2']):
         r_cols = [c for c in corr_df.columns if not c.endswith('_pval') and not c.endswith('_n')]
@@ -88,6 +96,7 @@ def main():
 
     # 2. Significant Diverging Bar Chart
     fig, axes = plt.subplots(1, 2, figsize=(16, 8))
+    fig.suptitle(f"Significant PCA Correlations Count - {target_region} (Season: {season} | Layer: {layer} | Data: {data_type})", fontsize=20)
 
     for ax, corr_df, pc_name in zip(axes, [corr_df_pc1, corr_df_pc2], ['PC1', 'PC2']):
         r_cols = [c for c in corr_df.columns if not c.endswith('_pval') and not c.endswith('_n')]

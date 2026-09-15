@@ -95,8 +95,8 @@ def main():
     raw_file = Path('/home/reyha/SIS_Analysis_WSL/data/processed') / STEP_DIR / "process13_raw_sensitivity" / f'p_values_raw_{region_slug}_{season}_{layer}.csv'
     
     if not pca_file.exists() or not raw_file.exists():
-        logging.error("P-value CSVs from process12 and process13 are required.")
-        sys.exit(1)
+        logging.warning("P-value CSVs from process12 and process13 are required. Skipping.")
+        return
         
     df_pca = pd.read_csv(pca_file)
     df_raw = pd.read_csv(raw_file)

@@ -3,47 +3,26 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
+import re
+import numpy as np
+
+# Global plot settings (matching process 31)
+project_root = Path(__file__).resolve().parents[1]
+plt.style.use(str(project_root / 'project_style.mplstyle'))
 
 # Paths to search
 step5_dir = Path("data/processed/step5_environmental_factor_correlation_analysis")
 step6_dir = Path("data/processed/step6_pick_up_area_location")
 
-significant_counts = {}
-total_counts = {}
-
 def normalize_param_name(name):
-    # Normalize common variations
-    name = name.replace('_', ' ')
-    name = name.lower().strip()
+    name = name.replace('_', ' ').lower().strip()
     
-    # some manual mapping based on observed names
-    mapping = {
-        'bottom summer dip': 'summer dip',
-        'bottom summer cod': 'summer cod',
-        'bottom summer din': 'summer din',
-        'bottom summer tp': 'summer tp',
-        'bottom summer chl-a': 'summer chla',
-        'surface summer do': 'summer do',
-        'summer sst': 'summer wtemp', # assuming sea surface temp is wtemp
-        'summer sbt': 'bottom wtemp', # sea bottom temp
-        'surface summer dip': 'summer dip',
-        'summer sbs': 'bottom salt',
-        'surface summer din': 'summer din',
-        'surface summer doc': 'summer doc',
-        'surface summer cod': 'summer cod',
-        'surface summer tn': 'summer tn',
-        'bottom summer tn': 'summer tn',
-        'surface summer chl-a': 'summer chla',
-        'summer sss': 'surface salt',
-        'surface summer tp': 'summer tp',
-        'bottom summer doc': 'summer doc',
-        'summer stratification': 'summer stratification',
-        'winter stratification': 'winter stratification',
-        'winter air temp': 'winter air temp',
-        'summer wind speed': 'summer wind speed'
-    }
+    # Handle acronyms that include depth
+    if 'sst' in name: name = name.replace('sst', 'surface wtemp')
+    if 'sbt' in name: name = name.replace('sbt', 'bottom wtemp')
+    if 'sss' in name: name = name.replace('sss', 'surface salt')
+    if 'sbs' in name: name = name.replace('sbs', 'bottom salt')
     
-    # Format nutrient and parameter names
     replacements = {
         'nh4n2': 'NH4-N', 'nh4n': 'NH4-N',
         'no3n2': 'NO3-N', 'no3n': 'NO3-N',
@@ -58,93 +37,188 @@ def normalize_param_name(name):
         'chla': 'Chl-a', 'chla2': 'Chl-a',
         'salt2': 'SALT', 'salt': 'SALT',
         'wtemp': 'WTEMP', 'density': 'Density',
-        'do': 'DO'
+        'do': 'DO',
+        'summer': 'Summer', 'winter': 'Winter', 'spring': 'Spring', 'autumn': 'Autumn',
+        'bottom': 'Bottom', 'surface': 'Surface',
+        'stratification': 'Stratification',
+        'air': 'Air', 'temp': 'Temp', 'wind': 'Wind', 'speed': 'Speed',
+        '1': '1', '2': '2'
     }
     
-    if name in mapping:
-        name = mapping[name]
-        
-    parts = name.split(' ')
+    parts = name.split()
     formatted_parts = []
+    
     for p in parts:
         if p in replacements:
             formatted_parts.append(replacements[p])
         else:
             formatted_parts.append(p.capitalize())
             
-    name = ' '.join(formatted_parts)
+    # standardize order: Depth, Season, Number (if any), Parameter
+    depth = ""
+    season = ""
+    num = ""
+    param = []
     
-    return name
+    for p in formatted_parts:
+        if p in ["Bottom", "Surface"]:
+            depth = p
+        elif p in ["Summer", "Winter", "Spring", "Autumn"]:
+            season = p
+        elif p in ["1", "2"]:
+            num = p
+        else:
+            param.append(p)
+            
+    final_name_parts = []
+    if depth: final_name_parts.append(depth)
+    if season: final_name_parts.append(season)
+    if num: final_name_parts.append(num)
+    final_name_parts.extend(param)
+    
+    return " ".join(final_name_parts).strip()
 
-def add_count(param, is_significant):
+def get_basin_from_path(path_str):
+    if "Seto_Inland_Sea" in path_str: return "Seto Inland Sea"
+    if "Tokyo_Bay" in path_str: return "Tokyo Bay"
+    if "Ise_Bay" in path_str or "Mikawa_Bay" in path_str or "Ise_Mikawa_Bay" in path_str: 
+        return "Ise Mikawa Bay"
+    return "Unknown"
+
+def get_year_period_from_path(path_str):
+    match = re.search(r'(\d{4})_(\d{4})', path_str)
+    if match:
+        return f"{match.group(1)}-{match.group(2)}"
+    match = re.search(r'(\d{4})-(\d{4})', path_str)
+    if match:
+        return f"{match.group(1)}-{match.group(2)}"
+    return "All Years"
+
+permutations_data = {}
+
+def add_count(basin, year_period, param, is_significant, r_value=None):
+    if (basin, year_period) not in permutations_data:
+        permutations_data[(basin, year_period)] = {
+            'significant_pos_counts': {},
+            'significant_neg_counts': {},
+            'total_counts': {}
+        }
+    
+    counts = permutations_data[(basin, year_period)]
     norm_param = normalize_param_name(param)
-    if norm_param not in total_counts:
-        total_counts[norm_param] = 0
-        significant_counts[norm_param] = 0
-    total_counts[norm_param] += 1
+    
+    if norm_param not in counts['total_counts']:
+        counts['total_counts'][norm_param] = 0
+        counts['significant_pos_counts'][norm_param] = 0
+        counts['significant_neg_counts'][norm_param] = 0
+        
+    counts['total_counts'][norm_param] += 1
     if is_significant:
-        significant_counts[norm_param] += 1
+        if r_value is None or r_value >= 0:
+            counts['significant_pos_counts'][norm_param] += 1
+        else:
+            counts['significant_neg_counts'][norm_param] += 1
 
 # Process Step 5
 for root, _, files in os.walk(step5_dir):
     for f in files:
         if f.endswith(".csv") and ("p_values" in f):
-            df = pd.read_csv(os.path.join(root, f))
+            path_str = os.path.join(root, f)
+            basin = get_basin_from_path(path_str)
+            if basin == "Unknown": continue
+            year_period = get_year_period_from_path(path_str)
+            
+            df = pd.read_csv(path_str)
             if 'Parameter' in df.columns and 'P_Value' in df.columns:
                 for _, row in df.iterrows():
                     param = row['Parameter']
                     pval = row['P_Value']
                     if pd.notna(pval):
-                        add_count(param, float(pval) < 0.05)
+                        add_count(basin, year_period, param, float(pval) < 0.05)
 
 # Process Step 6
 for root, _, files in os.walk(step6_dir):
     for f in files:
         if f.endswith(".csv"):
-            df = pd.read_csv(os.path.join(root, f))
+            path_str = os.path.join(root, f)
+            basin = get_basin_from_path(path_str)
+            if basin == "Unknown": continue
+            year_period = get_year_period_from_path(path_str)
+            
+            df = pd.read_csv(path_str)
             if 'Env_Parameter' in df.columns and 'p_value' in df.columns:
                 # process04 format
                 for _, row in df.iterrows():
                     param = row['Env_Parameter']
                     pval = row['p_value']
+                    r_val = row.get('r_value', None)
                     if pd.notna(pval):
-                        add_count(param, float(pval) < 0.05)
+                        add_count(basin, year_period, param, float(pval) < 0.05, float(r_val) if pd.notna(r_val) else None)
             else:
                 # process01 format
                 pval_cols = [c for c in df.columns if c.endswith('_pval')]
                 for col in pval_cols:
                     param = col[:-5] # remove '_pval'
-                    for pval in df[col]:
+                    if param not in df.columns: continue
+                    for idx, pval in df[col].items():
                         if pd.notna(pval):
-                            add_count(param, float(pval) < 0.05)
+                            r_val = df.at[idx, param]
+                            add_count(basin, year_period, param, float(pval) < 0.05, float(r_val) if pd.notna(r_val) else None)
 
-# Calculate dominance metric (e.g. number of significant occurrences)
-results = []
-for param in total_counts:
-    sig = significant_counts[param]
-    tot = total_counts[param]
-    results.append({
-        'Parameter': param,
-        'Significant_Count': sig,
-        'Total_Count': tot,
-        'Significance_Rate': sig / tot if tot > 0 else 0
-    })
+out_dir = Path("/home/reyha/SIS_Analysis_WSL/figures/step0_sandbox/69_summarize_env_factors")
+out_dir.mkdir(parents=True, exist_ok=True)
 
-results_df = pd.DataFrame(results)
-# Sort by significant count as primary measure of dominance
-results_df = results_df.sort_values(by='Significant_Count', ascending=False).head(20) # top 20
+for (basin, year_period), counts in permutations_data.items():
+    total_counts = counts['total_counts']
+    
+    results = []
+    for param in total_counts:
+        sig_pos = counts['significant_pos_counts'][param]
+        sig_neg = counts['significant_neg_counts'][param]
+        tot = total_counts[param]
+        sig_total = sig_pos + sig_neg
+        results.append({
+            'Parameter': param,
+            'Positive': sig_pos,
+            'Negative': sig_neg,
+            'Total_Significant': sig_total,
+            'Total_Count': tot,
+            'Significance_Rate': sig_total / tot if tot > 0 else 0
+        })
+        
+    if not results:
+        continue
+        
+    results_df = pd.DataFrame(results)
+    results_df = results_df.sort_values(by='Total_Significant', ascending=False).head(20) # top 20
+    
+    if results_df.empty or results_df['Total_Significant'].max() == 0:
+        print(f"Skipping plot for {basin} ({year_period}) as there are 0 significant factors.")
+        continue
+        
+    fig, ax = plt.subplots(figsize=(12, 8))
+    
+    # Sort ascending for barh so largest is at the top
+    results_df = results_df.sort_values(by='Total_Significant', ascending=True)
+    
+    ax.barh(results_df['Parameter'], results_df['Positive'], color='indianred', label='Significant Positive (r > 0)')
+    ax.barh(results_df['Parameter'], -results_df['Negative'], color='steelblue', label='Significant Negative (r < 0)')
+    ax.axvline(0, color='black', linewidth=1)
+    
+    ax.set_title(f'Top 20 Environmental Factors - {basin} ({year_period})\n(Based on # of significant correlations)')
+    ax.set_xlabel('Number of Significant Findings (p < 0.05)')
+    ax.set_ylabel('Environmental Factor')
+    ax.legend(loc='lower right')
+    
+    plt.tight_layout()
+    
+    safe_basin = basin.replace(" ", "_")
+    safe_year = year_period.replace(" ", "_")
+    out_path = out_dir / f"dominance_summary_{safe_basin}_{safe_year}_v3.png"
+    plt.savefig(out_path, dpi=300)
+    plt.close()
+    
+    print(f"Plot saved to {out_path}")
+    print(f"\nTop Factors by Significant Count for {basin} ({year_period}):")
+    print(results_df[['Parameter', 'Total_Significant', 'Total_Count', 'Significance_Rate']].to_string(index=False))
 
-plt.figure(figsize=(12, 8))
-sns.barplot(data=results_df, x='Significant_Count', y='Parameter', palette='viridis')
-plt.title('Top 20 Most Dominant Environmental Factors\n(Based on # of significant correlations in Step 5 & 6)')
-plt.xlabel('Number of Significant Findings (p < 0.05)')
-plt.ylabel('Environmental Factor')
-plt.tight_layout()
-
-out_path = Path("/home/reyha/SIS_Analysis_WSL/figures/step0_sandbox/69_summarize_env_factors/dominance_summary.png")
-out_path.parent.mkdir(parents=True, exist_ok=True)
-plt.savefig(out_path, dpi=300)
-print(f"Plot saved to {out_path}")
-
-print("\nTop Factors by Significant Count:")
-print(results_df[['Parameter', 'Significant_Count', 'Total_Count', 'Significance_Rate']].to_string(index=False))

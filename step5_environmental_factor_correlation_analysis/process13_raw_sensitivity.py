@@ -103,8 +103,8 @@ def main():
     # Load grouped stations
     group_csv = Path('/home/reyha/SIS_Analysis_WSL/data/processed') / STEP_DIR / "process11_trend_grouping_and_maps" / f'stations_trend_groups_{region_slug}_{season}_{layer}.csv'
     if not group_csv.exists():
-        logging.error(f"Group CSV not found: {group_csv}")
-        sys.exit(1)
+        logging.warning(f"Group CSV not found: {group_csv}. Skipping.")
+        return
         
     analysis_df = pd.read_csv(group_csv, dtype={'Station_ID': str})
     analysis_df['Station_ID'] = analysis_df['Station_ID'].str.zfill(8)

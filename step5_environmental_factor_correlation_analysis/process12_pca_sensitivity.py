@@ -65,15 +65,21 @@ def main():
     # Load selected stations
     group_csv = Path('/home/reyha/SIS_Analysis_WSL/data/processed') / STEP_DIR / "process11_trend_grouping_and_maps" / f'stations_trend_groups_{region_slug}_{season}_{layer}.csv'
     if not group_csv.exists():
-        logging.error(f"Group CSV not found: {group_csv}")
-        sys.exit(1)
+        logging.warning(f"Group CSV not found: {group_csv}. Skipping.")
+        return
         
     selected_stations = pd.read_csv(group_csv, dtype={'Station_ID': str})
     selected_stations['Station_ID'] = selected_stations['Station_ID'].str.zfill(8)
 
     # Load correlation data
-    corr_pc1_env = pd.read_csv(subset_dir / 'pca_env_corr_pc1.csv', dtype={'zettaicode': str})
-    corr_pc1_nutr = pd.read_csv(subset_dir / 'pca_nutr_corr_pc1.csv', dtype={'zettaicode': str})
+    env_corr_path = subset_dir / 'pca_env_corr_pc1.csv'
+    nutr_corr_path = subset_dir / 'pca_nutr_corr_pc1.csv'
+    if not env_corr_path.exists() or not nutr_corr_path.exists():
+        logging.warning(f"Correlation data missing for {target_region} {season} {layer}. Skipping.")
+        return
+        
+    corr_pc1_env = pd.read_csv(env_corr_path, dtype={'zettaicode': str})
+    corr_pc1_nutr = pd.read_csv(nutr_corr_path, dtype={'zettaicode': str})
 
     params_env = [c for c in corr_pc1_env.columns if c != 'zettaicode' and not c.endswith('_pval') and not c.endswith('_n') and c != 'Winter_Air_Temp']
     params_nutr = [c for c in corr_pc1_nutr.columns if c != 'zettaicode' and not c.endswith('_pval') and not c.endswith('_n')]
