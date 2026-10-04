@@ -121,14 +121,14 @@ def main():
     
     if not corr_file.exists():
         logging.error(f"Correlation file not found: {corr_file}")
-        return
+        sys.exit(1)
         
     df_corr = pd.read_csv(corr_file, index_col=0, dtype={0: str})
     df_corr.index = df_corr.index.str.zfill(8)
     
     if param_str not in df_corr.columns:
         logging.error(f"Param {param_str} not found in {corr_file}")
-        return
+        sys.exit(1)
         
     pval_col = f"{param_str}_pval"
     
@@ -144,17 +144,17 @@ def main():
     }
     
     pc_score_region = region_mapping.get(target_region, target_region.lower().replace(' ', '_'))
-    pc_scores_path = ProjectPaths.PROCESSED_DATA_DIR / 'step4_PCA_analysis' / 'process11_calculate_pca_explained_variance_per_bay_raw' / pc_score_region / f'{pc_score_region}_pc_scores.csv'
+    pc_scores_path = ProjectPaths.PROCESSED_DATA_DIR / 'step4_PCA_analysis' / 'process11_calculate_pca_explained_variance_per_bay_raw' / pc_score_region / f'pca_scores_{pc_score_region}.csv'
     
     if not pc_scores_path.exists():
         logging.error(f"PC scores file not found at {pc_scores_path}")
-        return
+        sys.exit(1)
         
     pca_scores = pd.read_csv(pc_scores_path, index_col=0)
     pca_scores.index = pca_scores.index.astype(int)
     if pc_name not in pca_scores.columns:
         logging.error(f"PC {pc_name} not found in {pc_scores_path}")
-        return
+        sys.exit(1)
 
     merged_gdf = pd.read_feather(ProjectPaths.MERGED_DATA_FILE)
     merged_gdf['zettaicode'] = merged_gdf['zettaicode'].astype(str).str.zfill(8)
@@ -188,7 +188,11 @@ def main():
     if p_info['col'] in ['stratification', 'density']:
         import gsw
         salt_col = 'salt2' if 'salt2' in season_data.columns else 'salt'
-        season_data['density'] = gsw.rho(pd.to_numeric(season_data[salt_col], errors='coerce'), pd.to_numeric(season_data['wtemp'], errors='coerce'), 0) - 1000
+        _salt = pd.to_numeric(season_data[salt_col], errors='coerce')
+        _wtemp = pd.to_numeric(season_data['wtemp'], errors='coerce')
+        _SA = gsw.SA_from_SP(_salt, 0, season_data['longitude'], season_data['latitude'])
+        _CT = gsw.CT_from_t(_SA, _wtemp, 0)
+        season_data['density'] = gsw.sigma0(_SA, _CT)
 
     if p_info['col'] == 'stratification':
         season_data['saisuidept'] = pd.to_numeric(season_data['saisuidept'], errors='coerce')

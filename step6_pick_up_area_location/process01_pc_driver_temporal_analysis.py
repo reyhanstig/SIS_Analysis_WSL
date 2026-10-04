@@ -247,11 +247,11 @@ def main():
     
     pc_score_region = region_mapping.get(args.target_region, args.target_region.lower().replace(' ', '_'))
     
-    pc_scores_path = ProjectPaths.PROCESSED_DATA_DIR / 'step4_PCA_analysis' / 'process11_calculate_pca_explained_variance_per_bay_raw' / pc_score_region / f'{pc_score_region}_pc_scores.csv'
+    pc_scores_path = ProjectPaths.PROCESSED_DATA_DIR / 'step4_PCA_analysis' / 'process11_calculate_pca_explained_variance_per_bay_raw' / pc_score_region / f'pca_scores_{pc_score_region}.csv'
     
     if not pc_scores_path.exists():
         logging.error(f"PC scores file not found at {pc_scores_path}")
-        return
+        sys.exit(1)
         
     pc_scores_df = pd.read_csv(pc_scores_path, index_col=0)
     pc_scores_df.index = pc_scores_df.index.astype(int)
@@ -259,7 +259,7 @@ def main():
     
     if args.pc_name not in pc_scores_df.columns:
         logging.error(f"PC {args.pc_name} not found in {pc_scores_path}")
-        return
+        sys.exit(1)
         
     target_series = pc_scores_df.loc[args.start_year:args.end_year, args.pc_name]
     

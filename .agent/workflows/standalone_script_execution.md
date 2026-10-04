@@ -8,8 +8,9 @@ Here are the four most optimal ways to execute parts of the pipeline, depending 
 
 ### 1. Test one script with one parameter combination (Direct Execution)
 By far the fastest feedback loop for iterating on a single process script. Each script uses `argparse` and can be run entirely standalone.
+- **Agent Instruction:** Before executing this script for the user, you MUST first reply to the user and ask them to select which parameters they want to use from the available options. Do not run the script until the user has selected their parameters.
 - Ensure you set `PYTHONPATH` so internal imports (like `utils`) resolve correctly.
-- Provide the necessary command-line arguments directly.
+- Provide the necessary command-line arguments directly based on the user's selection.
 - **Command:**
   ```bash
   cd /home/reyha/SIS_Analysis_WSL/step5_environmental_factor_correlation_analysis

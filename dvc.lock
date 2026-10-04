@@ -180,8 +180,8 @@ stages:
       nfiles: 16
     - path: step2_hypoxia_frequency_calculation/
       hash: md5
-      md5: d9af20c2f50d9ca18de549fa7a001903.dir
-      size: 172595
+      md5: a4632ed79e337bd763e50d5b7cad8bb4.dir
+      size: 187363
       nfiles: 15
   step3_PCA_analysis:
     cmd: python -m step3_PCA_analysis
@@ -201,13 +201,13 @@ stages:
     deps:
     - path: step4_PCA_analysis/
       hash: md5
-      md5: db9e2285d96c3efc2086874bae108778.dir
-      size: 45541
-      nfiles: 14
+      md5: d9d0f4013ac73cad27c4c677c5e6b4ec.dir
+      size: 52905
+      nfiles: 15
     - path: step5_environmental_factor_correlation_analysis/
       hash: md5
-      md5: 919484fd7d94edaa8a24e90a4fbfeb8d.dir
-      size: 870614
+      md5: e04e7398103c7ccf5eeff6b3f75678d8.dir
+      size: 1189862
       nfiles: 21
   step4_PCA_analysis:
     cmd: python -m step4_PCA_analysis
@@ -224,9 +224,9 @@ stages:
       nfiles: 16
     - path: step4_PCA_analysis/
       hash: md5
-      md5: db9e2285d96c3efc2086874bae108778.dir
-      size: 45541
-      nfiles: 14
+      md5: d9d0f4013ac73cad27c4c677c5e6b4ec.dir
+      size: 52905
+      nfiles: 15
   step3_decorrelation_scale_analysis:
     cmd: python -m step3_decorrelation_scale_analysis
     deps:
@@ -237,19 +237,19 @@ stages:
       nfiles: 16
     - path: step3_decorrelation_scale_analysis/
       hash: md5
-      md5: 093f6648c0fd26fdffa28db318eb6e04.dir
-      size: 65413
+      md5: 448f7174c7d80875508fcefb49c76fd2.dir
+      size: 65992
       nfiles: 16
   step6_pick_up_area_location:
     cmd: python -m step6_pick_up_area_location
     deps:
     - path: step4_PCA_analysis/
       hash: md5
-      md5: db9e2285d96c3efc2086874bae108778.dir
-      size: 45541
-      nfiles: 14
+      md5: d9d0f4013ac73cad27c4c677c5e6b4ec.dir
+      size: 52905
+      nfiles: 15
     - path: step6_pick_up_area_location/
       hash: md5
-      md5: 6c3069f8e206beea618b21d54b97ab4f.dir
-      size: 275727
-      nfiles: 10
+      md5: 2d30edecc32fe4ce7a41b0c1d02b2056.dir
+      size: 486162
+      nfiles: 12

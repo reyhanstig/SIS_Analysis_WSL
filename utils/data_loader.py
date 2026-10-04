@@ -136,6 +136,13 @@ def clean_and_process_data(gdf):
     # Clean DO column (ensure it gets numeric casting)
     if 'do_' in gdf.columns:
         gdf['do_'] = pd.to_numeric(gdf['do_'], errors='coerce')
+
+    # Replace 0.0 with NaN for salinity as 0.0 is a missing value placeholder
+    import numpy as np
+    for s_col in ['salt', 'salt2']:
+        if s_col in gdf.columns:
+            gdf[s_col] = pd.to_numeric(gdf[s_col], errors='coerce')
+            gdf[s_col] = gdf[s_col].replace(0.0, np.nan)
     
     # Add Season
     if 'surveymont' in gdf.columns:

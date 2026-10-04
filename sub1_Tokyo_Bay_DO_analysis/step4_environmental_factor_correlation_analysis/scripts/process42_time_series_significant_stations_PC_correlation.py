@@ -178,7 +178,11 @@ def main():
 
     if p_info['col'] in ['stratification', 'density']:
         import gsw
-        season_data['density'] = gsw.rho(pd.to_numeric(season_data['salt'], errors='coerce'), pd.to_numeric(season_data['wtemp'], errors='coerce'), 0) - 1000
+        _salt = pd.to_numeric(season_data['salt'], errors='coerce')
+        _wtemp = pd.to_numeric(season_data['wtemp'], errors='coerce')
+        _SA = gsw.SA_from_SP(_salt, 0, season_data['longitude'], season_data['latitude'])
+        _CT = gsw.CT_from_t(_SA, _wtemp, 0)
+        season_data['density'] = gsw.sigma0(_SA, _CT)
 
     if p_info['col'] == 'stratification':
         surf = season_data[season_data['saisuipoin'] == 1].groupby(['zettaicode', 'surveyyear'])['density'].mean()

@@ -170,7 +170,12 @@ def main():
         print(f"No station data found in yearly_do_df for {division}.")
         return
         
-    decorrelation_file = ProjectPaths.PROCESSED_DATA_DIR / "step3_decorrelation_scale_analysis" / "process11_calculate_decorrelation_scale_per_bay" / division.replace(' ', '_').lower() / f"{division.replace(' ', '_').lower()}_decorrelation_scale.csv"
+    div_slug = division.replace(' ', '_').lower()
+    decorrelation_file = ProjectPaths.PROCESSED_DATA_DIR / "step3_decorrelation_scale_analysis" / "process11_calculate_decorrelation_scale_per_bay" / div_slug / f"{div_slug}_decorrelation_scale.csv"
+    
+    if division == 'Ise Bay' and not decorrelation_file.exists():
+        div_slug = 'ise_mikawa_bay'
+        decorrelation_file = ProjectPaths.PROCESSED_DATA_DIR / "step3_decorrelation_scale_analysis" / "process11_calculate_decorrelation_scale_per_bay" / div_slug / f"{div_slug}_decorrelation_scale.csv"
     if not decorrelation_file.exists():
         print(f"Decorrelation scale file not found for {division}. Skipping.")
         return
@@ -199,7 +204,7 @@ def main():
     
     pc_scores = pd.DataFrame({'PC1': pca_result[:, 0], 'PC2': pca_result[:, 1]}, index=years)
     out_name = division.replace(' ', '_').lower()
-    pc_scores.to_csv(PROCESSED_DATA_DIR / f"{out_name}_pc_scores.csv")
+    pc_scores.to_csv(PROCESSED_DATA_DIR / f"pca_scores_{out_name}.csv")
     
     eof1 = pca_model.components_[0, :]
     eof2 = pca_model.components_[1, :]

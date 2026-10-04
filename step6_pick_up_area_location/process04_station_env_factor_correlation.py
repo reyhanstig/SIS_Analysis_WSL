@@ -42,7 +42,11 @@ def get_ts(df, col, layer, season, station):
         salt_col = 'salt2' if 'salt2' in subset.columns else 'salt'
         subset['salt_calc'] = pd.to_numeric(subset[salt_col], errors='coerce')
         subset['wtemp_calc'] = pd.to_numeric(subset['wtemp'], errors='coerce')
-        subset['density'] = gsw.rho(subset['salt_calc'], subset['wtemp_calc'], 0) - 1000
+        _salt = pd.to_numeric(subset['salt_calc'], errors='coerce')
+        _wtemp = pd.to_numeric(subset['wtemp_calc'], errors='coerce')
+        _SA = gsw.SA_from_SP(_salt, 0, subset['longitude'], subset['latitude'])
+        _CT = gsw.CT_from_t(_SA, _wtemp, 0)
+        subset['density'] = gsw.sigma0(_SA, _CT)
         subset['saisuidept'] = pd.to_numeric(subset['saisuidept'], errors='coerce')
         
         surf = subset[subset['saisuipoin'] == 1].groupby('surveyyear')[['density', 'saisuidept']].mean()

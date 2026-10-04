@@ -103,12 +103,12 @@ def main():
     parser.add_argument('--data_type', required=True, choices=['env', 'nutr'])
     args = parser.parse_args()
     
-    target_region = args.target_region
-    season = args.season
-    layer = args.layer
-    pc_name = args.pc_name
-    param_str = args.param
-    data_type = args.data_type
+    target_region = args.target_region.strip()
+    season = args.season.strip()
+    layer = args.layer.strip()
+    pc_name = args.pc_name.strip()
+    param_str = args.param.strip()
+    data_type = args.data_type.strip()
     
     region_slug = target_region.replace(' ', '_')
     
@@ -141,6 +141,18 @@ def main():
         return
 
     corr_dict = sig_df[param_str].to_dict()
+
+    # Load PC scores
+    if target_region in ['Seto Inland Sea']:
+        pc_scores_file = subset_dir / 'pca_scores.csv'
+    else:
+        out_name = target_region.replace(' ', '_').lower()
+        pc_scores_file = ProjectPaths.PROCESSED_DATA_DIR / 'step4_PCA_analysis' / 'process11_calculate_pca_explained_variance_per_bay_raw' / out_name / f"pca_scores_{out_name}.csv"
+
+    if not pc_scores_file.exists():
+        logging.error(f"PC scores file not found: {pc_scores_file}")
+        return
+    pc_scores = pd.read_csv(pc_scores_file, index_col=0)
 
     # 4. Load raw data
     merged_gdf = load_and_process_data(force_reload=False)
@@ -178,7 +190,11 @@ def main():
 
     if p_info['col'] in ['stratification', 'density']:
         import gsw
-        season_data['density'] = gsw.rho(pd.to_numeric(season_data['salt'], errors='coerce'), pd.to_numeric(season_data['wtemp'], errors='coerce'), 0) - 1000
+        _salt = pd.to_numeric(season_data['salt'], errors='coerce')
+        _wtemp = pd.to_numeric(season_data['wtemp'], errors='coerce')
+        _SA = gsw.SA_from_SP(_salt, 0, season_data['longitude'], season_data['latitude'])
+        _CT = gsw.CT_from_t(_SA, _wtemp, 0)
+        season_data['density'] = gsw.sigma0(_SA, _CT)
 
     if p_info['col'] == 'stratification':
         surf = season_data[season_data['saisuipoin'] == 1].groupby(['zettaicode', 'surveyyear'])['density'].mean()
@@ -203,10 +219,12 @@ def main():
     for old, new in [('NH4N2', 'NH4-N'), ('NH4N', 'NH4-N'), ('NO3N2', 'NO3-N'), ('NO3N', 'NO3-N'), ('NO2N2', 'NO2-N'), ('NO2N', 'NO2-N'), ('PO4P2', 'PO4-P'), ('PO4P', 'PO4-P')]:
         safe_title = safe_title.replace(old, new)
 
-    legend_elements = [
-        Line2D([0], [0], color='red', marker='o', markersize=10, label=f'Positive Correlation with {pc_name}', linewidth=2),
-        Line2D([0], [0], color='blue', marker='o', markersize=10, label=f'Negative Correlation with {pc_name}', linewidth=2)
-    ]
+    # Determine dynamic tick years for PC scores
+    first_year = pc_scores.index[0]
+    last_year = pc_scores.index[-1]
+    target_type = type(first_year)
+    mid_ticks = [target_type(y) for y in range(1985, 2021, 5) if target_type(y) in pc_scores.index]
+    tick_years = sorted(list(set([first_year] + mid_ticks + [last_year])), key=lambda x: int(x))
 
     for basin in basins:
         basin_slug = basin.replace(' ', '_')
@@ -215,7 +233,21 @@ def main():
         if not div_stations:
             continue
             
-        fig, ax = plt.subplots(figsize=(10, 6))
+        fig, ax1 = plt.subplots(figsize=(10, 6))
+        
+        # Plot PC on the primary y-axis
+        ax1.plot(pc_scores.index, pc_scores[pc_name], marker='o', label=f'{pc_name} Score', color='tab:blue')
+        ax1.axhline(y=0, color='red', linestyle='--', alpha=0.8)
+        ax1.set_xlabel('Year', fontsize=16)
+        ax1.set_ylabel(f'{pc_name} Score', fontsize=16)
+        ax1.set_title(f"{p_info['title']} Time Series\n{basin} (Significantly Correlated with {pc_name})", fontsize=18, fontweight='bold')
+        
+        ax1.set_xticks(tick_years)
+        ax1.tick_params(axis='x', rotation=45, labelsize=14)
+        ax1.tick_params(axis='y', labelsize=14)
+        ax1.grid(True, linestyle='--', alpha=0.6)
+        
+        ax2 = ax1.twinx()
         
         plotted_any = False
         for st in div_stations:
@@ -224,22 +256,34 @@ def main():
                 continue
                 
             r_val = corr_dict.get(st, 0)
-            line_color = 'red' if r_val > 0 else 'blue'
-            ax.plot(st_df['surveyyear'], st_df[p_info['col']], color=line_color, 
-                    marker='o', markersize=5, alpha=0.7, linewidth=2)
+            
+            # Use strict red and blue, adjust alpha for saturation based on correlation strength
+            base_color = 'red' if r_val > 0 else 'blue'
+            abs_r = abs(r_val)
+            
+            if abs_r >= 0.75: alpha = 0.6
+            elif abs_r >= 0.5: alpha = 0.4
+            elif abs_r >= 0.25: alpha = 0.25
+            else: alpha = 0.1
+            
+            ax2.plot(st_df['surveyyear'], st_df[p_info['col']], color=base_color, 
+                    marker='^', markersize=5, alpha=alpha, linewidth=2, linestyle='--')
             plotted_any = True
             
         if not plotted_any:
             plt.close(fig)
             continue
             
-        ax.set_title(f"{p_info['title']} Time Series\n{basin} (Significantly Correlated with {pc_name})", fontsize=18, fontweight='bold')
-        ax.set_ylabel(f"{p_info['title']} [{p_info['unit']}]", fontsize=16)
-        ax.set_xlabel('Year', fontsize=16)
-        ax.grid(True, linestyle='--', alpha=0.5)
-        ax.tick_params(labelsize=14)
+        ax2.set_ylabel(f"{p_info['title']} [{p_info['unit']}]", fontsize=16)
+        ax2.tick_params(axis='y', labelsize=14)
         
-        ax.legend(handles=legend_elements, loc='best', fontsize=12, frameon=True)
+        # Add legend
+        custom_lines = [
+            Line2D([0], [0], color='tab:blue', marker='o', lw=2),
+            Line2D([0], [0], color='red', marker='^', lw=2, linestyle='--'),
+            Line2D([0], [0], color='blue', marker='^', lw=2, linestyle='--')
+        ]
+        ax1.legend(custom_lines, [f'{pc_name} Score', f'{p_info["title"]} (+ correlation)', f'{p_info["title"]} (- correlation)'], loc='best', fontsize=12, frameon=True)
         
         # Save output in subfolder per basin
         basin_out_dir = OUTPUT_DIR / basin_slug
