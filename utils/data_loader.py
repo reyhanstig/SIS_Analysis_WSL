@@ -113,36 +113,11 @@ def clean_and_process_data(gdf):
     """
     print("Processing data (detecting V2 parameters, cleaning DO, adding seasons)...")
     
-    # Check for V2 columns and map them
-    cols = gdf.columns
-    for col in cols:
-        base_col = None
-        if col.endswith('2') and len(col) > 1:
-            base_col = col[:-1]
-            # Special case mapping where original may have trailing underscore
-            if base_col == 'do' and 'do_' in cols:
-                base_col = 'do_'
-        elif col == 'chloroph_1' and 'chlorophyl' in cols:
-            base_col = 'chlorophyl'
-                
-        if base_col and base_col in cols:
-            if pd.api.types.is_numeric_dtype(gdf[col]):
-                base_valid = gdf[base_col].notna().sum()
-                v2_valid = gdf[col].notna().sum()
-                if v2_valid >= base_valid:
-                    gdf[base_col] = gdf[col]
-                    print(f"Mapped {col} -> {base_col} ({col}: {v2_valid} valid float entries | {base_col}: {base_valid} valid originally)")
-
-    # Clean DO column (ensure it gets numeric casting)
-    if 'do_' in gdf.columns:
-        gdf['do_'] = pd.to_numeric(gdf['do_'], errors='coerce')
-
-    # Replace 0.0 with NaN for salinity as 0.0 is a missing value placeholder
-    import numpy as np
-    for s_col in ['salt', 'salt2']:
-        if s_col in gdf.columns:
-            gdf[s_col] = pd.to_numeric(gdf[s_col], errors='coerce')
-            gdf[s_col] = gdf[s_col].replace(0.0, np.nan)
+    # Convert primary columns to numeric, natively creating NaN for missing/LOD values
+    primary_cols = ['do_', 'ph', 'salt', 'cod', 'rcod', 'nh4n', 'no2n', 'no3n', 'tn', 'po4p', 'tp', 'chlorophyl', 'feiochin', 'toc', 'doc']
+    for col in primary_cols:
+        if col in gdf.columns:
+            gdf[col] = pd.to_numeric(gdf[col], errors='coerce')
     
     # Add Season
     if 'surveymont' in gdf.columns:

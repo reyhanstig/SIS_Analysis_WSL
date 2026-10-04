@@ -59,8 +59,7 @@ Based on verification in `notebooks/26_check_temp_wtemp.ipynb`, target variables
 | `salt` | **Salinity** | Measurement of salt content. |
 | `chlorophyl` | **Chlorophyll-a** | Phytoplankton biomass indicator (μg/L). |
 
-> **Note on Parameter Aliasing:** Data processing automatically detects alternative "v2" columns (e.g., `do_2`, `salt2`, `chloroph_1`) present in raw shapefiles, which often have better numerical data typing (`float64`) and fewer null values. The pipeline natively replaces the primary column data with these superior "v2" variants during ingestion, meaning standard aliases like `do_` and `chlorophyl` silently represent the improved values throughout analytical notebooks.
-
+> **Note on Data Ingestion (V1 Native Columns):** The pipeline explicitly parses the primary (V1) columns (e.g., `do_`, `salt`, `chlorophyl`, `doc`) natively using `pd.to_numeric(errors='coerce')`. Missing data in the original shapefiles (like `None`, empty strings, or Limit of Detection strings like `<0.01`) are automatically and correctly cast as `NaN`. (Previous iterations of this pipeline incorrectly favored "V2" columns like `do_2` or `doc2` which artificially masked missing data with `0.0` or `0.01` float values, severely corrupting downstream statistical calculations like Pearson correlations).
 ---
 
 ## 4. Pipeline Stages
