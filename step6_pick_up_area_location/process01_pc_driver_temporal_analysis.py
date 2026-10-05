@@ -44,6 +44,10 @@ def get_time_series_matrix(df, param, season_filter, saisuipoin=None):
     subset = df.loc[mask, ['surveyyear', 'zettaicode', param]].copy()
     subset[param] = pd.to_numeric(subset[param], errors='coerce')
     
+    # CUT OFF METHOD: Replace misplaced 0.0 data with NaN
+    if param not in ['temp', 'fusoku']:
+        subset[param] = subset[param].replace(0.0, np.nan)
+        
     matrix = subset.groupby(['surveyyear', 'zettaicode'])[param].mean().unstack()
     matrix.index = matrix.index.astype(int)
     matrix.index.name = 'year'
@@ -74,7 +78,7 @@ def compute_density_matrix(temp_matrix, salt_matrix, station_coords):
     density_matrix.index.name = 'year'
     return density_matrix.astype(float)
 
-def calculate_pc_station_correlations(target_series, env_matrices, param_names, min_years=5):
+def calculate_pc_station_correlations(target_series, env_matrices, param_names, min_years=15):
     all_stations = set()
     for mat in env_matrices:
         all_stations.update(mat.columns)
@@ -270,10 +274,10 @@ def main():
     # Filter for target_region
     merged_df = merged_df[merged_df['watermass_name'] == args.target_region].copy()
     
-    if 'din2' not in merged_df.columns:
-        merged_df['din2'] = merged_df['nh4n2'].fillna(0) + merged_df['no2n2'].fillna(0) + merged_df['no3n2'].fillna(0)
-    if 'dip2' not in merged_df.columns:
-        merged_df['dip2'] = merged_df['po4p2']
+    if 'din' not in merged_df.columns:
+        merged_df['din'] = pd.to_numeric(merged_df['nh4n'], errors='coerce').fillna(0) + pd.to_numeric(merged_df['no2n'], errors='coerce').fillna(0) + pd.to_numeric(merged_df['no3n'], errors='coerce').fillna(0)
+    if 'dip' not in merged_df.columns:
+        merged_df['dip'] = merged_df['po4p']
 
     stations = merged_df[['zettaicode', 'latitude', 'longitude']].drop_duplicates('zettaicode').set_index('zettaicode')
     station_coords = stations[['latitude', 'longitude']]
@@ -285,8 +289,8 @@ def main():
     # Environment
     wtemp_1_matrix = get_time_series_matrix(merged_df, 'wtemp', 'Summer', saisuipoin=1)
     wtemp_2_matrix = get_time_series_matrix(merged_df, 'wtemp', 'Summer', saisuipoin=2)
-    salt2_1_matrix = get_time_series_matrix(merged_df, 'salt2', 'Summer', saisuipoin=1)
-    salt2_2_matrix = get_time_series_matrix(merged_df, 'salt2', 'Summer', saisuipoin=2)
+    salt_1_matrix = get_time_series_matrix(merged_df, 'salt', 'Summer', saisuipoin=1)
+    salt_2_matrix = get_time_series_matrix(merged_df, 'salt', 'Summer', saisuipoin=2)
     wind_matrix = get_time_series_matrix(merged_df, 'fusoku', 'Summer')
     air_t_matrix = get_time_series_matrix(merged_df, 'temp', 'Winter')
     spring_chla_1_matrix = get_time_series_matrix(merged_df, 'chlorophyl', 'Spring', saisuipoin=1)
@@ -294,8 +298,8 @@ def main():
     chla_1_matrix = get_time_series_matrix(merged_df, 'chlorophyl', 'Summer', saisuipoin=1)
     chla_2_matrix = get_time_series_matrix(merged_df, 'chlorophyl', 'Summer', saisuipoin=2)
     
-    density_1_matrix = compute_density_matrix(wtemp_1_matrix, salt2_1_matrix, station_coords)
-    density_2_matrix = compute_density_matrix(wtemp_2_matrix, salt2_2_matrix, station_coords)
+    density_1_matrix = compute_density_matrix(wtemp_1_matrix, salt_1_matrix, station_coords)
+    density_2_matrix = compute_density_matrix(wtemp_2_matrix, salt_2_matrix, station_coords)
     
     surface_depth_matrix = get_time_series_matrix(merged_df, 'saisuidept', 'Summer', saisuipoin=1)
     bottom_depth_matrix = get_time_series_matrix(merged_df, 'saisuidept', 'Summer', saisuipoin=2)
@@ -306,11 +310,11 @@ def main():
 
     wtemp_1_matrix_w = get_time_series_matrix(merged_df, 'wtemp', 'Winter', saisuipoin=1)
     wtemp_2_matrix_w = get_time_series_matrix(merged_df, 'wtemp', 'Winter', saisuipoin=2)
-    salt2_1_matrix_w = get_time_series_matrix(merged_df, 'salt2', 'Winter', saisuipoin=1)
-    salt2_2_matrix_w = get_time_series_matrix(merged_df, 'salt2', 'Winter', saisuipoin=2)
+    salt_1_matrix_w = get_time_series_matrix(merged_df, 'salt', 'Winter', saisuipoin=1)
+    salt_2_matrix_w = get_time_series_matrix(merged_df, 'salt', 'Winter', saisuipoin=2)
     
-    density_1_matrix_w = compute_density_matrix(wtemp_1_matrix_w, salt2_1_matrix_w, station_coords)
-    density_2_matrix_w = compute_density_matrix(wtemp_2_matrix_w, salt2_2_matrix_w, station_coords)
+    density_1_matrix_w = compute_density_matrix(wtemp_1_matrix_w, salt_1_matrix_w, station_coords)
+    density_2_matrix_w = compute_density_matrix(wtemp_2_matrix_w, salt_2_matrix_w, station_coords)
     
     surface_depth_matrix_w = get_time_series_matrix(merged_df, 'saisuidept', 'Winter', saisuipoin=1)
     bottom_depth_matrix_w = get_time_series_matrix(merged_df, 'saisuidept', 'Winter', saisuipoin=2)
@@ -320,13 +324,13 @@ def main():
     winter_stratification_matrix = (density_2_matrix_w - density_1_matrix_w) / depth_diff_matrix_w
     
     env_mats = [
-        wtemp_1_matrix, wtemp_2_matrix, salt2_1_matrix, salt2_2_matrix,
+        wtemp_1_matrix, wtemp_2_matrix, salt_1_matrix, salt_2_matrix,
         density_1_matrix, density_2_matrix, stratification_matrix, winter_stratification_matrix,
         wind_matrix, air_t_matrix, spring_chla_1_matrix, spring_chla_2_matrix,
         chla_1_matrix, chla_2_matrix
     ]
     env_names = [
-        'Summer_1_WTEMP', 'Summer_2_WTEMP', 'Summer_1_SALT2', 'Summer_2_SALT2',
+        'Summer_1_WTEMP', 'Summer_2_WTEMP', 'Summer_1_SALT', 'Summer_2_SALT',
         'Summer_1_DENSITY', 'Summer_2_DENSITY', 'Summer_Stratification', 'Winter_Stratification',
         'Summer_Wind_Speed', 'Winter_Air_Temp', 'Spring_1_CHLA', 'Spring_2_CHLA',
         'Summer_1_CHLA', 'Summer_2_CHLA'
@@ -335,7 +339,7 @@ def main():
     param_names.extend(env_names)
     
     # Nutrients
-    nutrients = ['cod2', 'doc2', 'tn2', 'tp2', 'din2', 'dip2', 'nh4n2', 'no2n2', 'no3n2', 'po4p2']
+    nutrients = ['cod', 'doc', 'tn', 'tp', 'din', 'dip', 'nh4n', 'no2n', 'no3n', 'po4p']
     for nutr in nutrients:
         mat_s = get_time_series_matrix(merged_df, nutr, 'Summer', saisuipoin=1)
         env_matrices.append(mat_s)

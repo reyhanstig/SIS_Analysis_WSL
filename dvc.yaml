@@ -4,16 +4,16 @@ stages:
     deps:
       - step1_data_processing_cleaning/
 
-  step3_decorrelation_scale_analysis:
-    cmd: python -m step3_decorrelation_scale_analysis
-    deps:
-      - step3_decorrelation_scale_analysis/
-      - step1_data_processing_cleaning/
-
   step2_hypoxia_frequency_calculation:
     cmd: python -m step2_hypoxia_frequency_calculation
     deps:
       - step2_hypoxia_frequency_calculation/
+      - step1_data_processing_cleaning/
+
+  step3_decorrelation_scale_analysis:
+    cmd: python -m step3_decorrelation_scale_analysis
+    deps:
+      - step3_decorrelation_scale_analysis/
       - step1_data_processing_cleaning/
 
   step4_PCA_analysis:

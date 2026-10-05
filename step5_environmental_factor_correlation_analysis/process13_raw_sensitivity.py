@@ -132,6 +132,11 @@ def main():
     params_to_plot_raw = list(raw_params.keys())
     melted_raw_df = raw_df.melt(id_vars=['Station_ID', 'Group'], value_vars=params_to_plot_raw, 
                                  var_name='Parameter', value_name='Correlation')
+    melted_raw_df = melted_raw_df.dropna(subset=['Correlation'])
+
+    if melted_raw_df.empty:
+        logging.warning(f"No valid raw correlations found for {target_region}. Skipping plot.")
+        return
 
     p_values_raw = {}
     for param in params_to_plot_raw:
@@ -155,7 +160,7 @@ def main():
                     order=param_order_raw, palette=['indianred', 'steelblue'], showfliers=False)
 
     sns.stripplot(data=melted_raw_df, x='Parameter', y='Correlation', hue='Group', 
-                  order=param_order_raw, dodge=True, color='black', alpha=0.3, size=4, jitter=True)
+                  order=param_order_raw, dodge=True, palette=['black', 'black'], alpha=0.3, size=4, legend=False)
 
     for i, param in enumerate(param_order_raw):
         p = p_values_raw.get(param, 1.0)
@@ -175,6 +180,7 @@ def main():
     plt.xlabel("Environmental Factors")
     labels = [item.get_text() for item in ax.get_xticklabels()]
     new_labels = [l.replace('NH4N', 'NH4-N').replace('NO3N', 'NO3-N').replace('NO2N', 'NO2-N').replace('PO4P', 'PO4-P') for l in labels]
+    ax.set_xticks(ax.get_xticks())
     ax.set_xticklabels(new_labels, rotation=45, ha='right')
 
     handles, labels = ax.get_legend_handles_labels()

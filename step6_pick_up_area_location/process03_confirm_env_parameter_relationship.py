@@ -164,6 +164,11 @@ def main():
     if 'dip2' not in merged_gdf.columns:
         merged_gdf['dip2'] = merged_gdf['po4p2']
 
+    if 'din' not in merged_gdf.columns:
+        merged_gdf['din'] = merged_gdf['nh4n'].fillna(0) + merged_gdf['no2n'].fillna(0) + merged_gdf['no3n'].fillna(0)
+    if 'dip' not in merged_gdf.columns:
+        merged_gdf['dip'] = merged_gdf['po4p']
+
     if target_region in ['Tokyo Bay', 'Ise Bay', 'Seto Inland Sea']:
         region_stations = merged_gdf[merged_gdf['watermass_name'] == target_region]
     else:

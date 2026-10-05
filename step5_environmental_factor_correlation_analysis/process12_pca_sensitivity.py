@@ -124,6 +124,11 @@ def main():
     params_to_plot = [p for p in params_to_test if p in analysis_df.columns]
     melted_df = analysis_df.melt(id_vars=['Station_ID', 'Group'], value_vars=params_to_plot, 
                                  var_name='Parameter', value_name='Correlation')
+    melted_df = melted_df.dropna(subset=['Correlation'])
+    if melted_df.empty:
+        logging.warning(f"No valid PCA correlations found for {target_region}. Skipping plot.")
+        return
+        
     melted_df['Parameter'] = melted_df['Parameter'].str.replace('_Corr_PC1', '').str.replace('_', ' ')
 
     p_values = {}
@@ -150,7 +155,7 @@ def main():
                     order=param_order, palette=['indianred', 'steelblue'], showfliers=False)
 
     sns.stripplot(data=melted_df, x='Parameter', y='Correlation', hue='Group', 
-                  order=param_order, dodge=True, color='black', alpha=0.3, size=4, jitter=True)
+                  order=param_order, dodge=True, palette=['black', 'black'], alpha=0.3, size=4, legend=False)
 
     for i, param in enumerate(param_order):
         p = p_values.get(param, 1.0)
@@ -169,6 +174,7 @@ def main():
     plt.xlabel("Environmental Factors")
     labels = [item.get_text() for item in ax.get_xticklabels()]
     new_labels = [l.replace('NH4N', 'NH4-N').replace('NO3N', 'NO3-N').replace('NO2N', 'NO2-N').replace('PO4P', 'PO4-P') for l in labels]
+    ax.set_xticks(ax.get_xticks())
     ax.set_xticklabels(new_labels, rotation=45, ha='right')
 
     handles, labels = ax.get_legend_handles_labels()

@@ -51,6 +51,9 @@ def main():
     for season in seasons:
         for layer in layers:
             subset_dir = ProjectPaths.get_subset_dir(season, layer)
+            code = run_script(step_dir, env, 'process01_data_integrity_and_correlation.py', '--season', season, '--layer', layer)
+            if code != 0: sys.exit(code)
+
             code = run_script(step_dir, env, 'process21_decorrelation_drivers.py', '--season', season, '--layer', layer)
             if code != 0: sys.exit(code)
             
@@ -102,7 +105,7 @@ def main():
                     if data_type == 'env':
                         scatter_params = ['Summer_Stratification', f'{season}_1_WTEMP', f'{season}_2_WTEMP', f'{season}_Chla_Corr_PC1']
                     else:
-                        scatter_params = [f'{season}_2_DOC2', f'{season}_2_COD2', f'{season}_2_TN2', f'{season}_2_TP2']
+                        scatter_params = [f'{season}_2_DOC', f'{season}_2_COD', f'{season}_2_TN', f'{season}_2_TP']
 
                     for pc in ['PC1', 'PC2']:
                         df_path = subset_dir / f'pca_{data_type}_corr_{pc.lower()}.csv'
