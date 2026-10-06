@@ -39,14 +39,7 @@ from utils.mapping_config import MappingConfig
 plt.style.use(str(ProjectPaths.PROJECT_ROOT / 'project_style.mplstyle'))
 
 
-def create_correlation_map(corr_df, parameter, output_path, pc_name, target_region="Seto Inland Sea"):
-    # Filter data first to get data bounds
-    merged_df = pd.read_feather(ProjectPaths.MERGED_DATA_FILE)
-    if target_region in ['Tokyo Bay', 'Ise Bay', 'Seto Inland Sea']:
-        merged_df = merged_df[merged_df['watermass_name'] == target_region]
-    else:
-        merged_df = merged_df[merged_df['division'] == target_region]
-
+def create_correlation_map(corr_df, parameter, output_path, pc_name, merged_df, target_region="Seto Inland Sea"):
     stations = merged_df[['zettaicode', 'latitude', 'longitude']].drop_duplicates('zettaicode').set_index('zettaicode')
     stations.index = stations.index.astype(str).str.zfill(8)
     corr_df.index = corr_df.index.astype(str).str.zfill(8)
@@ -172,25 +165,36 @@ def main():
         
     df_pc = pd.read_csv(pc_corr_path, index_col=0)
     
-    if args.param not in df_pc.columns:
-        logging.error(f"Parameter {args.param} not found in {pc_corr_path}")
-        return
+    if args.param == 'all':
+        params_to_process = [c for c in df_pc.columns if f"{c}_pval" in df_pc.columns]
+    else:
+        if args.param not in df_pc.columns:
+            logging.error(f"Parameter {args.param} not found in {pc_corr_path}")
+            return
+        params_to_process = [args.param]
     
     ProjectPaths.ensure_directories()
     
-    region_str = args.target_region.replace(" ", "_")
-    safe_param = args.param.replace(' ', '_').replace('/', '_')
-    for old, new in [('NH4N2', 'NH4-N'), ('NH4N', 'NH4-N'), ('NO3N2', 'NO3-N'), ('NO3N', 'NO3-N'), ('NO2N2', 'NO2-N'), ('NO2N', 'NO2-N'), ('PO4P2', 'PO4-P'), ('PO4P', 'PO4-P')]:
-        safe_param = safe_param.replace(old, new)
+    # Load merged data once
+    merged_df = pd.read_feather(ProjectPaths.MERGED_DATA_FILE)
+    if args.target_region in ['Tokyo Bay', 'Ise Bay', 'Seto Inland Sea']:
+        merged_df = merged_df[merged_df['watermass_name'] == args.target_region]
+    else:
+        merged_df = merged_df[merged_df['division'] == args.target_region]
     
-    # Separate outputs based on selected basins
+    region_str = args.target_region.replace(" ", "_")
     region_output_dir = OUTPUT_DIR / region_str
     region_output_dir.mkdir(parents=True, exist_ok=True)
     
-    output_path = region_output_dir / f"spatial_corr_map_{data_type}_{args.pc_name}_{safe_param}_{region_str}_{season}_{layer}.png"
-    
-    create_correlation_map(df_pc, args.param, output_path, args.pc_name, args.target_region)
-    logging.info(f"Correlation map generated: {output_path.name}")
+    for param in params_to_process:
+        safe_param = param.replace(' ', '_').replace('/', '_')
+        for old, new in [('NH4N2', 'NH4-N'), ('NH4N', 'NH4-N'), ('NO3N2', 'NO3-N'), ('NO3N', 'NO3-N'), ('NO2N2', 'NO2-N'), ('NO2N', 'NO2-N'), ('PO4P2', 'PO4-P'), ('PO4P', 'PO4-P')]:
+            safe_param = safe_param.replace(old, new)
+        
+        output_path = region_output_dir / f"spatial_corr_map_{data_type}_{args.pc_name}_{safe_param}_{region_str}_{season}_{layer}.png"
+        
+        create_correlation_map(df_pc, param, output_path, args.pc_name, merged_df, args.target_region)
+        logging.info(f"Correlation map generated: {output_path.name}")
 
 if __name__ == '__main__':
     main()

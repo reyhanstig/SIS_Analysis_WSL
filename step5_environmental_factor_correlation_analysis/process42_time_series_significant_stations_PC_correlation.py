@@ -107,15 +107,11 @@ def main():
     season = args.season.strip()
     layer = args.layer.strip()
     pc_name = args.pc_name.strip()
-    param_str = args.param.strip()
     data_type = args.data_type.strip()
     
     region_slug = target_region.replace(' ', '_')
     
-    logging.info(f"Running process42 for {target_region}, param: {param_str}, PC: {pc_name}")
-    
-    # 1. Parse param
-    p_info = parse_param(param_str)
+    logging.info(f"Running process42 for {target_region}, PC: {pc_name}")
     
     # 2. Read correlation data
     subset_dir = ProjectPaths.get_subset_dir(season, layer)
@@ -127,21 +123,11 @@ def main():
     df_corr = pd.read_csv(corr_file, index_col=0, dtype={0: str})
     df_corr.index = df_corr.index.str.zfill(8)
     
-    if param_str not in df_corr.columns:
-        logging.error(f"Param {param_str} not found in {corr_file}")
-        return
+    if args.param.strip() == 'all':
+        params_to_process = [c for c in df_corr.columns if f"{c}_pval" in df_corr.columns]
+    else:
+        params_to_process = [args.param.strip()]
         
-    pval_col = f"{param_str}_pval"
-    
-    # 3. Filter stations (pval <= 0.05 AND |r| > 0)
-    sig_df = df_corr[(df_corr[pval_col] <= 0.05) & (df_corr[param_str].abs() > 0)]
-    sig_stations = sig_df.index.tolist()
-    if not sig_stations:
-        logging.info(f"No significant stations found for {param_str} with {pc_name}")
-        return
-
-    corr_dict = sig_df[param_str].to_dict()
-
     # Load PC scores
     if target_region in ['Seto Inland Sea']:
         pc_scores_file = subset_dir / 'pca_scores.csv'
@@ -166,132 +152,168 @@ def main():
         
     st_division_map = region_stations[['zettaicode', 'division']].drop_duplicates().set_index('zettaicode')['division'].to_dict()
     
-    # Restrict sig_stations to the current target region
-    target_stations = [st for st in sig_stations if st in st_division_map]
-    if not target_stations:
-        logging.info(f"No significant stations inside {target_region}")
-        return
-
-    param_season = p_info['season']
-    
-    # Use the pre-computed 'season' column to safely include all months for the season
-    season_data = merged_gdf[
-        (merged_gdf['season'] == param_season) & 
-        (merged_gdf['zettaicode'].isin(target_stations))
-    ].copy()
-
-    if p_info['col'] == 'din' and 'din' not in season_data.columns:
-        nh4 = pd.to_numeric(season_data['nh4n'], errors='coerce').fillna(0)
-        no2 = pd.to_numeric(season_data['no2n'], errors='coerce').fillna(0)
-        no3 = pd.to_numeric(season_data['no3n'], errors='coerce').fillna(0)
-        season_data['din'] = nh4 + no2 + no3
-        all_nan = season_data['nh4n'].isna() & season_data['no2n'].isna() & season_data['no3n'].isna()
-        season_data.loc[all_nan, 'din'] = np.nan
-
-    if p_info['col'] in ['stratification', 'density']:
-        import gsw
-        _salt = pd.to_numeric(season_data['salt'], errors='coerce')
-        _wtemp = pd.to_numeric(season_data['wtemp'], errors='coerce')
-        _SA = gsw.SA_from_SP(_salt, 0, season_data['longitude'], season_data['latitude'])
-        _CT = gsw.CT_from_t(_SA, _wtemp, 0)
-        season_data['density'] = gsw.sigma0(_SA, _CT)
-
-    if p_info['col'] == 'stratification':
-        surf = season_data[season_data['saisuipoin'] == 1].groupby(['zettaicode', 'surveyyear'])['density'].mean()
-        bot = season_data[season_data['saisuipoin'] == 2].groupby(['zettaicode', 'surveyyear'])['density'].mean()
-        strat = (bot - surf).reset_index().rename(columns={'density': 'stratification'})
-        layer_data = strat
-    else:
-        layer_data = season_data[season_data['saisuipoin'] == p_info['layer']].copy()
-        layer_data[p_info['col']] = pd.to_numeric(layer_data[p_info['col']], errors='coerce')
-        # Aggregate by surveyyear to prevent zigzagging
-        layer_data = layer_data.groupby(['zettaicode', 'surveyyear'])[p_info['col']].mean().reset_index()
-
-    # Determine unique basins to plot
-    if target_region == 'Seto Inland Sea':
-        basins = sorted(list(set(st_division_map.values())))
-    else:
-        basins = [target_region]
-        for st in target_stations:
-            st_division_map[st] = target_region
-            
-    safe_title = param_str.replace(' ', '_').replace('/', '_')
-    for old, new in [('NH4N2', 'NH4-N'), ('NH4N', 'NH4-N'), ('NO3N2', 'NO3-N'), ('NO3N', 'NO3-N'), ('NO2N2', 'NO2-N'), ('NO2N', 'NO2-N'), ('PO4P2', 'PO4-P'), ('PO4P', 'PO4-P')]:
-        safe_title = safe_title.replace(old, new)
-
-    # Determine dynamic tick years for PC scores
-    first_year = pc_scores.index[0]
-    last_year = pc_scores.index[-1]
-    target_type = type(first_year)
-    mid_ticks = [target_type(y) for y in range(1985, 2021, 5) if target_type(y) in pc_scores.index]
-    tick_years = sorted(list(set([first_year] + mid_ticks + [last_year])), key=lambda x: int(x))
-
-    for basin in basins:
-        basin_slug = basin.replace(' ', '_')
-        div_stations = [s for s in target_stations if st_division_map.get(s) == basin]
-        
-        if not div_stations:
+    for param_str in params_to_process:
+        if param_str not in df_corr.columns:
+            logging.error(f"Param {param_str} not found in {corr_file}")
             continue
             
-        fig, ax1 = plt.subplots(figsize=(10, 6))
+        p_info = parse_param(param_str)
+        pval_col = f"{param_str}_pval"
         
-        # Plot PC on the primary y-axis
-        ax1.plot(pc_scores.index, pc_scores[pc_name], marker='o', label=f'{pc_name} Score', color='tab:blue')
-        ax1.axhline(y=0, color='red', linestyle='--', alpha=0.8)
-        ax1.set_xlabel('Year', fontsize=16)
-        ax1.set_ylabel(f'{pc_name} Score', fontsize=16)
-        ax1.set_title(f"{p_info['title']} Time Series\n{basin} (Significantly Correlated with {pc_name})", fontsize=18, fontweight='bold')
+        # 3. Filter stations (pval <= 0.05 AND |r| > 0)
+        sig_df = df_corr[(df_corr[pval_col] <= 0.05) & (df_corr[param_str].abs() > 0)]
+        sig_stations = sig_df.index.tolist()
+        if not sig_stations:
+            logging.info(f"No significant stations found for {param_str} with {pc_name}")
+            continue
+
+        corr_dict = sig_df[param_str].to_dict()
+
+        # Restrict sig_stations to the current target region
+        target_stations = [st for st in sig_stations if st in st_division_map]
+        if not target_stations:
+            logging.info(f"No significant stations inside {target_region} for {param_str}")
+            continue
+
+        param_season = p_info['season']
         
-        ax1.set_xticks(tick_years)
-        ax1.tick_params(axis='x', rotation=45, labelsize=14)
-        ax1.tick_params(axis='y', labelsize=14)
-        ax1.grid(True, linestyle='--', alpha=0.6)
-        
-        ax2 = ax1.twinx()
-        
-        plotted_any = False
-        for st in div_stations:
-            st_df = layer_data[layer_data['zettaicode'] == st].sort_values('surveyyear')
-            if st_df.empty or st_df[p_info['col']].isna().all():
+        # Use the pre-computed 'season' column to safely include all months for the season
+        season_data = merged_gdf[
+            (merged_gdf['season'] == param_season) & 
+            (merged_gdf['zettaicode'].isin(target_stations))
+        ].copy()
+
+        if p_info['col'] == 'din' and 'din' not in season_data.columns:
+            nh4 = pd.to_numeric(season_data['nh4n'], errors='coerce').fillna(0)
+            no2 = pd.to_numeric(season_data['no2n'], errors='coerce').fillna(0)
+            no3 = pd.to_numeric(season_data['no3n'], errors='coerce').fillna(0)
+            season_data['din'] = nh4 + no2 + no3
+            all_nan = season_data['nh4n'].isna() & season_data['no2n'].isna() & season_data['no3n'].isna()
+            season_data.loc[all_nan, 'din'] = np.nan
+
+        if p_info['col'] in ['stratification', 'density']:
+            import gsw
+            _salt = pd.to_numeric(season_data['salt'], errors='coerce')
+            _wtemp = pd.to_numeric(season_data['wtemp'], errors='coerce')
+            _SA = gsw.SA_from_SP(_salt, 0, season_data['longitude'], season_data['latitude'])
+            _CT = gsw.CT_from_t(_SA, _wtemp, 0)
+            season_data['density'] = gsw.sigma0(_SA, _CT)
+
+        if p_info['col'] == 'stratification':
+            surf = season_data[season_data['saisuipoin'] == 1].groupby(['zettaicode', 'surveyyear'])['density'].mean()
+            bot = season_data[season_data['saisuipoin'] == 2].groupby(['zettaicode', 'surveyyear'])['density'].mean()
+            strat = (bot - surf).reset_index().rename(columns={'density': 'stratification'})
+            layer_data = strat
+        else:
+            layer_data = season_data[season_data['saisuipoin'] == p_info['layer']].copy()
+            layer_data[p_info['col']] = pd.to_numeric(layer_data[p_info['col']], errors='coerce')
+            # Aggregate by surveyyear to prevent zigzagging
+            layer_data = layer_data.groupby(['zettaicode', 'surveyyear'])[p_info['col']].mean().reset_index()
+
+        # Determine unique basins to plot
+        if target_region == 'Seto Inland Sea':
+            basins = sorted(list(set(st_division_map.values())))
+        else:
+            basins = [target_region]
+            for st in target_stations:
+                st_division_map[st] = target_region
+                
+        safe_title = param_str.replace(' ', '_').replace('/', '_')
+        for old, new in [('NH4N2', 'NH4-N'), ('NH4N', 'NH4-N'), ('NO3N2', 'NO3-N'), ('NO3N', 'NO3-N'), ('NO2N2', 'NO2-N'), ('NO2N', 'NO2-N'), ('PO4P2', 'PO4-P'), ('PO4P', 'PO4-P')]:
+            safe_title = safe_title.replace(old, new)
+
+        # Determine dynamic tick years for PC scores
+        first_year = pc_scores.index[0]
+        last_year = pc_scores.index[-1]
+        target_type = type(first_year)
+        mid_ticks = [target_type(y) for y in range(1985, 2021, 5) if target_type(y) in pc_scores.index]
+        tick_years = sorted(list(set([first_year] + mid_ticks + [last_year])), key=lambda x: int(x))
+
+        for basin in basins:
+            basin_slug = basin.replace(' ', '_')
+            div_stations = [s for s in target_stations if st_division_map.get(s) == basin]
+            
+            if not div_stations:
                 continue
                 
-            r_val = corr_dict.get(st, 0)
+            fig, ax1 = plt.subplots(figsize=(10, 6))
             
-            # Use strict red and blue, adjust alpha for saturation based on correlation strength
-            base_color = 'red' if r_val > 0 else 'blue'
-            abs_r = abs(r_val)
+            # Plot PC on the primary y-axis
+            ax1.plot(pc_scores.index, pc_scores[pc_name], marker='o', label=f'{pc_name} Score', color='tab:blue')
+            ax1.axhline(y=0, color='red', linestyle='--', alpha=0.8)
+            ax1.set_xlabel('Year', fontsize=16)
+            ax1.set_ylabel(f'{pc_name} Score', fontsize=16)
+            ax1.set_title(f"{p_info['title']} Time Series\n{basin} (Significantly Correlated with {pc_name})", fontsize=18, fontweight='bold')
             
-            if abs_r >= 0.75: alpha = 0.6
-            elif abs_r >= 0.5: alpha = 0.4
-            elif abs_r >= 0.25: alpha = 0.25
-            else: alpha = 0.1
+            ax1.set_xticks(tick_years)
+            ax1.tick_params(axis='x', rotation=45, labelsize=14)
+            ax1.tick_params(axis='y', labelsize=14)
+            ax1.grid(True, linestyle='--', alpha=0.6)
             
-            ax2.plot(st_df['surveyyear'], st_df[p_info['col']], color=base_color, 
-                    marker='^', markersize=5, alpha=alpha, linewidth=2, linestyle='--')
-            plotted_any = True
+            ax2 = ax1.twinx()
             
-        if not plotted_any:
+            all_vals = []
+            plotted_any = False
+            for st in div_stations:
+                st_df = layer_data[layer_data['zettaicode'] == st].sort_values('surveyyear')
+                if st_df.empty or st_df[p_info['col']].isna().all():
+                    continue
+                    
+                all_vals.extend(st_df[p_info['col']].dropna().tolist())
+                    
+                r_val = corr_dict.get(st, 0)
+                
+                # Use strict red and blue, adjust alpha for saturation based on correlation strength
+                base_color = 'red' if r_val > 0 else 'blue'
+                abs_r = abs(r_val)
+                
+                if abs_r >= 0.75: alpha = 0.6
+                elif abs_r >= 0.5: alpha = 0.4
+                elif abs_r >= 0.25: alpha = 0.25
+                else: alpha = 0.1
+                
+                ax2.plot(st_df['surveyyear'], st_df[p_info['col']], color=base_color, 
+                        marker='^', markersize=5, alpha=alpha, linewidth=2, linestyle='--')
+                plotted_any = True
+                
+            if not plotted_any:
+                plt.close(fig)
+                continue
+            
+            # --- ALIGNMENT LOGIC ---
+            # 1. Make ax1 perfectly symmetric around 0
+            y1_min, y1_max = ax1.get_ylim()
+            y1_abs_max = max(abs(y1_min), abs(y1_max))
+            ax1.set_ylim(-y1_abs_max, y1_abs_max)
+            
+            # 2. Make ax2 perfectly symmetric around the mean of the plotted environment parameters
+            env_mean = np.mean(all_vals)
+            ax2.axhline(y=env_mean, color='green', linestyle=':', alpha=0.8, linewidth=2, label='Env Mean')
+            
+            y2_min, y2_max = ax2.get_ylim()
+            y2_abs_max = max(abs(y2_max - env_mean), abs(y2_min - env_mean))
+            ax2.set_ylim(env_mean - y2_abs_max, env_mean + y2_abs_max)
+            # -----------------------
+                
+            ax2.set_ylabel(f"{p_info['title']} [{p_info['unit']}]", fontsize=16)
+            ax2.tick_params(axis='y', labelsize=14)
+            
+            # Add legend
+            custom_lines = [
+                Line2D([0], [0], color='tab:blue', marker='o', lw=2),
+                Line2D([0], [0], color='green', linestyle=':', lw=2),
+                Line2D([0], [0], color='red', marker='^', lw=2, linestyle='--'),
+                Line2D([0], [0], color='blue', marker='^', lw=2, linestyle='--')
+            ]
+            ax1.legend(custom_lines, [f'{pc_name} Score', f'{p_info["title"]} Mean', f'{p_info["title"]} (+ correlation)', f'{p_info["title"]} (- correlation)'], loc='best', fontsize=12, frameon=True)
+            
+            # Save output in subfolder per basin
+            basin_out_dir = OUTPUT_DIR / basin_slug
+            basin_out_dir.mkdir(parents=True, exist_ok=True)
+            
+            plt.tight_layout()
+            plt.savefig(basin_out_dir / f'ts_{pc_name}_{safe_title}_{basin_slug}_{season}_{layer}.png', bbox_inches='tight', dpi=300)
             plt.close(fig)
-            continue
-            
-        ax2.set_ylabel(f"{p_info['title']} [{p_info['unit']}]", fontsize=16)
-        ax2.tick_params(axis='y', labelsize=14)
-        
-        # Add legend
-        custom_lines = [
-            Line2D([0], [0], color='tab:blue', marker='o', lw=2),
-            Line2D([0], [0], color='red', marker='^', lw=2, linestyle='--'),
-            Line2D([0], [0], color='blue', marker='^', lw=2, linestyle='--')
-        ]
-        ax1.legend(custom_lines, [f'{pc_name} Score', f'{p_info["title"]} (+ correlation)', f'{p_info["title"]} (- correlation)'], loc='best', fontsize=12, frameon=True)
-        
-        # Save output in subfolder per basin
-        basin_out_dir = OUTPUT_DIR / basin_slug
-        basin_out_dir.mkdir(parents=True, exist_ok=True)
-        
-        plt.tight_layout()
-        plt.savefig(basin_out_dir / f'ts_{pc_name}_{safe_title}_{basin_slug}_{season}_{layer}.png', bbox_inches='tight', dpi=300)
-        plt.close(fig)
 
     logging.info(f"Finished processing time series for {target_region}")
 

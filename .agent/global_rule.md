@@ -21,3 +21,4 @@ This document serves as a master guide for any AI agent activities that takes pl
 - If a sandbox script produces an output of data or figure, save the output in a new sub-folder in the `/home/reyha/SIS_Analysis_WSL/figures/step0_sandbox` directory with the name matching the sandbox script name (e.g. `step0_sandbox/sandbox_script_name`).
 - When a pipeline script uses `pd.read_csv` to import existing CSV files as input for analysis, add a file check function to check if the file exists first. If the file does not exist, the script should log a warning and exit cleanly rather than throwing a FileNotFoundError and crashing the entire pipeline.
 - Any new sandbox notebook should use `step0_sandbox/archive/101_example_notebook.ipynb` as a template. It includes the standard imports, path configurations, and output directory setup matching the sandbox rules.
+- Use the scratch folder to store any temporary test scripts. 

@@ -99,6 +99,11 @@ def main():
             if code != 0:
                 sys.exit(code)
 
+    logging.info("=== Starting Process 05: Environmental Factor Summarization ===")
+    code = run_script(step_dir, env, 'process05_summarize_env_factors.py')
+    if code != 0:
+        sys.exit(code)
+
     logging.info("All orchestrations completed successfully.")
 
 if __name__ == "__main__":

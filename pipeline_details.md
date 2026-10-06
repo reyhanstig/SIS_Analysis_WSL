@@ -49,3 +49,4 @@ This step uses statistical modeling to directly link dissolved oxygen (DO) deple
 This step integrates the temporal analysis of specific regional sub-basins over varying time periods, determining how environmental parameters correlate with PC scores dynamically.
 - **`step6_parameters.csv`**: Contains the target region, PC name, and year period bounds for the required localized analyses.
 - **`process01_pc_driver_temporal_analysis.py`**: Generates spatial correlation maps mapping how the specified PC score for a target region correlates with environmental drivers over a specified subset of years.
+- **`process05_summarize_env_factors.py`**: Summarizes the significant environmental factors identified across all correlation analyses in Step 5 and Step 6, generating a summary ranking and bar chart per region and time period.
