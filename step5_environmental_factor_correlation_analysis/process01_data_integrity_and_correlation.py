@@ -32,6 +32,23 @@ from utils.data_loader import load_and_process_data
 
 warnings.filterwarnings('ignore')
 
+LAYER_CODES = [1, 2]  # saisuipoin: 1 = surface, 2 = bottom
+
+
+def check_file_exists(path):
+    """Log a warning and exit cleanly if a required input file is missing."""
+    if not Path(path).exists():
+        logging.warning(f"Required input file not found: {path}. Skipping.")
+        sys.exit(0)
+
+
+def load_step_parameters():
+    """Load step5_parameter.csv into a {parameter_name: value} dictionary."""
+    param_file = CURRENT_SCRIPT.parent / 'step5_parameter.csv'
+    check_file_exists(param_file)
+    df_p = pd.read_csv(param_file)
+    return dict(zip(df_p['parameter_name'], df_p['value']))
+
 def get_time_series_matrix(df, param, season_filter, saisuipoin=None):
     mask = df['season'] == season_filter
     if saisuipoin is not None:
@@ -75,6 +92,71 @@ def compute_density_matrix(temp_matrix, salt_matrix, station_coords):
     density_matrix.index.name = 'year'
     return density_matrix.astype(float)
 
+class MatrixBuilder:
+    """Build (and cache) year x station matrices for raw and derived parameters.
+
+    Caching avoids recomputing shared inputs, e.g. wtemp/salt are reused by both
+    the density and the stratification matrices of the same season.
+    """
+
+    def __init__(self, merged_df, station_coords):
+        self.merged_df = merged_df
+        self.station_coords = station_coords
+        self._cache = {}
+
+    def raw(self, param, season, layer_code=None):
+        key = ('raw', param, season, layer_code)
+        if key not in self._cache:
+            self._cache[key] = get_time_series_matrix(self.merged_df, param, season, saisuipoin=layer_code)
+        return self._cache[key]
+
+    def density(self, season, layer_code):
+        key = ('density', season, layer_code)
+        if key not in self._cache:
+            self._cache[key] = compute_density_matrix(
+                self.raw('wtemp', season, layer_code),
+                self.raw('salt', season, layer_code),
+                self.station_coords
+            )
+        return self._cache[key]
+
+    def stratification(self, season):
+        key = ('stratification', season)
+        if key not in self._cache:
+            depth_diff = self.raw('saisuidept', season, 2) - self.raw('saisuidept', season, 1)
+            depth_diff = depth_diff.replace(0, np.nan)
+            self._cache[key] = (self.density(season, 2) - self.density(season, 1)) / depth_diff
+        return self._cache[key]
+
+    def build(self, source_col, derivation, season, layer_code):
+        if derivation == 'density':
+            return self.density(season, layer_code)
+        if derivation == 'stratification':
+            return self.stratification(season)
+        return self.raw(source_col, season, layer_code)
+
+
+def build_permutation_matrices(builder, corr_params_df, data_type, corr_seasons):
+    """Expand every parameter of a data type over all correlation seasons and layers.
+
+    Naming follows the existing convention:
+        layered parameters   -> '{Season}_{layer}_{LABEL}'  (e.g. 'Winter_2_WTEMP')
+        layerless parameters -> '{Season}_{LABEL}'          (e.g. 'Spring_Stratification')
+    Order: parameter -> layer -> season, so all seasons of one variable are adjacent.
+    """
+    matrices, names = [], []
+    subset = corr_params_df[corr_params_df['data_type'] == data_type]
+    for _, row in subset.iterrows():
+        layered = str(row['layered']).strip().lower() == 'true'
+        layer_list = LAYER_CODES if layered else [None]
+        for layer_code in layer_list:
+            for corr_season in corr_seasons:
+                name = f"{corr_season}_{layer_code}_{row['label']}" if layered else f"{corr_season}_{row['label']}"
+                matrices.append(builder.build(row['source_col'], row['derivation'], corr_season, layer_code))
+                names.append(name)
+    return matrices, names
+
+
 def calculate_station_correlations(pc_series, env_matrices, param_names, min_years=15):
     pc_series = pc_series.copy()
     pc_series.index = pc_series.index.astype(int)
@@ -84,6 +166,13 @@ def calculate_station_correlations(pc_series, env_matrices, param_names, min_yea
         all_stations.update(mat.columns)
     all_stations = sorted(list(all_stations))
     
+    # Align every matrix to the PC years once (equivalent to the per-station year intersection)
+    aligned_matrices = []
+    for mat in env_matrices:
+        mat = mat.copy()
+        mat.index = mat.index.astype(int)
+        aligned_matrices.append(mat.reindex(pc_series.index))
+    
     corr_records = []
     
     for stn in all_stations:
@@ -91,19 +180,15 @@ def calculate_station_correlations(pc_series, env_matrices, param_names, min_yea
         row_pval = {'zettaicode': stn}
         row_n = {'zettaicode': stn}
         
-        for mat, pname in zip(env_matrices, param_names):
+        for mat, pname in zip(aligned_matrices, param_names):
             if stn not in mat.columns:
                 row_corr[pname] = np.nan
                 row_pval[pname + '_pval'] = np.nan
                 row_n[pname + '_n'] = 0
                 continue
             
-            env_series = mat[stn].copy()
-            env_series.index = env_series.index.astype(int)
-            
-            common_years = pc_series.index.intersection(env_series.index)
-            s_pc = pc_series.loc[common_years]
-            s_env = env_series.loc[common_years]
+            s_pc = pc_series
+            s_env = mat[stn]
             
             valid = s_pc.notna() & s_env.notna()
             n = valid.sum()
@@ -141,6 +226,13 @@ def main():
     if not pca_scores_path.exists():
         logging.error(f"PCA scores not found at {pca_scores_path}")
         return
+    
+    # Parameter permutations: every parameter x correlation season x depth layer
+    step_params = load_step_parameters()
+    corr_seasons = [s.strip() for s in str(step_params.get('correlation_seasons', 'Spring, Summer, Autumn, Winter')).split(',')]
+    corr_params_file = CURRENT_SCRIPT.parent / str(step_params.get('correlation_params_file', 'step5_correlation_parameters.csv'))
+    check_file_exists(corr_params_file)
+    corr_params_df = pd.read_csv(corr_params_file)
         
     logging.info(f"Running data integrity check and correlation for {season} {layer}")
     
@@ -189,56 +281,12 @@ def main():
     integrity_df.to_csv(PROCESSED_DATA_DIR / f'data_integrity_report_{season}_{layer}.csv', index=False)
     logging.info(f"Saved integrity report to {PROCESSED_DATA_DIR / f'data_integrity_report_{season}_{layer}.csv'}")
 
-    logging.info("Building Environmental time series matrices (V1 columns)...")
-    wtemp_1_matrix = get_time_series_matrix(merged_df, 'wtemp', season, saisuipoin=1)
-    wtemp_2_matrix = get_time_series_matrix(merged_df, 'wtemp', season, saisuipoin=2)
-    salt_1_matrix = get_time_series_matrix(merged_df, 'salt', season, saisuipoin=1)
-    salt_2_matrix = get_time_series_matrix(merged_df, 'salt', season, saisuipoin=2)
-    wind_matrix = get_time_series_matrix(merged_df, 'fusoku', season)
-    air_t_matrix = get_time_series_matrix(merged_df, 'temp', 'Winter')
-    spring_chla_1_matrix = get_time_series_matrix(merged_df, 'chlorophyl', 'Spring', saisuipoin=1)
-    spring_chla_2_matrix = get_time_series_matrix(merged_df, 'chlorophyl', 'Spring', saisuipoin=2)
-    chla_1_matrix = get_time_series_matrix(merged_df, 'chlorophyl', season, saisuipoin=1)
-    chla_2_matrix = get_time_series_matrix(merged_df, 'chlorophyl', season, saisuipoin=2)
-    
     station_coords = stations[['latitude', 'longitude']]
-    density_1_matrix = compute_density_matrix(wtemp_1_matrix, salt_1_matrix, station_coords)
-    density_2_matrix = compute_density_matrix(wtemp_2_matrix, salt_2_matrix, station_coords)
+    builder = MatrixBuilder(merged_df, station_coords)
     
-    surface_depth_matrix = get_time_series_matrix(merged_df, 'saisuidept', season, saisuipoin=1)
-    bottom_depth_matrix = get_time_series_matrix(merged_df, 'saisuidept', season, saisuipoin=2)
-    
-    depth_diff_matrix = bottom_depth_matrix - surface_depth_matrix
-    depth_diff_matrix = depth_diff_matrix.replace(0, np.nan)
-    stratification_matrix = (density_2_matrix - density_1_matrix) / depth_diff_matrix
-
-    wtemp_1_matrix_w = get_time_series_matrix(merged_df, 'wtemp', 'Winter', saisuipoin=1)
-    wtemp_2_matrix_w = get_time_series_matrix(merged_df, 'wtemp', 'Winter', saisuipoin=2)
-    salt_1_matrix_w = get_time_series_matrix(merged_df, 'salt', 'Winter', saisuipoin=1)
-    salt_2_matrix_w = get_time_series_matrix(merged_df, 'salt', 'Winter', saisuipoin=2)
-    
-    density_1_matrix_w = compute_density_matrix(wtemp_1_matrix_w, salt_1_matrix_w, station_coords)
-    density_2_matrix_w = compute_density_matrix(wtemp_2_matrix_w, salt_2_matrix_w, station_coords)
-    
-    surface_depth_matrix_w = get_time_series_matrix(merged_df, 'saisuidept', 'Winter', saisuipoin=1)
-    bottom_depth_matrix_w = get_time_series_matrix(merged_df, 'saisuidept', 'Winter', saisuipoin=2)
-    
-    depth_diff_matrix_w = bottom_depth_matrix_w - surface_depth_matrix_w
-    depth_diff_matrix_w = depth_diff_matrix_w.replace(0, np.nan)
-    winter_stratification_matrix = (density_2_matrix_w - density_1_matrix_w) / depth_diff_matrix_w
-    
-    env_matrices = [
-        wtemp_1_matrix, wtemp_2_matrix, salt_1_matrix, salt_2_matrix,
-        density_1_matrix, density_2_matrix, stratification_matrix, winter_stratification_matrix,
-        wind_matrix, air_t_matrix, spring_chla_1_matrix, spring_chla_2_matrix,
-        chla_1_matrix, chla_2_matrix
-    ]
-    env_names = [
-        f'{season}_1_WTEMP', f'{season}_2_WTEMP', f'{season}_1_SALT', f'{season}_2_SALT',
-        f'{season}_1_DENSITY', f'{season}_2_DENSITY', f'{season}_Stratification', 'Winter_Stratification',
-        f'{season}_Wind_Speed', 'Winter_Air_Temp', 'Spring_1_CHLA', 'Spring_2_CHLA',
-        f'{season}_1_CHLA', f'{season}_2_CHLA'
-    ]
+    logging.info(f"Building Environmental time series matrices for seasons {corr_seasons} and both layers...")
+    env_matrices, env_names = build_permutation_matrices(builder, corr_params_df, 'env', corr_seasons)
+    logging.info(f"Built {len(env_names)} environmental parameter permutations.")
     
     logging.info("Calculating Environmental correlations...")
     # Get min_periods from params.yaml if available, else 15
@@ -257,19 +305,9 @@ def main():
     corr_env_pc1.to_csv(subset_dir / 'pca_env_corr_pc1.csv')
     corr_env_pc2.to_csv(subset_dir / 'pca_env_corr_pc2.csv')
     
-    logging.info("Building Nutrient time series matrices (V1 columns)...")
-    nutrients = ['cod', 'doc', 'tn', 'tp', 'din', 'dip', 'nh4n', 'no2n', 'no3n', 'po4p']
-    nutr_matrices = []
-    nutr_names = []
-    
-    for nutr in nutrients:
-        mat_s = get_time_series_matrix(merged_df, nutr, season, saisuipoin=1)
-        nutr_matrices.append(mat_s)
-        nutr_names.append(f'{season}_1_{nutr.upper()}')
-        
-        mat_b = get_time_series_matrix(merged_df, nutr, season, saisuipoin=2)
-        nutr_matrices.append(mat_b)
-        nutr_names.append(f'{season}_2_{nutr.upper()}')
+    logging.info(f"Building Nutrient time series matrices for seasons {corr_seasons} and both layers...")
+    nutr_matrices, nutr_names = build_permutation_matrices(builder, corr_params_df, 'nutr', corr_seasons)
+    logging.info(f"Built {len(nutr_names)} nutrient parameter permutations.")
         
     logging.info("Calculating Nutrient correlations...")
     corr_nutr_pc1 = calculate_station_correlations(pca_scores['PC1'], nutr_matrices, nutr_names, min_years=min_periods)

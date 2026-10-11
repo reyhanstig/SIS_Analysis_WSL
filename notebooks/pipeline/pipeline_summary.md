@@ -60,6 +60,31 @@ Based on verification in `notebooks/26_check_temp_wtemp.ipynb`, target variables
 | `chlorophyl` | **Chlorophyll-a** | Phytoplankton biomass indicator (μg/L). |
 
 > **Note on Data Ingestion (V1 Native Columns):** The pipeline explicitly parses the primary (V1) columns (e.g., `do_`, `salt`, `chlorophyl`, `doc`) natively using `pd.to_numeric(errors='coerce')`. Missing data in the original shapefiles (like `None`, empty strings, or Limit of Detection strings like `<0.01`) are automatically and correctly cast as `NaN`. (Previous iterations of this pipeline incorrectly favored "V2" columns like `do_2` or `doc2` which artificially masked missing data with `0.0` or `0.01` float values, severely corrupting downstream statistical calculations like Pearson correlations).
+> 
+### Step 5 Correlation Parameters
+For Step 5 (Environmental Factor Correlation Analysis), a broader set of 17 parameters are evaluated against Dissolved Oxygen PCA scores across all seasons and layers. These are defined in `step5_correlation_parameters.csv` and grouped into two categories:
+
+**Environmental Factors (`env`)**
+- `WTEMP` (`wtemp`): Water Temperature (°C)
+- `SALT` (`salt`): Salinity (PSU)
+- `DENSITY` (`density`): Potential density anomaly (sigma0) computed dynamically with TEOS-10 (kg/m³)
+- `Stratification` (`stratification`): Density gradient `(bottom density - surface density) / (bottom depth - surface depth)` (kg/m⁴)
+- `Wind_Speed` (`fusoku`): Wind speed (m/s)
+- `Air_Temp` (`temp`): Air temperature (°C)
+- `CHLA` (`chlorophyl`): Chlorophyll-a (μg/L)
+
+**Nutrient Factors (`nutr`)**
+- `COD` (`cod`): Chemical oxygen demand (mg/L)
+- `DOC` (`doc`): Dissolved organic carbon (mg/L)
+- `TN` (`tn`): Total nitrogen (mg/L)
+- `TP` (`tp`): Total phosphorus (mg/L)
+- `DIN` (`din`): Dissolved inorganic nitrogen (NH4-N + NO2-N + NO3-N) (mg/L)
+- `DIP` (`dip`): Dissolved inorganic phosphorus / PO4-P (mg/L)
+- `NH4N` (`nh4n`): Ammonium nitrogen (mg/L)
+- `NO2N` (`no2n`): Nitrite nitrogen (mg/L)
+- `NO3N` (`no3n`): Nitrate nitrogen (mg/L)
+- `PO4P` (`po4p`): Phosphate phosphorus (mg/L)
+
 ---
 
 ## 4. Pipeline Stages

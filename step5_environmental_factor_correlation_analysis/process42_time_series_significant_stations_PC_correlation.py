@@ -218,7 +218,7 @@ def main():
             for st in target_stations:
                 st_division_map[st] = target_region
                 
-        safe_title = param_str.replace(' ', '_').replace('/', '_')
+        safe_title = param_str.replace(' ', '_').replace('/', '_').replace('Bottom', 'bottom').replace('Surface', 'surface')
         for old, new in [('NH4N2', 'NH4-N'), ('NH4N', 'NH4-N'), ('NO3N2', 'NO3-N'), ('NO3N', 'NO3-N'), ('NO2N2', 'NO2-N'), ('NO2N', 'NO2-N'), ('PO4P2', 'PO4-P'), ('PO4P', 'PO4-P')]:
             safe_title = safe_title.replace(old, new)
 
@@ -307,12 +307,12 @@ def main():
             ]
             ax1.legend(custom_lines, [f'{pc_name} Score', f'{p_info["title"]} Mean', f'{p_info["title"]} (+ correlation)', f'{p_info["title"]} (- correlation)'], loc='best', fontsize=12, frameon=True)
             
-            # Save output in subfolder per basin
-            basin_out_dir = OUTPUT_DIR / basin_slug
+            # Save output in subfolder per basin and param season
+            basin_out_dir = OUTPUT_DIR / basin_slug / param_season
             basin_out_dir.mkdir(parents=True, exist_ok=True)
             
             plt.tight_layout()
-            plt.savefig(basin_out_dir / f'ts_{pc_name}_{safe_title}_{basin_slug}_{season}_{layer}.png', bbox_inches='tight', dpi=300)
+            plt.savefig(basin_out_dir / f'ts_{pc_name}_{safe_title}_{basin_slug}.png', bbox_inches='tight', dpi=300)
             plt.close(fig)
 
     logging.info(f"Finished processing time series for {target_region}")

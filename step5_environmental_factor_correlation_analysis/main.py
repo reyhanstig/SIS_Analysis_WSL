@@ -101,39 +101,25 @@ def main():
                             sys.exit(code)
                         chunk_idx += 1
 
-                    # Scatter Plots (Specific params)
-                    if data_type == 'env':
-                        scatter_params = ['Summer_Stratification', f'{season}_1_WTEMP', f'{season}_2_WTEMP', f'{season}_Chla_Corr_PC1']
-                    else:
-                        scatter_params = [f'{season}_2_DOC', f'{season}_2_COD', f'{season}_2_TN', f'{season}_2_TP']
-
                     for pc in ['PC1', 'PC2']:
                         df_path = subset_dir / f'pca_{data_type}_corr_{pc.lower()}.csv'
                         if not df_path.exists(): continue
-                        df_corr = pd.read_csv(df_path, nrows=1)
-                
-                        for param in scatter_params:
-                            # process32 expects exact columns (process12 appended _Corr_PC1 but here we use base names if they exist)
-                            actual_param = param.replace('_Corr_PC1', '') 
-                            if actual_param in df_corr.columns:
-                                run_script(step_dir, env, 'process32_loading_scatter_plots.py', '--target_region', target_region, '--season', season, '--layer', layer, '--data_type', data_type, '--param_col', actual_param, '--pc_name', pc)
+                        
+                        run_script(step_dir, env, 'process32_loading_scatter_plots.py', '--target_region', target_region, '--season', season, '--layer', layer, '--data_type', data_type, '--param_col', 'all', '--pc_name', pc)
 
                     # --- Group 40: Spatial Maps ---
                     for pc in ['PC1', 'PC2']:
                         df_path = subset_dir / f'pca_{data_type}_corr_{pc.lower()}.csv'
                         if not df_path.exists(): continue
-                        df_corr = pd.read_csv(df_path, nrows=1)
-                        parameters = [c for c in df_corr.columns if f"{c}_pval" in df_corr.columns]
                 
-                        for param in parameters:
-                            code = run_script(step_dir, env, 'process41_spatial_correlation_maps.py', '--pc_name', pc, '--param', param, '--target_region', target_region, '--season', season, '--layer', layer, '--data_type', data_type)
-                            if code != 0: sys.exit(code)
-                    
-                            code = run_script(step_dir, env, 'process42_time_series_significant_stations_PC_correlation.py', '--pc_name', pc, '--param', param, '--target_region', target_region, '--season', season, '--layer', layer, '--data_type', data_type)
-                            if code != 0: sys.exit(code)
+                        code = run_script(step_dir, env, 'process41_spatial_correlation_maps.py', '--pc_name', pc, '--param', 'all', '--target_region', target_region, '--season', season, '--layer', layer, '--data_type', data_type)
+                        if code != 0: sys.exit(code)
+                
+                        code = run_script(step_dir, env, 'process42_time_series_significant_stations_PC_correlation.py', '--pc_name', pc, '--param', 'all', '--target_region', target_region, '--season', season, '--layer', layer, '--data_type', data_type)
+                        if code != 0: sys.exit(code)
 
-                            code = run_script(step_dir, env, 'process43_confirm_env_parameter_relationship.py', '--pc_name', pc, '--param', param, '--target_region', target_region, '--season', season, '--layer', layer, '--data_type', data_type)
-                            if code != 0: sys.exit(code)
+                        code = run_script(step_dir, env, 'process43_confirm_env_parameter_relationship.py', '--pc_name', pc, '--param', 'all', '--target_region', target_region, '--season', season, '--layer', layer, '--data_type', data_type)
+                        if code != 0: sys.exit(code)
 
     logging.info("All orchestrations completed successfully.")
 

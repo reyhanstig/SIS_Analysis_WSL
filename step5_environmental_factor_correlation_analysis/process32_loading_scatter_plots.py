@@ -73,55 +73,60 @@ def main():
         
     divisions = merged_df[['zettaicode', 'division']].drop_duplicates('zettaicode').set_index('zettaicode')
     
-    if param_col not in corr_df.columns:
-        logging.error(f"Parameter column {param_col} not found in {corr_file}")
-        return
+    if param_col == 'all':
+        params_to_process = [c for c in corr_df.columns if not c.endswith('_pval') and not c.endswith('_n')]
+    else:
+        if param_col not in corr_df.columns:
+            logging.error(f"Parameter column {param_col} not found in {corr_file}")
+            return
+        params_to_process = [param_col]
 
-    plot_df = pd.DataFrame(index=corr_df.index)
-    plot_df['Param_Corr'] = corr_df[param_col]
-    
-    y_col = f'{pc_name}_Loading'
-    plot_df = plot_df.join(pca_loadings[[y_col]])
-    plot_df = plot_df.join(divisions['division'])
-    plot_df = plot_df.dropna(subset=['Param_Corr', y_col, 'division'])
+    for p_col in params_to_process:
+        plot_df = pd.DataFrame(index=corr_df.index)
+        plot_df['Param_Corr'] = corr_df[p_col]
+        
+        y_col = f'{pc_name}_Loading'
+        plot_df = plot_df.join(pca_loadings[[y_col]])
+        plot_df = plot_df.join(divisions['division'])
+        plot_df = plot_df.dropna(subset=['Param_Corr', y_col, 'division'])
 
-    if plot_df.empty:
-        logging.warning("No data to plot after dropping NaNs.")
-        return
+        if plot_df.empty:
+            logging.warning(f"No data to plot for {p_col} after dropping NaNs.")
+            continue
 
-    fig, ax = plt.subplots(figsize=(14, 8))
+        fig, ax = plt.subplots(figsize=(14, 8))
 
-    unique_divisions = plot_df['division'].unique()
-    palette = sns.color_palette("tab10", n_colors=len(unique_divisions))
+        unique_divisions = plot_df['division'].unique()
+        palette = sns.color_palette("tab10", n_colors=len(unique_divisions))
 
-    sns.scatterplot(
-        data=plot_df, x='Param_Corr', y=y_col, hue='division', 
-        palette=palette, edgecolor='k', s=100, alpha=0.85, ax=ax
-    )
-    
-    ax.axhline(0, color='gray', linestyle='--', zorder=1)
-    ax.axvline(0, color='gray', linestyle='--', zorder=1)
-    
-    for idx, row in plot_df.iterrows():
-        ax.annotate(idx, (row['Param_Corr'], row[y_col]),
-                    xytext=(4, 4), textcoords='offset points',
-                    fontsize=8, alpha=0.8,
-                    bbox=dict(boxstyle="round,pad=0.2", fc="white", alpha=0.5, ec="none"))
-                    
-    param_title = param_col.replace('_', ' ')
-    for old, new in [('NH4N2', 'NH4-N'), ('NH4N', 'NH4-N'), ('NO3N2', 'NO3-N'), ('NO3N', 'NO3-N'), ('NO2N2', 'NO2-N'), ('NO2N', 'NO2-N'), ('PO4P2', 'PO4-P'), ('PO4P', 'PO4-P')]:
-        param_title = param_title.replace(old, new)
-    ax.set_title(f"DO ({y_col}) vs. {param_title} Correlation ({target_region})", fontsize=15, fontweight='bold')
-    ax.set_xlabel(f"{param_title} (Pearson r with {pc_name})", fontsize=13)
-    ax.set_ylabel(f"DO ({y_col})", fontsize=13)
-    ax.legend(title='Division', bbox_to_anchor=(1.01, 1), loc='upper left')
+        sns.scatterplot(
+            data=plot_df, x='Param_Corr', y=y_col, hue='division', 
+            palette=palette, edgecolor='k', s=100, alpha=0.85, ax=ax
+        )
+        
+        ax.axhline(0, color='gray', linestyle='--', zorder=1)
+        ax.axvline(0, color='gray', linestyle='--', zorder=1)
+        
+        for idx, row in plot_df.iterrows():
+            ax.annotate(idx, (row['Param_Corr'], row[y_col]),
+                        xytext=(4, 4), textcoords='offset points',
+                        fontsize=8, alpha=0.8,
+                        bbox=dict(boxstyle="round,pad=0.2", fc="white", alpha=0.5, ec="none"))
+                        
+        param_title = p_col.replace('_', ' ')
+        for old, new in [('NH4N2', 'NH4-N'), ('NH4N', 'NH4-N'), ('NO3N2', 'NO3-N'), ('NO3N', 'NO3-N'), ('NO2N2', 'NO2-N'), ('NO2N', 'NO2-N'), ('PO4P2', 'PO4-P'), ('PO4P', 'PO4-P')]:
+            param_title = param_title.replace(old, new)
+        ax.set_title(f"DO ({y_col}) vs. {param_title} Correlation ({target_region})", fontsize=15, fontweight='bold')
+        ax.set_xlabel(f"{param_title} (Pearson r with {pc_name})", fontsize=13)
+        ax.set_ylabel(f"DO ({y_col})", fontsize=13)
+        ax.legend(title='Division', bbox_to_anchor=(1.01, 1), loc='upper left')
 
-    plt.tight_layout()
-    safe_param = param_col.replace(' ', '_').replace('/', '_')
-    for old, new in [('NH4N2', 'NH4-N'), ('NH4N', 'NH4-N'), ('NO3N2', 'NO3-N'), ('NO3N', 'NO3-N'), ('NO2N2', 'NO2-N'), ('NO2N', 'NO2-N'), ('PO4P2', 'PO4-P'), ('PO4P', 'PO4-P')]:
-        safe_param = safe_param.replace(old, new)
-    plt.savefig(OUTPUT_DIR / f'do_loading_scatter_{data_type}_{pc_name}_{safe_param}_{region_slug}_{season}_{layer}.png', bbox_inches='tight', dpi=300)
-    plt.close()
+        plt.tight_layout()
+        safe_param = p_col.replace(' ', '_').replace('/', '_')
+        for old, new in [('NH4N2', 'NH4-N'), ('NH4N', 'NH4-N'), ('NO3N2', 'NO3-N'), ('NO3N', 'NO3-N'), ('NO2N2', 'NO2-N'), ('NO2N', 'NO2-N'), ('PO4P2', 'PO4-P'), ('PO4P', 'PO4-P')]:
+            safe_param = safe_param.replace(old, new)
+        plt.savefig(OUTPUT_DIR / f'do_loading_scatter_{data_type}_{pc_name}_{safe_param}_{region_slug}_{season}_{layer}.png', bbox_inches='tight', dpi=300)
+        plt.close(fig)
 
 if __name__ == '__main__':
     main()

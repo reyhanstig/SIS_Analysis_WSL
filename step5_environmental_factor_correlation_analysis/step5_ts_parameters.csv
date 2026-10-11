@@ -1,22 +1,85 @@
 title,col,layer,season,unit
+Surface Spring DO,do_,1,Spring,mg/L
 Surface Summer DO,do_,1,Summer,mg/L
+Surface Autumn DO,do_,1,Autumn,mg/L
+Surface Winter DO,do_,1,Winter,mg/L
+Bottom Spring DO,do_,2,Spring,mg/L
 Bottom Summer DO,do_,2,Summer,mg/L
+Bottom Autumn DO,do_,2,Autumn,mg/L
+Bottom Winter DO,do_,2,Winter,mg/L
+Spring SST,wtemp,1,Spring,°C
 Summer SST,wtemp,1,Summer,°C
+Autumn SST,wtemp,1,Autumn,°C
+Winter SST,wtemp,1,Winter,°C
+Spring SBT,wtemp,2,Spring,°C
 Summer SBT,wtemp,2,Summer,°C
+Autumn SBT,wtemp,2,Autumn,°C
+Winter SBT,wtemp,2,Winter,°C
+Spring SSS,salt,1,Spring,PSU
 Summer SSS,salt,1,Summer,PSU
+Autumn SSS,salt,1,Autumn,PSU
+Winter SSS,salt,1,Winter,PSU
+Spring SBS,salt,2,Spring,PSU
 Summer SBS,salt,2,Summer,PSU
+Autumn SBS,salt,2,Autumn,PSU
+Winter SBS,salt,2,Winter,PSU
+Surface Spring Chl-a,chlorophyl,1,Spring,μg/L
 Surface Summer Chl-a,chlorophyl,1,Summer,μg/L
+Surface Autumn Chl-a,chlorophyl,1,Autumn,μg/L
+Surface Winter Chl-a,chlorophyl,1,Winter,μg/L
+Bottom Spring Chl-a,chlorophyl,2,Spring,μg/L
 Bottom Summer Chl-a,chlorophyl,2,Summer,μg/L
+Bottom Autumn Chl-a,chlorophyl,2,Autumn,μg/L
+Bottom Winter Chl-a,chlorophyl,2,Winter,μg/L
+Surface Spring TN,tn,1,Spring,mg/L
 Surface Summer TN,tn,1,Summer,mg/L
+Surface Autumn TN,tn,1,Autumn,mg/L
+Surface Winter TN,tn,1,Winter,mg/L
+Bottom Spring TN,tn,2,Spring,mg/L
 Bottom Summer TN,tn,2,Summer,mg/L
+Bottom Autumn TN,tn,2,Autumn,mg/L
+Bottom Winter TN,tn,2,Winter,mg/L
+Surface Spring TP,tp,1,Spring,mg/L
 Surface Summer TP,tp,1,Summer,mg/L
+Surface Autumn TP,tp,1,Autumn,mg/L
+Surface Winter TP,tp,1,Winter,mg/L
+Bottom Spring TP,tp,2,Spring,mg/L
 Bottom Summer TP,tp,2,Summer,mg/L
+Bottom Autumn TP,tp,2,Autumn,mg/L
+Bottom Winter TP,tp,2,Winter,mg/L
+Surface Spring DIN,din,1,Spring,mg/L
 Surface Summer DIN,din,1,Summer,mg/L
+Surface Autumn DIN,din,1,Autumn,mg/L
+Surface Winter DIN,din,1,Winter,mg/L
+Bottom Spring DIN,din,2,Spring,mg/L
 Bottom Summer DIN,din,2,Summer,mg/L
+Bottom Autumn DIN,din,2,Autumn,mg/L
+Bottom Winter DIN,din,2,Winter,mg/L
+Surface Spring DIP,po4p,1,Spring,mg/L
 Surface Summer DIP,po4p,1,Summer,mg/L
+Surface Autumn DIP,po4p,1,Autumn,mg/L
+Surface Winter DIP,po4p,1,Winter,mg/L
+Bottom Spring DIP,po4p,2,Spring,mg/L
 Bottom Summer DIP,po4p,2,Summer,mg/L
+Bottom Autumn DIP,po4p,2,Autumn,mg/L
+Bottom Winter DIP,po4p,2,Winter,mg/L
+Surface Spring COD,cod,1,Spring,mg/L
 Surface Summer COD,cod,1,Summer,mg/L
+Surface Autumn COD,cod,1,Autumn,mg/L
+Surface Winter COD,cod,1,Winter,mg/L
+Bottom Spring COD,cod,2,Spring,mg/L
 Bottom Summer COD,cod,2,Summer,mg/L
+Bottom Autumn COD,cod,2,Autumn,mg/L
+Bottom Winter COD,cod,2,Winter,mg/L
+Surface Spring DOC,doc,1,Spring,mg/L
 Surface Summer DOC,doc,1,Summer,mg/L
+Surface Autumn DOC,doc,1,Autumn,mg/L
+Surface Winter DOC,doc,1,Winter,mg/L
+Bottom Spring DOC,doc,2,Spring,mg/L
 Bottom Summer DOC,doc,2,Summer,mg/L
+Bottom Autumn DOC,doc,2,Autumn,mg/L
+Bottom Winter DOC,doc,2,Winter,mg/L
+Spring Stratification,stratification,2,Spring,kg/m³
+Summer Stratification,stratification,2,Summer,kg/m³
+Autumn Stratification,stratification,2,Autumn,kg/m³
 Winter Stratification,stratification,2,Winter,kg/m³

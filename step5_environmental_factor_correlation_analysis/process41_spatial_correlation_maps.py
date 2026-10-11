@@ -38,8 +38,23 @@ from utils.mapping_config import MappingConfig
 # Apply the global project style
 plt.style.use(str(ProjectPaths.PROJECT_ROOT / 'project_style.mplstyle'))
 
+DEFAULT_SEASONS = ['Spring', 'Summer', 'Autumn', 'Winter']
+LAYER_NAMES = {'1': 'Surface', '2': 'Bottom'}
+NUTRIENT_LABELS = {'NH4N': 'NH4-N', 'NO2N': 'NO2-N', 'NO3N': 'NO3-N', 'PO4P': 'PO4-P'}
 
-def create_correlation_map(corr_df, parameter, output_path, pc_name, merged_df, target_region="Seto Inland Sea"):
+def parse_param_column(col, seasons=DEFAULT_SEASONS):
+    parts = col.split('_')
+    if parts[0] not in seasons or len(parts) < 2:
+        return 'Other', col.replace('_', ' ')
+    param_season = parts[0]
+    if parts[1] in LAYER_NAMES and len(parts) >= 3:
+        label = '_'.join(parts[2:])
+        label = NUTRIENT_LABELS.get(label, label).replace('_', ' ')
+        return param_season, f"{LAYER_NAMES[parts[1]]} {label}"
+    return param_season, '_'.join(parts[1:]).replace('_', ' ')
+
+
+def create_correlation_map(corr_df, parameter, output_path, pc_name, merged_df, target_region="Seto Inland Sea", param_season="Other", param_label=""):
     stations = merged_df[['zettaicode', 'latitude', 'longitude']].drop_duplicates('zettaicode').set_index('zettaicode')
     stations.index = stations.index.astype(str).str.zfill(8)
     corr_df.index = corr_df.index.astype(str).str.zfill(8)
@@ -128,7 +143,8 @@ def create_correlation_map(corr_df, parameter, output_path, pc_name, merged_df, 
     )
     
     # 7. Add Title and Colorbar
-    plt.title(f"{pc_name} vs {parameter.replace('_', ' ')} Correlation\n{target_region}", pad=20, fontsize=20, fontweight='bold')
+    display_title = f"{pc_name} vs {param_season} {param_label} Correlation" if param_label else f"{pc_name} vs {parameter.replace('_', ' ')} Correlation"
+    plt.title(f"{display_title}\n{target_region}", pad=20, fontsize=20, fontweight='bold')
     
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
     sm.set_array([])
@@ -187,13 +203,15 @@ def main():
     region_output_dir.mkdir(parents=True, exist_ok=True)
     
     for param in params_to_process:
-        safe_param = param.replace(' ', '_').replace('/', '_')
-        for old, new in [('NH4N2', 'NH4-N'), ('NH4N', 'NH4-N'), ('NO3N2', 'NO3-N'), ('NO3N', 'NO3-N'), ('NO2N2', 'NO2-N'), ('NO2N', 'NO2-N'), ('PO4P2', 'PO4-P'), ('PO4P', 'PO4-P')]:
-            safe_param = safe_param.replace(old, new)
+        param_season, param_label = parse_param_column(param)
         
-        output_path = region_output_dir / f"spatial_corr_map_{data_type}_{args.pc_name}_{safe_param}_{region_str}_{season}_{layer}.png"
+        param_out_dir = region_output_dir / param_season
+        param_out_dir.mkdir(parents=True, exist_ok=True)
+
+        safe_param = f"{param_season}_{param_label}".replace(' ', '_').replace('/', '_').replace('Bottom', 'bottom').replace('Surface', 'surface')
+        output_path = param_out_dir / f"spatial_corr_map_{data_type}_{args.pc_name}_{safe_param}_{region_str}.png"
         
-        create_correlation_map(df_pc, param, output_path, args.pc_name, merged_df, args.target_region)
+        create_correlation_map(df_pc, param, output_path, args.pc_name, merged_df, args.target_region, param_season, param_label)
         logging.info(f"Correlation map generated: {output_path.name}")
 
 if __name__ == '__main__':

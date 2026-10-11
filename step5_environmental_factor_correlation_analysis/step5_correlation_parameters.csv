@@ -1,0 +1,18 @@
+data_type,label,source_col,layered,derivation,unit,description
+env,WTEMP,wtemp,True,direct,°C,Water temperature
+env,SALT,salt,True,direct,PSU,Salinity
+env,DENSITY,density,True,density,kg/m³,Potential density anomaly (sigma0) computed with TEOS-10 from wtemp and salt
+env,Stratification,stratification,False,stratification,kg/m⁴,(bottom density - surface density) / (bottom depth - surface depth)
+env,Wind_Speed,fusoku,False,direct,m/s,Wind speed (mean over all sampling layers)
+env,Air_Temp,temp,False,direct,°C,Air temperature (mean over all sampling layers)
+env,CHLA,chlorophyl,True,direct,μg/L,Chlorophyll-a
+nutr,COD,cod,True,direct,mg/L,Chemical oxygen demand
+nutr,DOC,doc,True,direct,mg/L,Dissolved organic carbon
+nutr,TN,tn,True,direct,mg/L,Total nitrogen
+nutr,TP,tp,True,direct,mg/L,Total phosphorus
+nutr,DIN,din,True,direct,mg/L,Dissolved inorganic nitrogen (NH4-N + NO2-N + NO3-N)
+nutr,DIP,dip,True,direct,mg/L,Dissolved inorganic phosphorus (PO4-P)
+nutr,NH4N,nh4n,True,direct,mg/L,Ammonium nitrogen
+nutr,NO2N,no2n,True,direct,mg/L,Nitrite nitrogen
+nutr,NO3N,no3n,True,direct,mg/L,Nitrate nitrogen
+nutr,PO4P,po4p,True,direct,mg/L,Phosphate phosphorus

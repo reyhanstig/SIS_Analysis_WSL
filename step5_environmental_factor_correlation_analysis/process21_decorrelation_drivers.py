@@ -72,34 +72,31 @@ def main():
     if 'Station_ID' in decorr_df.columns:
         decorr_df['zettaicode'] = decorr_df['Station_ID'].astype(str).str.zfill(8)
 
+    from process01_data_integrity_and_correlation import MatrixBuilder, build_permutation_matrices
+
     stations = merged_df[['zettaicode', 'latitude', 'longitude']].drop_duplicates('zettaicode').set_index('zettaicode')
-
-    sst = get_climatology(merged_df, 'wtemp', 'Summer', 1)
-    sbt = get_climatology(merged_df, 'wtemp', 'Summer', 2)
-    sss = get_climatology(merged_df, 'salt', 'Summer', 1)
-    sbs = get_climatology(merged_df, 'salt', 'Summer', 2)
-    wind = get_climatology(merged_df, 'fusoku', 'Summer')
-    air_t = get_climatology(merged_df, 'temp', 'Winter')
-    chla = get_climatology(merged_df, 'chlorophyl', 'Spring')
-
+    builder = MatrixBuilder(merged_df, stations)
+    
+    corr_params_df = pd.read_csv(CURRENT_SCRIPT.parent / 'step5_correlation_parameters.csv')
+    param_file = CURRENT_SCRIPT.parent / 'step5_parameter.csv'
+    df_p = pd.read_csv(param_file) if param_file.exists() else pd.DataFrame(columns=['parameter_name', 'value'])
+    params = dict(zip(df_p['parameter_name'], df_p['value'])) if not df_p.empty else {}
+    corr_seasons = [s.strip() for s in str(params.get('correlation_seasons', 'Spring, Summer, Autumn, Winter')).split(',')]
+    
+    matrices_env, names_env = build_permutation_matrices(builder, corr_params_df, 'env', corr_seasons)
+    matrices_nutr, names_nutr = build_permutation_matrices(builder, corr_params_df, 'nutr', corr_seasons)
+    
+    all_names = names_env + names_nutr
+    all_matrices = matrices_env + matrices_nutr
+    
     result_df = stations.copy()
-    result_df['Mean_Summer_Surface_Temp'] = sst
-    result_df['Mean_Summer_Bottom_Temp'] = sbt
-    result_df['Mean_Summer_Surface_Salinity'] = sss
-    result_df['Mean_Summer_Bottom_Salinity'] = sbs
-    result_df['Mean_Summer_Wind_Speed'] = wind
-    result_df['Mean_Winter_Air_Temp'] = air_t
-    result_df['Mean_Spring_Chla'] = chla
-
-    result_df['SA_surface'] = gsw.SA_from_SP(result_df['Mean_Summer_Surface_Salinity'], 0, result_df['longitude'], result_df['latitude'])
-    result_df['CT_surface'] = gsw.CT_from_t(result_df['SA_surface'], result_df['Mean_Summer_Surface_Temp'], 0)
-    result_df['Mean_Summer_Surface_Density'] = gsw.sigma0(result_df['SA_surface'], result_df['CT_surface'])
-
-    result_df['SA_bottom'] = gsw.SA_from_SP(result_df['Mean_Summer_Bottom_Salinity'], 0, result_df['longitude'], result_df['latitude'])
-    result_df['CT_bottom'] = gsw.CT_from_t(result_df['SA_bottom'], result_df['Mean_Summer_Bottom_Temp'], 0)
-    result_df['Mean_Summer_Bottom_Density'] = gsw.sigma0(result_df['SA_bottom'], result_df['CT_bottom'])
-
-    result_df = result_df.drop(columns=['SA_surface', 'CT_surface', 'SA_bottom', 'CT_bottom', 'latitude', 'longitude'])
+    param_cols = []
+    
+    # Calculate the climatology (mean over all years) for each permutation
+    for name, mat in zip(all_names, all_matrices):
+        col_name = f"Mean_{name}"
+        result_df[col_name] = mat.mean(axis=0)
+        param_cols.append(col_name)
 
     decorr_df = decorr_df.set_index('zettaicode')
     if 'Decorrelation_Scale_km' in decorr_df.columns:
@@ -108,13 +105,6 @@ def main():
         result_df = result_df.join(decorr_df[['decorrelation_scale']])
     elif 'dx' in decorr_df.columns:
         result_df = result_df.join(decorr_df[['dx']].rename(columns={'dx': 'decorrelation_scale'}))
-
-    param_cols = [
-        'Mean_Summer_Surface_Temp', 'Mean_Summer_Bottom_Temp',
-        'Mean_Summer_Surface_Salinity', 'Mean_Summer_Bottom_Salinity',
-        'Mean_Summer_Wind_Speed', 'Mean_Winter_Air_Temp', 'Mean_Spring_Chla',
-        'Mean_Summer_Surface_Density', 'Mean_Summer_Bottom_Density',
-    ]
 
     model_df = result_df[param_cols + ['decorrelation_scale']].dropna()
     X = model_df[param_cols]

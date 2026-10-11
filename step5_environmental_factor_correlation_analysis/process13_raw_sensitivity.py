@@ -11,6 +11,8 @@ import seaborn as sns
 from scipy import stats
 import yaml
 
+from process01_data_integrity_and_correlation import MatrixBuilder, build_permutation_matrices
+
 # --- BOILERPLATE INJECTED BY AGENT ---
 CURRENT_SCRIPT = Path(__file__).resolve()
 sys.path.insert(0, str(CURRENT_SCRIPT.parent.parent))
@@ -48,41 +50,28 @@ plt.rcParams.update({
 with open(ProjectPaths.PROJECT_ROOT / 'params.yaml', 'r') as f:
     project_params = yaml.safe_load(f)
 
-def calc_raw_corr(station_id, param_col, merged_data, season, layer):
-    rep_months = project_params['seasonal_subsets']['representative_months'].get(season, [7, 8, 9])
-    
-    st_data = merged_data[
-        (merged_data['zettaicode'] == station_id) & 
-        (merged_data['surveymont'].isin(rep_months) if isinstance(rep_months, list) else merged_data['surveymont'] == rep_months)
-    ]
-    
-    layer_map = {'surface': 1, 'bottom': 2}
-    layer_idx = layer_map.get(layer.lower(), 2)
-    st_data_layer = st_data[st_data['saisuipoin'] == layer_idx].sort_values('year')
-    
-    do_vals = pd.to_numeric(st_data_layer['do_'], errors='coerce')
-    
-    if param_col == 'din':
-        cols = ['nh4n', 'no2n', 'no3n']
-        available_cols = [c for c in cols if c in st_data_layer.columns]
-        if available_cols:
-            param_vals = st_data_layer[available_cols].apply(pd.to_numeric, errors='coerce').sum(axis=1, min_count=1)
-        else:
-            param_vals = pd.Series(np.nan, index=st_data_layer.index)
-    elif param_col == 'dip':
-        col = 'po4p'
-        if col in st_data_layer.columns:
-            param_vals = pd.to_numeric(st_data_layer[col], errors='coerce')
-        else:
-            param_vals = pd.Series(np.nan, index=st_data_layer.index)
-    elif param_col in st_data_layer.columns:
-        param_vals = pd.to_numeric(st_data_layer[param_col], errors='coerce')
-    else:
-        param_vals = pd.Series(np.nan, index=st_data_layer.index)
-    
-    valid = ~(do_vals.isna() | param_vals.isna())
-    if valid.sum() > 5:
-        r, p = stats.pearsonr(do_vals[valid], param_vals[valid])
+LAYER_CODES = [1, 2]  # saisuipoin: 1 = surface, 2 = bottom
+DEFAULT_SEASONS = ['Spring', 'Summer', 'Autumn', 'Winter']
+MIN_YEARS = 6  # same threshold as before (> 5 valid pairs)
+
+
+def load_correlation_seasons():
+    """Return the parameter seasons to permute over from step5_parameter.csv."""
+    param_file = CURRENT_SCRIPT.parent / 'step5_parameter.csv'
+    if not param_file.exists():
+        logging.warning(f"{param_file} not found. Using default seasons {DEFAULT_SEASONS}.")
+        return DEFAULT_SEASONS
+    df_p = pd.read_csv(param_file)
+    params = dict(zip(df_p['parameter_name'], df_p['value']))
+    value = params.get('correlation_seasons', ', '.join(DEFAULT_SEASONS))
+    return [s.strip() for s in str(value).split(',')]
+
+
+def calc_raw_corr(do_series, param_series):
+    """Pearson r between two yearly series of one station (requires > 5 common years)."""
+    pair = pd.concat([do_series, param_series], axis=1, join='inner').dropna()
+    if len(pair) >= MIN_YEARS and pair.iloc[:, 0].std() > 0 and pair.iloc[:, 1].std() > 0:
+        r, _ = stats.pearsonr(pair.iloc[:, 0], pair.iloc[:, 1])
         return r
     return np.nan
 
@@ -111,25 +100,41 @@ def main():
     
     merged_gdf = load_and_process_data(force_reload=False)
     merged_gdf['zettaicode'] = merged_gdf['zettaicode'].astype(str).str.zfill(8)
+    # Only the grouped stations are needed
+    merged_gdf = merged_gdf[merged_gdf['zettaicode'].isin(analysis_df['Station_ID'])]
+    
+    stations = merged_gdf[['zettaicode', 'latitude', 'longitude']].drop_duplicates('zettaicode').set_index('zettaicode')
+    builder = MatrixBuilder(merged_gdf, stations)
 
-    raw_params = {
-        'Temp': 'wtemp', 'Salinity': 'salt', 'COD': 'cod', 'DOC': 'doc', 
-        'TN': 'tn', 'TP': 'tp', 'DIN': 'din', 'DIP': 'dip', 
-        'NH4N': 'nh4n', 'NO2N': 'no2n', 'NO3N': 'no3n', 
-        'PO4P': 'po4p', 'Chla': 'chlorophyl'
-    }
+    # DO of the analysed subset (season / layer of the trend groups)
+    layer_map = {'surface': 1, 'bottom': 2}
+    do_layer_code = layer_map.get(layer.lower(), 2)
+    do_matrix = builder.raw('do_', season, do_layer_code)
+
+    corr_params_df = pd.read_csv(CURRENT_SCRIPT.parent / 'step5_correlation_parameters.csv')
+    corr_seasons = load_correlation_seasons()
+    
+    # We need both env and nutr permutations
+    matrices_env, names_env = build_permutation_matrices(builder, corr_params_df, 'env', corr_seasons)
+    matrices_nutr, names_nutr = build_permutation_matrices(builder, corr_params_df, 'nutr', corr_seasons)
+    
+    param_matrices = dict(zip(names_env + names_nutr, matrices_env + matrices_nutr))
 
     raw_results = []
     for idx, row in analysis_df.iterrows():
         sid = row['Station_ID']
         res = {'Station_ID': sid, 'Group': row['Group']}
-        for name, col in raw_params.items():
-            res[name] = calc_raw_corr(sid, col, merged_gdf, season, layer)
+        do_series = do_matrix[sid] if sid in do_matrix.columns else None
+        for perm_name, mat in param_matrices.items():
+            if do_series is None or sid not in mat.columns:
+                res[perm_name] = np.nan
+            else:
+                res[perm_name] = calc_raw_corr(do_series, mat[sid])
         raw_results.append(res)
 
     raw_df = pd.DataFrame(raw_results)
 
-    params_to_plot_raw = list(raw_params.keys())
+    params_to_plot_raw = list(param_matrices.keys())
     melted_raw_df = raw_df.melt(id_vars=['Station_ID', 'Group'], value_vars=params_to_plot_raw, 
                                  var_name='Parameter', value_name='Correlation')
     melted_raw_df = melted_raw_df.dropna(subset=['Correlation'])
@@ -155,7 +160,8 @@ def main():
 
     param_order_raw = melted_raw_df.groupby('Parameter')['Correlation'].median().sort_values(ascending=False).index
 
-    plt.figure(figsize=(22, 10))
+    # Width scales with the number of parameter permutations so labels stay legible
+    plt.figure(figsize=(max(22, 0.45 * len(param_order_raw)), 10))
     ax = sns.boxplot(data=melted_raw_df, x='Parameter', y='Correlation', hue='Group', 
                     order=param_order_raw, palette=['indianred', 'steelblue'], showfliers=False)
 

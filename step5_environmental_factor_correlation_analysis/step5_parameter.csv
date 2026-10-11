@@ -1,5 +1,8 @@
 parameter_name,value,type,description
-seasons,"Spring, Summer, Autumn, Winter",string,Seasons for analysis
-layers,"surface, bottom",string,Layers for analysis
+seasons,"Spring, Summer, Autumn, Winter",string,Seasons of the DO/PCA subsets to analyse
+layers,"surface, bottom",string,Layers of the DO/PCA subsets to analyse
 target_region,"Seto Inland Sea, Tokyo Bay, Ise Bay",string,Target regions for mapping (comma separated)
 ts_params_file,step5_ts_parameters.csv,file,File containing the time series parameters table
+correlation_seasons,"Spring, Summer, Autumn, Winter",string,Seasons of the environmental/nutrient parameters that are correlated against every DO/PCA subset (all permutations)
+correlation_params_file,step5_correlation_parameters.csv,file,File listing the environmental/nutrient parameters expanded over correlation_seasons and both depth layers
+rf_max_feature_missing_fraction,0.5,float,process21: drop Random Forest features that are missing at more than this fraction of stations before dropping incomplete rows

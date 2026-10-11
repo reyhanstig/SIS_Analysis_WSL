@@ -41,41 +41,14 @@ plt.rcParams.update({
 })
 
 def get_best_match(raw_name, pca_params, season, layer):
-    layer_num = '1' if layer.lower() == 'surface' else '2'
-    
-    mapping_hints = {
-        'Temp': f'{season} {layer_num} WTEMP',
-        'Salinity': f'{season} {layer_num} SALT2',
-        'Density': f'{season} {layer_num} DENSITY',
-        'Stratification': f'{season} Stratification',
-        'Chla': f'{season} Chla',
-        'COD': f'{season} {layer_num} COD',
-        'DOC': f'{season} {layer_num} DOC',
-        'TN': f'{season} {layer_num} TN',
-        'TP': f'{season} {layer_num} TP',
-        'DIN': f'{season} {layer_num} DIN',
-        'DIP': f'{season} {layer_num} DIP',
-        'PO4P': f'{season} {layer_num} PO4P',
-        'NH4N': f'{season} {layer_num} NH4N',
-        'NO2N': f'{season} {layer_num} NO2N',
-        'NO3N': f'{season} {layer_num} NO3N'
-    }
-    
-    hint = mapping_hints.get(raw_name, raw_name)
-    
-    # Check exact
-    if hint in pca_params:
-        return hint
-        
-    # Check partial
+    # Both process12 and process13 now produce identical permutations.
+    # Just ensure we match ignoring underscores/spaces.
+    clean_raw = raw_name.replace('_', ' ')
     for p in pca_params:
-        # Simplistic matching for Chla
-        if 'Chla' in hint and 'Chla' in p:
-            return p
-        if raw_name.upper() in p.upper() and layer_num in p:
+        if p.replace('_', ' ') == clean_raw:
             return p
             
-    return hint
+    return raw_name
 
 def main():
     parser = argparse.ArgumentParser()

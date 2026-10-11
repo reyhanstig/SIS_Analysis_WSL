@@ -81,7 +81,9 @@ def main():
     corr_pc1_env = pd.read_csv(env_corr_path, dtype={'zettaicode': str})
     corr_pc1_nutr = pd.read_csv(nutr_corr_path, dtype={'zettaicode': str})
 
-    params_env = [c for c in corr_pc1_env.columns if c != 'zettaicode' and not c.endswith('_pval') and not c.endswith('_n') and c != 'Winter_Air_Temp']
+    # All parameter x season x layer permutations from process01.
+    # Air temperature is excluded for every season (generalises the former 'Winter_Air_Temp' exclusion).
+    params_env = [c for c in corr_pc1_env.columns if c != 'zettaicode' and not c.endswith('_pval') and not c.endswith('_n') and not c.endswith('_Air_Temp')]
     params_nutr = [c for c in corr_pc1_nutr.columns if c != 'zettaicode' and not c.endswith('_pval') and not c.endswith('_n')]
 
     pca_corr = corr_pc1_env[['zettaicode'] + params_env].rename(columns={c: f"{c}_Corr_PC1" for c in params_env})
@@ -89,36 +91,9 @@ def main():
 
     analysis_df = selected_stations.merge(pca_corr, left_on='Station_ID', right_on='zettaicode', how='inner')
 
-    if 'Summer_Chla_Corr_PC1' not in analysis_df.columns:
-        logging.info("Calculating Summer Chl-a correlations...")
-        pca_scores = pd.read_csv(subset_dir / 'pca_scores.csv', index_col=0)
-        pca_scores.index = pca_scores.index.astype(int)
-        
-        merged_gdf = load_and_process_data(force_reload=False)
-        merged_gdf['zettaicode'] = merged_gdf['zettaicode'].astype(str).str.zfill(8)
-        
-        layer_map = {'surface': 1, 'bottom': 2}
-        layer_idx = layer_map.get(layer.lower(), 2)
-        
-        mask = (merged_gdf['season'] == season) & (merged_gdf['saisuipoin'] == layer_idx)
-        chla_mat = merged_gdf[mask].groupby(['year', 'zettaicode'])['chlorophyl'].mean().unstack()
-        
-        chla_corrs = {}
-        for stn in analysis_df['Station_ID'].unique():
-            if stn in chla_mat.columns:
-                s_pc = pca_scores['PC1']
-                s_env = chla_mat[stn]
-                common = s_pc.index.intersection(s_env.index)
-                valid = s_pc.loc[common].notna() & s_env.loc[common].notna()
-                if valid.sum() >= 5:
-                    r, _ = pearsonr(s_pc.loc[common][valid], s_env.loc[common][valid])
-                    chla_corrs[stn] = r
-        
-        analysis_df['Summer_Chla_Corr_PC1'] = analysis_df['Station_ID'].map(chla_corrs)
-
+    # Chl-a for every season and both layers is already part of the process01 permutations
+    # ('{Season}_{layer}_CHLA'), so no separate Chl-a correlation is computed here.
     params_to_test = [f"{p}_Corr_PC1" for p in params_env + params_nutr]
-    if 'Summer_Chla_Corr_PC1' not in params_to_test:
-        params_to_test.append('Summer_Chla_Corr_PC1')
 
     # Prepare data for grouped plotting (Melt)
     params_to_plot = [p for p in params_to_test if p in analysis_df.columns]
@@ -150,7 +125,8 @@ def main():
     # Sort parameters
     param_order = melted_df.groupby('Parameter')['Correlation'].median().sort_values(ascending=False).index
 
-    plt.figure(figsize=(22, 10))
+    # Width scales with the number of parameter permutations so labels stay legible
+    plt.figure(figsize=(max(22, 0.45 * len(param_order)), 10))
     ax = sns.boxplot(data=melted_df, x='Parameter', y='Correlation', hue='Group', 
                     order=param_order, palette=['indianred', 'steelblue'], showfliers=False)
 
