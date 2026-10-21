@@ -34,6 +34,10 @@ if param_file.exists():
             PARAMS[row['parameter_name']] = row['value']
 # -------------------------------------
 
+# Regions filtered on 'watermass_name' (all others are sub-basins filtered on 'division')
+WATERMASS_REGIONS = [str(PARAMS.get('whole_area_region', 'Seto Inland Sea')).strip()] + \
+    [v.strip() for v in str(PARAMS.get('bay_regions', 'Tokyo Bay;Ise Bay')).split(';') if v.strip()]
+
 import argparse
 import numpy as np
 import seaborn as sns
@@ -67,7 +71,7 @@ def main():
         params = yaml.safe_load(f)
 
     # Note: Using watermass_name vs division dynamically based on target
-    if TARGET_REGION in ['Tokyo Bay', 'Ise Bay', 'Seto Inland Sea']:
+    if TARGET_REGION in WATERMASS_REGIONS:
         REGION_COLUMN = 'watermass_name'
     else:
         REGION_COLUMN = 'division'

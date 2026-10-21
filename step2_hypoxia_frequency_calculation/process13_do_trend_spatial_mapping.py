@@ -34,6 +34,10 @@ if param_file.exists():
             PARAMS[row['parameter_name']] = row['value']
 # -------------------------------------
 
+# Regions filtered on 'watermass_name' (all others are sub-basins filtered on 'division')
+WATERMASS_REGIONS = [str(PARAMS.get('whole_area_region', 'Seto Inland Sea')).strip()] + \
+    [v.strip() for v in str(PARAMS.get('bay_regions', 'Tokyo Bay;Ise Bay')).split(';') if v.strip()]
+
 """
 DO Trend Spatial Mapping — Per Bay
 Produces DO Trend and Severity Spatial Mapping for a specified division.
@@ -245,27 +249,11 @@ def gdf_to_clip_path(gdf):
 def _add_gridlines(ax):
     return MappingConfig.apply_gridlines(ax)
 
-def add_global_scalebar(ax_scale, dx, dy):
-    ax_scale.set_visible(True)
-    ax_scale.axis('off')
-    ax_scale.set_extent([0, dx, 0, dy], crs=ccrs.PlateCarree())
-    
-    km_per_deg_lon = 111.32 * np.cos(np.radians(34.0))
-    deg_20km = 20.0 / km_per_deg_lon
-    
-    lon_start = dx * 0.4
-    lon_end = lon_start + deg_20km
-    lat_pos = dy * 0.1
-    
-    ax_scale.plot([lon_start, lon_end], [lat_pos, lat_pos], color='black', lw=3, transform=ccrs.PlateCarree())
-    ax_scale.text((lon_start + lon_end)/2, lat_pos + dy * 0.05, '20 km', ha='center', va='bottom', 
-                  fontsize=SUBPLOT_LABEL_SIZE, fontweight='bold', transform=ccrs.PlateCarree())
-
 def load_spatial_data(division):
     if division == 'Tokyo Bay':
         land_boundary = gpd.read_file(ProjectPaths.BOUNDARIES_DIR / 'SIS_prefecture_boundaries' / 'Tokyobay_boundary.shp')
         water_mask = gpd.read_file(ProjectPaths.BOUNDARIES_DIR / 'SIS water mass polygon' / 'sea_area_mask_Tokyo.shp')
-    elif division == 'Ise Bay':
+    elif division in ['Ise Bay', 'Ise-Mikawa Bay', 'Ise Mikawa Bay']:
         land_boundary = gpd.read_file(ProjectPaths.BOUNDARIES_DIR / 'SIS_prefecture_boundaries' / 'Isebay_boundary.shp')
         water_mask = gpd.read_file(ProjectPaths.BOUNDARIES_DIR / 'SIS water mass polygon' / 'sea_area_mask_Ise.shp')
     else:
@@ -276,7 +264,7 @@ def load_spatial_data(division):
 
 def main():
     args = parse_args()
-    division = args.division
+    division = 'Ise Bay' if args.division in ['Ise-Mikawa Bay', 'Ise Mikawa Bay'] else args.division
     div_clean = division.replace(' ', '_').lower()
     TARGET_SEASON = 'Summer'
     
@@ -287,7 +275,7 @@ def main():
     df['do_'] = pd.to_numeric(df['do_'], errors='coerce')
     df = df.dropna(subset=['do_'])
     
-    if division in ['Tokyo Bay', 'Ise Bay', 'Seto Inland Sea']:
+    if division in WATERMASS_REGIONS:
         df = df[df['watermass_name'] == division]
     else:
         df = df[df['division'] == division]
@@ -316,18 +304,24 @@ def main():
 
     # Figure 3: DO Trend Spatial Mapping
     logging.info("Generating Figure 3: DO Trend Spatial Mapping")
-    slopes, lons, lats = [], [], []
+    ALPHA = 0.05  # Mann-Kendall significance threshold
+    slopes, lons, lats, sig_flags = [], [], [], []
     for station, group in df.groupby('zettaicode'):
         group = group.dropna(subset=['year', 'do_'])
         if len(group) < 5:
             continue
         slope, *_ = stats.linregress(group['year'], group['do_'])
+        # Mann-Kendall test via Kendall's tau (logic from sandbox 80c); used for markers only
+        mk_p = stats.kendalltau(group['year'].values, group['do_'].values).pvalue
         slopes.append(slope)
         lons.append(group['longitude'].iloc[0])
         lats.append(group['latitude'].iloc[0])
+        sig_flags.append(bool(mk_p < ALPHA))
 
     if slopes:
-        trend_df = pd.DataFrame({'longitude': lons, 'latitude': lats, 'slope': slopes})
+        trend_df = pd.DataFrame({'longitude': lons, 'latitude': lats, 'slope': slopes, 'is_significant': sig_flags})
+        csv_out = PROCESSED_DATA_DIR / f"do_trend_stats_{div_clean}_{TARGET_SEASON.lower()}.csv"
+        trend_df.to_csv(csv_out, index=False)
         stations_gdf = gpd.GeoDataFrame(trend_df, geometry=[Point(xy) for xy in zip(trend_df.longitude, trend_df.latitude)], crs='EPSG:4326').to_crs(grid_info['utm_crs'])
         Z_trend = run_diffusion_interpolation(stations_gdf['slope'].values, stations_gdf.geometry.x.values, stations_gdf.geometry.y.values, grid_info)
         
@@ -346,7 +340,23 @@ def main():
                             zorder=MappingConfig.ZORDER_PREDICTED, vmin=global_vmin, vmax=global_vmax)
         c_m.set_clip_path(PathPatch(gdf_to_clip_path(clipped_water_mask), transform=ax.transData))
         zoom_factor = max(4.5 / dx, 1.0)
-        ax.scatter(lons, lats, c='black', s=SUBPLOT_STATION_SIZE * zoom_factor, zorder=MappingConfig.ZORDER_OBSERVATIONS, transform=ccrs.PlateCarree())
+        sig_arr = np.array(sig_flags, dtype=bool)
+        lon_arr, lat_arr = np.array(lons), np.array(lats)
+        n_sig, n_tot = int(sig_arr.sum()), len(sig_arr)
+        # Plot Non-significant stations ('x')
+        if (~sig_arr).any():
+            ax.scatter(lon_arr[~sig_arr], lat_arr[~sig_arr], c='black', marker='x',
+                       s=SUBPLOT_STATION_SIZE * zoom_factor, linewidths=1.2,
+                       label=f'Not significant (p \u2265 {ALPHA})',
+                       zorder=MappingConfig.ZORDER_OBSERVATIONS, transform=ccrs.PlateCarree())
+        # Plot Significant stations ('o' with white edge from 80c)
+        if sig_arr.any():
+            ax.scatter(lon_arr[sig_arr], lat_arr[sig_arr], c='black', marker='o',
+                       s=SUBPLOT_STATION_SIZE * zoom_factor * 1.3, edgecolors='white', linewidths=0.8,
+                       label=f'Significant (p < {ALPHA})',
+                       zorder=MappingConfig.ZORDER_OBSERVATIONS + 1, transform=ccrs.PlateCarree())
+        ax.legend(loc='lower left', frameon=True, framealpha=0.85, fontsize=10)
+        logging.info(f"{division}: {n_sig}/{n_tot} stations significant (Mann-Kendall p < {ALPHA})")
         
         ax.set_title(f"Spatial DO Trend (Slope mg/L/year)\n{division}", fontsize=SUBPLOT_TITLE_SIZE, fontweight='bold')
         _add_gridlines(ax)
@@ -354,7 +364,6 @@ def main():
         cbar = fig.colorbar(c_m, ax=ax, orientation='vertical', fraction=0.046, pad=0.04)
         cbar.set_label('DO Trend Slope (mg/L / yr)', fontsize=SUBPLOT_CBAR_LABEL_SIZE)
         cbar.ax.tick_params(labelsize=SUBPLOT_CBAR_TICK_SIZE)
-        add_global_scalebar(fig.add_axes([0.65, 0.15, 0.2, 0.1], projection=ccrs.PlateCarree()), dx, dy)
         
         out_path = OUTPUT_DIR / f"do_trend_{div_clean}_{TARGET_SEASON.lower()}.png"
         plt.savefig(out_path, dpi=OUTPUT_DPI, bbox_inches='tight')

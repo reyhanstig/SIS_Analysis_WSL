@@ -34,6 +34,10 @@ if param_file.exists():
             PARAMS[row['parameter_name']] = row['value']
 # -------------------------------------
 
+# Regions filtered on 'watermass_name' (all others are sub-basins filtered on 'division')
+WATERMASS_REGIONS = [str(PARAMS.get('whole_area_region', 'Seto Inland Sea')).strip()] + \
+    [v.strip() for v in str(PARAMS.get('bay_regions', 'Tokyo Bay;Ise Bay')).split(';') if v.strip()]
+
 """
 Hypoxia Frequency Map — Per Bay
 Produces Hypoxia Frequency Map (Hypoxic 0-2 mg/L) for a specified division.
@@ -79,6 +83,7 @@ plt.rcParams.update({
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--division', required=True, help="Target division (e.g. 'Tokyo Bay')")
+    parser.add_argument('--threshold', type=float, default=None, help="Hypoxia DO threshold in mg/L (defaults to step2_parameter.csv value or 2.0)")
     return parser.parse_args()
 
 def build_land_patches(gdf, facecolor, edgecolor, linewidth):
@@ -108,27 +113,11 @@ def add_land_to_ax(ax, patches_data):
 def _add_gridlines(ax):
     return MappingConfig.apply_gridlines(ax)
 
-def add_global_scalebar(ax_scale, dx, dy):
-    ax_scale.set_visible(True)
-    ax_scale.axis('off')
-    ax_scale.set_extent([0, dx, 0, dy], crs=ccrs.PlateCarree())
-    
-    km_per_deg_lon = 111.32 * np.cos(np.radians(34.0))
-    deg_20km = 20.0 / km_per_deg_lon
-    
-    lon_start = dx * 0.4
-    lon_end = lon_start + deg_20km
-    lat_pos = dy * 0.1
-    
-    ax_scale.plot([lon_start, lon_end], [lat_pos, lat_pos], color='black', lw=3, transform=ccrs.PlateCarree())
-    ax_scale.text((lon_start + lon_end)/2, lat_pos + dy * 0.05, '20 km', ha='center', va='bottom', 
-                  fontsize=SUBPLOT_LABEL_SIZE, fontweight='bold', transform=ccrs.PlateCarree())
-
 def load_spatial_data(division):
     if division == 'Tokyo Bay':
         land_boundary = gpd.read_file(ProjectPaths.BOUNDARIES_DIR / 'SIS_prefecture_boundaries' / 'Tokyobay_boundary.shp')
         water_mask = gpd.read_file(ProjectPaths.BOUNDARIES_DIR / 'SIS water mass polygon' / 'sea_area_mask_Tokyo.shp')
-    elif division == 'Ise Bay':
+    elif division in ['Ise Bay', 'Ise-Mikawa Bay', 'Ise Mikawa Bay']:
         land_boundary = gpd.read_file(ProjectPaths.BOUNDARIES_DIR / 'SIS_prefecture_boundaries' / 'Isebay_boundary.shp')
         water_mask = gpd.read_file(ProjectPaths.BOUNDARIES_DIR / 'SIS water mass polygon' / 'sea_area_mask_Ise.shp')
     else:
@@ -139,18 +128,22 @@ def load_spatial_data(division):
 
 def main():
     args = parse_args()
-    division = args.division
+    division = 'Ise Bay' if args.division in ['Ise-Mikawa Bay', 'Ise Mikawa Bay'] else args.division
     div_clean = division.replace(' ', '_').lower()
     TARGET_SEASON = 'Summer'
     
-    logging.info(f"Loading data for division: {division}")
+    threshold = float(args.threshold) if args.threshold is not None else float(PARAMS.get('hypoxia_threshold', 2.0))
+    thresh_label = f"{threshold:g}"
+    thresh_str = thresh_label.replace('.', '_')
+    
+    logging.info(f"Loading data for division: {division} (threshold: {threshold} mg/L)")
     merged_gdf = load_and_process_data(force_reload=False)
     
     df = merged_gdf[(merged_gdf['season'] == TARGET_SEASON) & (merged_gdf['saisuipoin'] == 2)].copy()
     df['do_'] = pd.to_numeric(df['do_'], errors='coerce')
     df = df.dropna(subset=['do_'])
     
-    if division in ['Tokyo Bay', 'Ise Bay', 'Seto Inland Sea']:
+    if division in WATERMASS_REGIONS:
         df = df[df['watermass_name'] == division]
     else:
         df = df[df['division'] == division]
@@ -166,11 +159,11 @@ def main():
     dy = uniform_extent[3] - uniform_extent[2]
     land_patches_data = build_land_patches(land_boundary, MappingConfig.COLOR_LAND, MappingConfig.COLOR_LAND_EDGE, SUBPLOT_LAND_LW)
 
-    # Figure 2: Hypoxia Frequency (0-2 mg/L)
-    logging.info("Generating Figure 2: Hypoxia Frequency Map")
+    # Figure 2: Hypoxia Frequency
+    logging.info(f"Generating Figure 2: Hypoxia Frequency Map (0-{thresh_label} mg/L)")
     def calc_freq(group):
         total_years = group['year'].nunique()
-        cond_years = group[(group['do_'] >= 0.0) & (group['do_'] <= 2.0)]['year'].nunique()
+        cond_years = group[(group['do_'] >= 0.0) & (group['do_'] <= threshold)]['year'].nunique()
         return (cond_years / total_years) * 100
 
     freq_df = df.groupby(['zettaicode', 'longitude', 'latitude']).apply(calc_freq).reset_index(name='frequency')
@@ -186,15 +179,14 @@ def main():
     sc = ax.scatter(freq_df['longitude'], freq_df['latitude'], c=freq_df['frequency'], cmap='Reds', vmin=0, vmax=100,
                     s=marker_sizes, edgecolor='k', linewidth=0.3, transform=ccrs.PlateCarree(), zorder=MappingConfig.ZORDER_OBSERVATIONS)
     
-    ax.set_title(f"Hypoxia Frequency (0-2 mg/L)\n{division}", fontsize=SUBPLOT_TITLE_SIZE, fontweight='bold')
+    ax.set_title(f"Hypoxia Frequency (0-{thresh_label} mg/L)\n{division}", fontsize=SUBPLOT_TITLE_SIZE, fontweight='bold')
     _add_gridlines(ax)
     
     cbar = fig.colorbar(sc, ax=ax, orientation='vertical', fraction=0.046, pad=0.04)
     cbar.set_label('Frequency (%)', fontsize=SUBPLOT_CBAR_LABEL_SIZE)
     cbar.ax.tick_params(labelsize=SUBPLOT_CBAR_TICK_SIZE)
-    add_global_scalebar(fig.add_axes([0.65, 0.15, 0.2, 0.1], projection=ccrs.PlateCarree()), dx, dy)
     
-    out_path = OUTPUT_DIR / f"hypoxia_freq_0_2_{div_clean}_{TARGET_SEASON.lower()}.png"
+    out_path = OUTPUT_DIR / f"hypoxia_freq_0_{thresh_str}_{div_clean}_{TARGET_SEASON.lower()}.png"
     plt.savefig(out_path, dpi=OUTPUT_DPI, bbox_inches='tight')
     plt.close()
 

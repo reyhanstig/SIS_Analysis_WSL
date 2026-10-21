@@ -20,6 +20,7 @@ def main():
     per_bay_scripts = [
         'process11_calculate_decorrelation_scale_per_bay.py',
         'process12_plot_decorrelation_scale_complete.py',
+        'process13_plot_decorrelation_scale_hypoxia_size.py',
     ]
     
     env = os.environ.copy()

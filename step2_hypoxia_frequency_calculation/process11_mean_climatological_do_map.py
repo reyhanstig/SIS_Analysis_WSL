@@ -34,6 +34,10 @@ if param_file.exists():
             PARAMS[row['parameter_name']] = row['value']
 # -------------------------------------
 
+# Regions filtered on 'watermass_name' (all others are sub-basins filtered on 'division')
+WATERMASS_REGIONS = [str(PARAMS.get('whole_area_region', 'Seto Inland Sea')).strip()] + \
+    [v.strip() for v in str(PARAMS.get('bay_regions', 'Tokyo Bay;Ise Bay')).split(';') if v.strip()]
+
 """
 Mean Climatological DO Map — Per Bay
 Produces Yearly Mean DO Distribution Map for a specified division.
@@ -245,27 +249,11 @@ def gdf_to_clip_path(gdf):
 def _add_gridlines(ax):
     return MappingConfig.apply_gridlines(ax)
 
-def add_global_scalebar(ax_scale, dx, dy):
-    ax_scale.set_visible(True)
-    ax_scale.axis('off')
-    ax_scale.set_extent([0, dx, 0, dy], crs=ccrs.PlateCarree())
-    
-    km_per_deg_lon = 111.32 * np.cos(np.radians(34.0))
-    deg_20km = 20.0 / km_per_deg_lon
-    
-    lon_start = dx * 0.4
-    lon_end = lon_start + deg_20km
-    lat_pos = dy * 0.1
-    
-    ax_scale.plot([lon_start, lon_end], [lat_pos, lat_pos], color='black', lw=3, transform=ccrs.PlateCarree())
-    ax_scale.text((lon_start + lon_end)/2, lat_pos + dy * 0.05, '20 km', ha='center', va='bottom', 
-                  fontsize=SUBPLOT_LABEL_SIZE, fontweight='bold', transform=ccrs.PlateCarree())
-
 def load_spatial_data(division):
     if division == 'Tokyo Bay':
         land_boundary = gpd.read_file(ProjectPaths.BOUNDARIES_DIR / 'SIS_prefecture_boundaries' / 'Tokyobay_boundary.shp')
         water_mask = gpd.read_file(ProjectPaths.BOUNDARIES_DIR / 'SIS water mass polygon' / 'sea_area_mask_Tokyo.shp')
-    elif division == 'Ise Bay':
+    elif division in ['Ise Bay', 'Ise-Mikawa Bay', 'Ise Mikawa Bay']:
         land_boundary = gpd.read_file(ProjectPaths.BOUNDARIES_DIR / 'SIS_prefecture_boundaries' / 'Isebay_boundary.shp')
         water_mask = gpd.read_file(ProjectPaths.BOUNDARIES_DIR / 'SIS water mass polygon' / 'sea_area_mask_Ise.shp')
     else:
@@ -276,7 +264,7 @@ def load_spatial_data(division):
 
 def main():
     args = parse_args()
-    division = args.division
+    division = 'Ise Bay' if args.division in ['Ise-Mikawa Bay', 'Ise Mikawa Bay'] else args.division
     div_clean = division.replace(' ', '_').lower()
     TARGET_SEASON = 'Summer'
     
@@ -287,7 +275,7 @@ def main():
     df['do_'] = pd.to_numeric(df['do_'], errors='coerce')
     df = df.dropna(subset=['do_'])
     
-    if division in ['Tokyo Bay', 'Ise Bay', 'Seto Inland Sea']:
+    if division in WATERMASS_REGIONS:
         df = df[df['watermass_name'] == division]
     else:
         df = df[df['division'] == division]
@@ -344,7 +332,6 @@ def main():
     cbar.set_label(var_cfg['label'], fontsize=SUBPLOT_CBAR_LABEL_SIZE)
     cbar.ax.tick_params(labelsize=SUBPLOT_CBAR_TICK_SIZE)
     MappingConfig.format_colorbar_ticks(cbar, 'do_')
-    add_global_scalebar(fig.add_axes([0.65, 0.15, 0.2, 0.1], projection=ccrs.PlateCarree()), dx, dy)
     
     out_path = OUTPUT_DIR / f"mean_climatological_do_{div_clean}_{TARGET_SEASON.lower()}.png"
     plt.savefig(out_path, dpi=OUTPUT_DPI, bbox_inches='tight')

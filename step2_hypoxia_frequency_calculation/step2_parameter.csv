@@ -1,1 +1,6 @@
 parameter_name,value,type,description
+whole_area_region,Seto Inland Sea,str,Water mass name (watermass_name) of the entire Seto Inland Sea; also mapped as a whole area by process11-13
+bay_regions,Tokyo Bay;Ise Bay,list,Stand-alone bays matched on watermass_name (semicolon-separated)
+seto_inland_sea_subbasins,Aki Nada;Bingo Nada;Bisan Seto;Bungo Channel;Harima Nada;Hibiki Nada;Hiroshima Bay;Hiuchi Nada;Iyo Nada;Kii Channel;Osaka Bay;Suo Nada,list,Seto Inland Sea sub-basins matched on division (semicolon-separated)
+plot_whole_area,True,bool,If True process11-13 also produce a figure for the entire whole_area_region
+hypoxia_threshold,2.0,float,Hypoxia DO threshold in mg/L defining hypoxic conditions (e.g. 2.0 or 4.0)

@@ -110,7 +110,8 @@ summer_bottom_df = summer_bottom_df.dropna(subset=['do_'])
 print(f"Total observations: {len(summer_bottom_df)}")
 
 # Define regions
-sis_df = summer_bottom_df[summer_bottom_df['watermass_name'] == 'Seto Inland Sea']
+WHOLE_AREA_REGION = str(PARAMS.get('whole_area_region', 'Seto Inland Sea')).strip()
+sis_df = summer_bottom_df[summer_bottom_df['watermass_name'] == WHOLE_AREA_REGION]
 sis_divisions = sis_df['division'].dropna().unique().tolist()
 
 regions_info = []
@@ -304,7 +305,7 @@ def gdf_to_clip_path(gdf, ax):
 
 # Initialize a list to hold the results
 fraction_records = []
-HYPOXIA_THRESHOLD = 2.0
+HYPOXIA_THRESHOLD = float(PARAMS.get('hypoxia_threshold', 2.0))
 
 print(f"Calculating Hypoxic Area Fraction (< {HYPOXIA_THRESHOLD} mg/L) for all regions and years...")
 for r_info in regions_info:
