@@ -13,7 +13,12 @@ import matplotlib.pyplot as plt
 CURRENT_SCRIPT = Path(__file__).resolve()
 sys.path.insert(0, str(CURRENT_SCRIPT.parent.parent))
 STEP_DIR = CURRENT_SCRIPT.parent.name
-SCRIPT_NAME = CURRENT_SCRIPT.stem
+import argparse
+_mode_parser = argparse.ArgumentParser(add_help=False)
+_mode_parser.add_argument('--mode', choices=['raw', 'standardized'], default='raw')
+MODE = _mode_parser.parse_known_args()[0].mode
+# Output folders are named after the script with its '_raw' suffix swapped for the PCA mode
+SCRIPT_NAME = CURRENT_SCRIPT.stem.removesuffix('_raw') + f'_{MODE}'
 import shutil
 
 PROCESSED_DATA_DIR = Path('/home/reyha/SIS_Analysis_WSL/data/processed') / STEP_DIR / SCRIPT_NAME
@@ -71,7 +76,7 @@ def plot_explained_variance(pca_model):
     ax.set_xticks(components)
     ax.legend()
     
-    out_path = OUTPUT_DIR / 'pca_explained_variance_raw.png'
+    out_path = OUTPUT_DIR / f'pca_explained_variance_{MODE}.png'
     plt.savefig(out_path, bbox_inches='tight', dpi=300)
     plt.close()
     print(f"Saved explained variance plot to: {out_path}")
@@ -100,8 +105,11 @@ def main():
     # Fill remaining NaNs with the temporal mean
     interpolated_do_df = interpolated_do_df.fillna(interpolated_do_df.mean(axis=0))
     
-    print("Performing PCA analysis (RAW)...")
+    print(f"Performing PCA analysis ({MODE})...")
     pca_input_data = interpolated_do_df.T
+    if MODE == 'standardized':
+        # z-score each station over time so PCA decomposes the correlation matrix
+        pca_input_data = StandardScaler().fit_transform(pca_input_data)
     
     pca_model = PCA(n_components=10)
     pca_result = pca_model.fit_transform(pca_input_data)

@@ -13,7 +13,12 @@ import matplotlib.pyplot as plt
 CURRENT_SCRIPT = Path(__file__).resolve()
 sys.path.insert(0, str(CURRENT_SCRIPT.parent.parent))
 STEP_DIR = CURRENT_SCRIPT.parent.name
-SCRIPT_NAME = CURRENT_SCRIPT.stem
+import argparse
+_mode_parser = argparse.ArgumentParser(add_help=False)
+_mode_parser.add_argument('--mode', choices=['raw', 'standardized'], default='raw')
+MODE = _mode_parser.parse_known_args()[0].mode
+# Output folders are named after the script with its '_raw' suffix swapped for the PCA mode
+SCRIPT_NAME = CURRENT_SCRIPT.stem.removesuffix('_raw') + f'_{MODE}'
 
 step_num = STEP_DIR.split('_')[0].replace('step', '')
 log_file = CURRENT_SCRIPT.parent / f"log_process{step_num}.txt"
@@ -119,7 +124,7 @@ def plot_explained_variance(pca_model, division):
     ax.set_xticks(components)
     ax.legend()
     
-    out_path = OUTPUT_DIR / f"{division.replace(' ', '_').lower()}_pca_explained_variance_raw.png"
+    out_path = OUTPUT_DIR / f"{division.replace(' ', '_').lower()}_pca_explained_variance_{MODE}.png"
     plt.savefig(out_path, bbox_inches='tight', dpi=300)
     plt.close()
 
@@ -191,6 +196,9 @@ def main():
         return
         
     pca_input_data = interpolated_do_df.T
+    if MODE == 'standardized':
+        # z-score each station over time so PCA decomposes the correlation matrix
+        pca_input_data = StandardScaler().fit_transform(pca_input_data)
     
     n_components = min(10, len(interpolated_do_df), len(interpolated_do_df.columns))
     if n_components < 2:

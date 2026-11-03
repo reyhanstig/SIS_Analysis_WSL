@@ -1,0 +1,7 @@
+parameter_name,value,type,description
+season,Summer,str,Season subset (as step1)
+layer,bottom,str,Depth layer subset (as step1)
+divisions,"Seto Inland Sea, Tokyo Bay, Ise Mikawa Bay, Osaka Bay",str,Comma-separated divisions (as step3); Seto Inland Sea expands to its sub-basins like step4 main.py
+n_components,10,int,Maximum number of PCA components
+top_n_stations,10,int,Number of top-|loading| stations compared between modes
+map_divisions,Tokyo Bay; Ise Mikawa Bay; Osaka Bay,str,Semicolon-separated divisions for which per-bay EOF maps are drawn

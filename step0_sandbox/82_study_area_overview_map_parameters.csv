@@ -1,0 +1,13 @@
+parameter_name,value
+extent_lon_min,129.22
+extent_lon_max,140.82
+extent_lat_min,31.36
+extent_lat_max,37.23
+map_width_inches,10
+margin_inches,0.95
+zebra_step_degrees,2
+zebra_width_inches,0.12
+scale_bar_km,500
+scale_bar_lon,134.5
+scale_bar_lat,31.9
+dpi,200

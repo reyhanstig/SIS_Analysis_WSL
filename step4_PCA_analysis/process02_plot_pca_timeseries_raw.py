@@ -13,7 +13,12 @@ import matplotlib.pyplot as plt
 CURRENT_SCRIPT = Path(__file__).resolve()
 sys.path.insert(0, str(CURRENT_SCRIPT.parent.parent))
 STEP_DIR = CURRENT_SCRIPT.parent.name
-SCRIPT_NAME = CURRENT_SCRIPT.stem
+import argparse
+_mode_parser = argparse.ArgumentParser(add_help=False)
+_mode_parser.add_argument('--mode', choices=['raw', 'standardized'], default='raw')
+MODE = _mode_parser.parse_known_args()[0].mode
+# Output folders are named after the script with its '_raw' suffix swapped for the PCA mode
+SCRIPT_NAME = CURRENT_SCRIPT.stem.removesuffix('_raw') + f'_{MODE}'
 import shutil
 
 PROCESSED_DATA_DIR = Path('/home/reyha/SIS_Analysis_WSL/data/processed') / STEP_DIR / SCRIPT_NAME
@@ -86,7 +91,7 @@ def plot_pc_timeseries(pc_scores, var_df):
     
     ax.legend(fontsize=16)
     
-    out_path = OUTPUT_DIR / 'pc_timeseries_raw.png'
+    out_path = OUTPUT_DIR / f'pc_timeseries_{MODE}.png'
     plt.tight_layout()
     plt.savefig(out_path, bbox_inches='tight', dpi=300)
     plt.close()
@@ -107,7 +112,7 @@ def plot_pc_timeseries(pc_scores, var_df):
     
     ax.legend(fontsize=16)
     
-    out_path1 = OUTPUT_DIR / 'pc1_timeseries_raw.png'
+    out_path1 = OUTPUT_DIR / f'pc1_timeseries_{MODE}.png'
     plt.tight_layout()
     plt.savefig(out_path1, bbox_inches='tight', dpi=300)
     plt.close()
@@ -128,7 +133,7 @@ def plot_pc_timeseries(pc_scores, var_df):
     
     ax.legend(fontsize=16)
     
-    out_path2 = OUTPUT_DIR / 'pc2_timeseries_raw.png'
+    out_path2 = OUTPUT_DIR / f'pc2_timeseries_{MODE}.png'
     plt.tight_layout()
     plt.savefig(out_path2, bbox_inches='tight', dpi=300)
     plt.close()
@@ -137,7 +142,7 @@ def plot_pc_timeseries(pc_scores, var_df):
 def main():
     ProjectPaths.ensure_directories()
     
-    data_dir = ProjectPaths.PROCESSED_DATA_DIR / STEP_DIR / "process01_calculate_pca_explained_variance_raw"
+    data_dir = ProjectPaths.PROCESSED_DATA_DIR / STEP_DIR / f"process01_calculate_pca_explained_variance_{MODE}"
     pc_scores_file = data_dir / "pc_scores.csv"
     var_file = data_dir / "pca_variance.csv"
     if not pc_scores_file.exists():

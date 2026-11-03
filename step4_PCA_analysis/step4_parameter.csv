@@ -1,1 +1,2 @@
 parameter_name,value,type,description
+pca_mode,"raw,standardized",str,"PCA input scaling modes to run: raw (covariance matrix) and/or standardized (correlation matrix)"

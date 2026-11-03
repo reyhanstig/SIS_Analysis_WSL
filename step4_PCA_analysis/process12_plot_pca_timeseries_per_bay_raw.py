@@ -13,7 +13,12 @@ import matplotlib.pyplot as plt
 CURRENT_SCRIPT = Path(__file__).resolve()
 sys.path.insert(0, str(CURRENT_SCRIPT.parent.parent))
 STEP_DIR = CURRENT_SCRIPT.parent.name
-SCRIPT_NAME = CURRENT_SCRIPT.stem
+import argparse
+_mode_parser = argparse.ArgumentParser(add_help=False)
+_mode_parser.add_argument('--mode', choices=['raw', 'standardized'], default='raw')
+MODE = _mode_parser.parse_known_args()[0].mode
+# Output folders are named after the script with its '_raw' suffix swapped for the PCA mode
+SCRIPT_NAME = CURRENT_SCRIPT.stem.removesuffix('_raw') + f'_{MODE}'
 
 step_num = STEP_DIR.split('_')[0].replace('step', '')
 log_file = CURRENT_SCRIPT.parent / f"log_process{step_num}.txt"
@@ -91,7 +96,7 @@ def plot_pc_timeseries(pc_scores, division, var_df):
     
     ax.legend(fontsize=16)
     
-    out_path = OUTPUT_DIR / f"{division.replace(' ', '_').lower()}_pc_timeseries_raw.png"
+    out_path = OUTPUT_DIR / f"{division.replace(' ', '_').lower()}_pc_timeseries_{MODE}.png"
     plt.tight_layout()
     plt.savefig(out_path, bbox_inches='tight', dpi=300)
     plt.close()
@@ -111,7 +116,7 @@ def plot_pc_timeseries(pc_scores, division, var_df):
     
     ax.legend(fontsize=16)
     
-    out_path1 = OUTPUT_DIR / f"{division.replace(' ', '_').lower()}_pc1_timeseries_raw.png"
+    out_path1 = OUTPUT_DIR / f"{division.replace(' ', '_').lower()}_pc1_timeseries_{MODE}.png"
     plt.tight_layout()
     plt.savefig(out_path1, bbox_inches='tight', dpi=300)
     plt.close()
@@ -131,7 +136,7 @@ def plot_pc_timeseries(pc_scores, division, var_df):
     
     ax.legend(fontsize=16)
     
-    out_path2 = OUTPUT_DIR / f"{division.replace(' ', '_').lower()}_pc2_timeseries_raw.png"
+    out_path2 = OUTPUT_DIR / f"{division.replace(' ', '_').lower()}_pc2_timeseries_{MODE}.png"
     plt.tight_layout()
     plt.savefig(out_path2, bbox_inches='tight', dpi=300)
     plt.close()
@@ -141,7 +146,7 @@ def main():
     division = args.division
     out_name = division.replace(' ', '_').lower()
     
-    data_dir = ProjectPaths.PROCESSED_DATA_DIR / STEP_DIR / "process11_calculate_pca_explained_variance_per_bay_raw" / out_name
+    data_dir = ProjectPaths.PROCESSED_DATA_DIR / STEP_DIR / f"process11_calculate_pca_explained_variance_per_bay_{MODE}" / out_name
     pc_scores_file = data_dir / f"pca_scores_{out_name}.csv"
     var_file = data_dir / f"{out_name}_pca_variance.csv"
     

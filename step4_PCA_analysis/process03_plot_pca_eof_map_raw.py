@@ -13,7 +13,12 @@ import matplotlib.pyplot as plt
 CURRENT_SCRIPT = Path(__file__).resolve()
 sys.path.insert(0, str(CURRENT_SCRIPT.parent.parent))
 STEP_DIR = CURRENT_SCRIPT.parent.name
-SCRIPT_NAME = CURRENT_SCRIPT.stem
+import argparse
+_mode_parser = argparse.ArgumentParser(add_help=False)
+_mode_parser.add_argument('--mode', choices=['raw', 'standardized'], default='raw')
+MODE = _mode_parser.parse_known_args()[0].mode
+# Output folders are named after the script with its '_raw' suffix swapped for the PCA mode
+SCRIPT_NAME = CURRENT_SCRIPT.stem.removesuffix('_raw') + f'_{MODE}'
 import shutil
 
 PROCESSED_DATA_DIR = Path('/home/reyha/SIS_Analysis_WSL/data/processed') / STEP_DIR / SCRIPT_NAME
@@ -118,7 +123,7 @@ def plot_eof_map(eof_values, station_coords, pc_name, variance_pct, target_regio
     cbar = fig.colorbar(sc, cax=cbar_ax, orientation='horizontal')
     cbar.set_label('EOF Weight')
     
-    out_path = OUTPUT_DIR / f'eof_map_{pc_name.lower()}_raw.png'
+    out_path = OUTPUT_DIR / f'eof_map_{pc_name.lower()}_{MODE}.png'
     plt.savefig(out_path, bbox_inches='tight', dpi=300)
     plt.close()
     print(f"Saved {pc_name} EOF map to: {out_path}")
@@ -134,7 +139,7 @@ def main():
     except Exception as e:
         TARGET_REGION = 'Seto Inland Sea'
         
-    data_dir = ProjectPaths.PROCESSED_DATA_DIR / STEP_DIR / "process01_calculate_pca_explained_variance_raw"
+    data_dir = ProjectPaths.PROCESSED_DATA_DIR / STEP_DIR / f"process01_calculate_pca_explained_variance_{MODE}"
     eof_file = data_dir / "eof_patterns.csv"
     var_file = data_dir / "pca_variance.csv"
     

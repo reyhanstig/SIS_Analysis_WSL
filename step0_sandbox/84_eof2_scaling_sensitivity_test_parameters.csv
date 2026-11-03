@@ -1,0 +1,8 @@
+parameter_name,value,type,description
+n_bootstrap,500.0,int,Bootstrap resamples of the years (test C)
+n_variance_shuffles,500.0,int,Station-variance permutations (test D)
+n_moran_permutations,999.0,int,Permutations for the Moran I p-value (test E)
+moran_k_neighbours,4.0,int,Nearest neighbours used for the Moran I weights
+n_alpha_steps,11.0,int,Number of scaling exponents between 0 (raw) and 1 (standardized)
+stable_threshold,0.85,float,"Tucker congruence regarded as ""same pattern"" (notebook 83 uses 0.85 as fair)"
+random_seed,42.0,int,Seed for all random draws

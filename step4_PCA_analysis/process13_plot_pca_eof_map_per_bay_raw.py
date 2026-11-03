@@ -13,7 +13,12 @@ import matplotlib.pyplot as plt
 CURRENT_SCRIPT = Path(__file__).resolve()
 sys.path.insert(0, str(CURRENT_SCRIPT.parent.parent))
 STEP_DIR = CURRENT_SCRIPT.parent.name
-SCRIPT_NAME = CURRENT_SCRIPT.stem
+import argparse
+_mode_parser = argparse.ArgumentParser(add_help=False)
+_mode_parser.add_argument('--mode', choices=['raw', 'standardized'], default='raw')
+MODE = _mode_parser.parse_known_args()[0].mode
+# Output folders are named after the script with its '_raw' suffix swapped for the PCA mode
+SCRIPT_NAME = CURRENT_SCRIPT.stem.removesuffix('_raw') + f'_{MODE}'
 
 step_num = STEP_DIR.split('_')[0].replace('step', '')
 log_file = CURRENT_SCRIPT.parent / f"log_process{step_num}.txt"
@@ -126,7 +131,7 @@ def plot_eof_map(eof_values, station_coords, pc_name, variance_pct, division):
     cbar = fig.colorbar(sc, cax=cbar_ax, orientation='horizontal')
     cbar.set_label('EOF Weight')
     
-    out_path = OUTPUT_DIR / f"{division.replace(' ', '_').lower()}_eof_map_{pc_name.lower()}_raw.png"
+    out_path = OUTPUT_DIR / f"{division.replace(' ', '_').lower()}_eof_map_{pc_name.lower()}_{MODE}.png"
     plt.savefig(out_path, bbox_inches='tight', dpi=300)
     plt.close()
 
@@ -135,7 +140,7 @@ def main():
     division = args.division
     out_name = division.replace(' ', '_').lower()
     
-    data_dir = ProjectPaths.PROCESSED_DATA_DIR / STEP_DIR / "process11_calculate_pca_explained_variance_per_bay_raw" / out_name
+    data_dir = ProjectPaths.PROCESSED_DATA_DIR / STEP_DIR / f"process11_calculate_pca_explained_variance_per_bay_{MODE}" / out_name
     eof_file = data_dir / f"{out_name}_eof_patterns.csv"
     var_file = data_dir / f"{out_name}_pca_variance.csv"
     

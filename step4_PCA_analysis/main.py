@@ -26,14 +26,24 @@ def main():
     env = os.environ.copy()
     env['PYTHONPATH'] = f"{str(project_root)}{os.pathsep}{env.get('PYTHONPATH', '')}"
     
+    # PCA modes: raw (covariance matrix) and/or standardized (correlation matrix)
+    pca_modes = ['raw']
+    param_csv = step_dir / "step4_parameter.csv"
+    if param_csv.exists():
+        df_step = pd.read_csv(param_csv)
+        step_params = dict(zip(df_step['parameter_name'], df_step['value']))
+        if 'pca_mode' in step_params:
+            pca_modes = [m.strip() for m in str(step_params['pca_mode']).split(',')]
+
     # Run global scripts
-    for script in global_scripts:
-        script_path = step_dir / script
-        logging.info(f"Running global script {script}...")
-        result = subprocess.run([sys.executable, str(script_path)], cwd=str(step_dir), env=env)
-        if result.returncode != 0:
-            logging.error(f"Script {script} failed with exit code {result.returncode}")
-            sys.exit(result.returncode)
+    for mode in pca_modes:
+        for script in global_scripts:
+            script_path = step_dir / script
+            logging.info(f"Running global script {script} (mode={mode})...")
+            result = subprocess.run([sys.executable, str(script_path), "--mode", mode], cwd=str(step_dir), env=env)
+            if result.returncode != 0:
+                logging.error(f"Script {script} failed with exit code {result.returncode}")
+                sys.exit(result.returncode)
             
     # Load divisions from step3_parameter.csv
     param_file = project_root / "step3_decorrelation_scale_analysis" / "step3_parameter.csv"
@@ -66,14 +76,15 @@ def main():
     regions_to_calculate = sorted(list(regions_to_calculate))
     logging.info(f"Target divisions for per-bay scripts: {regions_to_calculate}")
 
-    for script in per_bay_scripts:
-        script_path = step_dir / script
-        for division in regions_to_calculate:
-            logging.info(f"Running {script} for division: {division}...")
-            result = subprocess.run([sys.executable, str(script_path), "--division", division], cwd=str(step_dir), env=env)
-            if result.returncode != 0:
-                logging.error(f"Script {script} failed for division {division} with exit code {result.returncode}")
-                sys.exit(result.returncode)
+    for mode in pca_modes:
+        for script in per_bay_scripts:
+            script_path = step_dir / script
+            for division in regions_to_calculate:
+                logging.info(f"Running {script} for division: {division} (mode={mode})...")
+                result = subprocess.run([sys.executable, str(script_path), "--division", division, "--mode", mode], cwd=str(step_dir), env=env)
+                if result.returncode != 0:
+                    logging.error(f"Script {script} failed for division {division} with exit code {result.returncode}")
+                    sys.exit(result.returncode)
 
     logging.info("All scripts completed successfully.")
 
