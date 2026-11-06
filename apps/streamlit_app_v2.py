@@ -73,7 +73,13 @@ def load_seasonal_results(season: str, layer: str) -> dict:
     }
     for key, filename in file_map.items():
         path = subset_dir / filename
-        if path.exists():
+        if key.startswith('env_corr_'):
+            # Step 5 writes one correlation file per region (<subset>/<region_slug>/), each computed
+            # against that region's own PC. Regions hold disjoint stations, so stack them.
+            frames = [pd.read_csv(p, index_col=0) for p in sorted(subset_dir.glob(f"*/{filename}"))]
+            if frames:
+                results[key] = pd.concat(frames)
+        elif path.exists():
             results[key] = pd.read_csv(path, index_col=0)
 
     return results
@@ -564,7 +570,8 @@ with tab4:
 
             # --- Correlation Map ---
             st.subheader(f"{selected_corr_pc} vs {selected_env_param.replace('_', ' ')}")
-            
+            st.caption("Each station is correlated with the PC of its own region (Seto Inland Sea, Tokyo Bay or Ise Bay).")
+
             fig_corr = px.scatter_mapbox(
                 corr_plot.rename_axis("zettaicode").reset_index(),
                 lat="latitude", lon="longitude",

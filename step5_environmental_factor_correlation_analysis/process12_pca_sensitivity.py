@@ -72,8 +72,8 @@ def main():
     selected_stations['Station_ID'] = selected_stations['Station_ID'].str.zfill(8)
 
     # Load correlation data
-    env_corr_path = subset_dir / 'pca_env_corr_pc1.csv'
-    nutr_corr_path = subset_dir / 'pca_nutr_corr_pc1.csv'
+    env_corr_path = ProjectPaths.get_corr_file(season, layer, target_region, 'env', 'PC1')
+    nutr_corr_path = ProjectPaths.get_corr_file(season, layer, target_region, 'nutr', 'PC1')
     if not env_corr_path.exists() or not nutr_corr_path.exists():
         logging.warning(f"Correlation data missing for {target_region} {season} {layer}. Skipping.")
         return

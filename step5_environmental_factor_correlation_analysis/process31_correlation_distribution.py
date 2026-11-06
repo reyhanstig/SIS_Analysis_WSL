@@ -246,8 +246,8 @@ def main():
     
     subset_dir = ProjectPaths.get_subset_dir(season, layer)
     
-    pc1_path = subset_dir / f'pca_{data_type}_corr_pc1.csv'
-    pc2_path = subset_dir / f'pca_{data_type}_corr_pc2.csv'
+    pc1_path = ProjectPaths.get_corr_file(season, layer, target_region, data_type, 'PC1')
+    pc2_path = ProjectPaths.get_corr_file(season, layer, target_region, data_type, 'PC2')
     
     if not pc1_path.exists() or not pc2_path.exists():
         logging.warning(f"Correlation files not found for {target_region} {season} {layer}. Skipping.")

@@ -6,3 +6,4 @@ ts_params_file,step5_ts_parameters.csv,file,File containing the time series para
 correlation_seasons,"Spring, Summer, Autumn, Winter",string,Seasons of the environmental/nutrient parameters that are correlated against every DO/PCA subset (all permutations)
 correlation_params_file,step5_correlation_parameters.csv,file,File listing the environmental/nutrient parameters expanded over correlation_seasons and both depth layers
 rf_max_feature_missing_fraction,0.5,float,process21: drop Random Forest features that are missing at more than this fraction of stations before dropping incomplete rows
+pc_min_do_stations,3,int,"Years with fewer valid DO stations than this are masked out of a region's PC series before correlating (step4 process11 mean-fills missing years)"

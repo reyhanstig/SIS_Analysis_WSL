@@ -55,13 +55,16 @@ def main():
     
     subset_dir = ProjectPaths.get_subset_dir(season, layer)
     
-    corr_file = subset_dir / f'pca_{data_type}_corr_{pc_name.lower()}.csv'
+    corr_file = ProjectPaths.get_corr_file(season, layer, target_region, data_type, pc_name)
     if not corr_file.exists():
         logging.error(f"Correlation file not found: {corr_file}")
         return
         
     corr_df = pd.read_csv(corr_file, dtype={'zettaicode': str}).set_index('zettaicode')
-    pca_loadings = pd.read_csv(subset_dir / 'pca_loadings.csv', dtype={'zettaicode': str}).set_index('zettaicode')
+    pca_loadings = ProjectPaths.get_region_loadings(season, layer, target_region)
+    if pca_loadings is None:
+        logging.warning(f"PC loadings for {target_region} not found. Skipping.")
+        return
     
     merged_df = pd.read_feather(ProjectPaths.MERGED_DATA_FILE)
     merged_df['zettaicode'] = merged_df['zettaicode'].astype(str).str.zfill(8)

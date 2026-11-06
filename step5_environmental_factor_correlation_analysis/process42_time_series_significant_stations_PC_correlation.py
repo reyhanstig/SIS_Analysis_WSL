@@ -115,7 +115,7 @@ def main():
     
     # 2. Read correlation data
     subset_dir = ProjectPaths.get_subset_dir(season, layer)
-    corr_file = subset_dir / f"pca_{data_type}_corr_{pc_name.lower()}.csv"
+    corr_file = ProjectPaths.get_corr_file(season, layer, target_region, data_type, pc_name)
     if not corr_file.exists():
         logging.error(f"Correlation file not found: {corr_file}")
         return
@@ -129,11 +129,8 @@ def main():
         params_to_process = [args.param.strip()]
         
     # Load PC scores
-    if target_region in ['Seto Inland Sea']:
-        pc_scores_file = subset_dir / 'pca_scores.csv'
-    else:
-        out_name = target_region.replace(' ', '_').lower()
-        pc_scores_file = ProjectPaths.PROCESSED_DATA_DIR / 'step4_PCA_analysis' / 'process11_calculate_pca_explained_variance_per_bay_raw' / out_name / f"pca_scores_{out_name}.csv"
+    # PC series that process01 correlated for this region (unobserved years masked)
+    pc_scores_file = ProjectPaths.get_region_pc_used_file(season, layer, target_region)
 
     if not pc_scores_file.exists():
         logging.error(f"PC scores file not found: {pc_scores_file}")

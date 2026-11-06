@@ -51,9 +51,6 @@ def main():
     for season in seasons:
         for layer in layers:
             subset_dir = ProjectPaths.get_subset_dir(season, layer)
-            code = run_script(step_dir, env, 'process01_data_integrity_and_correlation.py', '--season', season, '--layer', layer)
-            if code != 0: sys.exit(code)
-
             code = run_script(step_dir, env, 'process21_decorrelation_drivers.py', '--season', season, '--layer', layer)
             if code != 0: sys.exit(code)
             
@@ -64,6 +61,13 @@ def main():
 
             for target_region in target_regions:
                 logging.info(f"=== Starting analysis for region: {target_region} ===")
+
+                # --- Group 00: correlate the region's stations with the region's own PC ---
+                code = run_script(step_dir, env, 'process01_data_integrity_and_correlation.py', '--target_region', target_region, '--season', season, '--layer', layer)
+                if code != 0: sys.exit(code)
+                if not ProjectPaths.get_region_pc_used_file(season, layer, target_region).exists():
+                    logging.warning(f"No region-specific PC correlations for {target_region} {season} {layer}. Skipping this region.")
+                    continue
         
                 # --- Group 10: Trend Group Analysis ---
                 code = run_script(step_dir, env, 'process11_trend_grouping_and_maps.py', '--target_region', target_region, '--season', season, '--layer', layer)
@@ -102,15 +106,19 @@ def main():
                         chunk_idx += 1
 
                     for pc in ['PC1', 'PC2']:
-                        df_path = subset_dir / f'pca_{data_type}_corr_{pc.lower()}.csv'
-                        if not df_path.exists(): continue
+                        df_path = ProjectPaths.get_corr_file(season, layer, target_region, data_type, pc)
+                        if not df_path.exists():
+                            logging.warning(f"Correlation file missing: {df_path}. Skipping {pc} {data_type} for {target_region}.")
+                            continue
                         
                         run_script(step_dir, env, 'process32_loading_scatter_plots.py', '--target_region', target_region, '--season', season, '--layer', layer, '--data_type', data_type, '--param_col', 'all', '--pc_name', pc)
 
                     # --- Group 40: Spatial Maps ---
                     for pc in ['PC1', 'PC2']:
-                        df_path = subset_dir / f'pca_{data_type}_corr_{pc.lower()}.csv'
-                        if not df_path.exists(): continue
+                        df_path = ProjectPaths.get_corr_file(season, layer, target_region, data_type, pc)
+                        if not df_path.exists():
+                            logging.warning(f"Correlation file missing: {df_path}. Skipping {pc} {data_type} for {target_region}.")
+                            continue
                 
                         code = run_script(step_dir, env, 'process41_spatial_correlation_maps.py', '--pc_name', pc, '--param', 'all', '--target_region', target_region, '--season', season, '--layer', layer, '--data_type', data_type)
                         if code != 0: sys.exit(code)

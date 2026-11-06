@@ -53,8 +53,13 @@ def main():
     
     subset_dir = ProjectPaths.get_subset_dir(season, layer)
     
-    corr_df_pc1 = pd.read_csv(subset_dir / f'pca_{data_type}_corr_pc1.csv', dtype={'zettaicode': str}).set_index('zettaicode')
-    corr_df_pc2 = pd.read_csv(subset_dir / f'pca_{data_type}_corr_pc2.csv', dtype={'zettaicode': str}).set_index('zettaicode')
+    pc1_path = ProjectPaths.get_corr_file(season, layer, target_region, data_type, 'PC1')
+    pc2_path = ProjectPaths.get_corr_file(season, layer, target_region, data_type, 'PC2')
+    if not pc1_path.exists() or not pc2_path.exists():
+        logging.warning(f"Correlation files not found for {target_region} {season} {layer}. Stopping chunk loop.")
+        sys.exit(42)  # main.py treats 42 as "no more chunks"
+    corr_df_pc1 = pd.read_csv(pc1_path, dtype={'zettaicode': str}).set_index('zettaicode')
+    corr_df_pc2 = pd.read_csv(pc2_path, dtype={'zettaicode': str}).set_index('zettaicode')
     
     merged_df = pd.read_feather(ProjectPaths.MERGED_DATA_FILE)
     merged_df['zettaicode'] = merged_df['zettaicode'].astype(str).str.zfill(8)

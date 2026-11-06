@@ -116,6 +116,97 @@ class ProjectPaths:
         d.mkdir(parents=True, exist_ok=True)
         return d
 
+    # ---------------------------------------------------------------------------
+    # Region-specific PCA inputs and correlation outputs (step 5)
+    # The Seto Inland Sea uses the Seto-wide PCA stored in the seasonal subset
+    # directory; every other watermass (Tokyo Bay, Ise Bay, ...) uses its own PCA
+    # produced by step 4 process11 (per-bay).
+    # ---------------------------------------------------------------------------
+    SETO_REGION = "Seto Inland Sea"
+    PER_BAY_PCA_DIR = PROCESSED_DATA_DIR / "step4_PCA_analysis" / "process11_calculate_pca_explained_variance_per_bay_raw"
+
+    @staticmethod
+    def region_slug(region: str) -> str:
+        """Folder/file slug of a region, e.g. 'Tokyo Bay' -> 'tokyo_bay'."""
+        return region.strip().replace(" ", "_").lower()
+
+    @classmethod
+    def get_corr_file(cls, season: str, layer: str, region: str, data_type: str, pc_name: str) -> Path:
+        """Station-wise correlation file of a region's PC with env/nutr parameters.
+
+        ``data/processed/seasonal/{season}_{layer}/{region_slug}/pca_{data_type}_corr_{pc}.csv``
+        """
+        return cls.get_subset_dir(season, layer) / cls.region_slug(region) / f"pca_{data_type}_corr_{pc_name.lower()}.csv"
+
+    @classmethod
+    def get_region_pc_used_file(cls, season: str, layer: str, region: str) -> Path:
+        """PC scores (PC1, PC2; unobserved years masked) that process01 correlated for a region."""
+        return cls.get_subset_dir(season, layer) / cls.region_slug(region) / "pc_scores_used.csv"
+
+    @classmethod
+    def get_region_pc_scores_path(cls, season: str, layer: str, region: str) -> Path:
+        """Path of the PC score file that belongs to a region (may not exist)."""
+        if region == cls.SETO_REGION:
+            return cls.get_subset_dir(season, layer) / "pca_scores.csv"
+        slug = cls.region_slug(region)
+        return cls.PER_BAY_PCA_DIR / slug / f"pca_scores_{slug}.csv"
+
+    @classmethod
+    def get_region_pc_scores(cls, season: str, layer: str, region: str):
+        """PC scores of a region (index = int year), or None if the file is missing."""
+        import pandas as pd
+        path = cls.get_region_pc_scores_path(season, layer, region)
+        if not path.exists():
+            return None
+        scores = pd.read_csv(path, index_col=0)
+        scores.index = scores.index.astype(int)
+        return scores
+
+    @classmethod
+    def get_region_loadings(cls, season: str, layer: str, region: str):
+        """Station loadings of a region's PCs (index = 8-digit zettaicode, columns
+        PC1_Loading / PC2_Loading), or None if the file is missing."""
+        import pandas as pd
+        if region == cls.SETO_REGION:
+            path = cls.get_subset_dir(season, layer) / "pca_loadings.csv"
+            if not path.exists():
+                return None
+            df = pd.read_csv(path, dtype={"zettaicode": str})
+            df["zettaicode"] = df["zettaicode"].str.zfill(8)
+            return df.set_index("zettaicode")[["PC1_Loading", "PC2_Loading"]]
+        slug = cls.region_slug(region)
+        path = cls.PER_BAY_PCA_DIR / slug / f"{slug}_eof_patterns.csv"
+        if not path.exists():
+            return None
+        df = pd.read_csv(path, dtype={"Station_ID": str})
+        df["zettaicode"] = df["Station_ID"].str.zfill(8)
+        return df.set_index("zettaicode").rename(columns={"EOF1": "PC1_Loading", "EOF2": "PC2_Loading"})[["PC1_Loading", "PC2_Loading"]]
+
+    @classmethod
+    def mask_unobserved_years(cls, pc_scores, station_ids, season: str, layer: str, min_stations: int = 3):
+        """Set PC rows to NaN for years in which fewer than ``min_stations`` of the
+        given stations have a DO observation.
+
+        step 4 process11 mean-fills missing DO before the PCA, so a year without any
+        observation gets a placeholder score of about 0. Those years must not be
+        correlated against environmental data.
+        """
+        import pandas as pd
+        path = cls.get_subset_dir(season, layer) / "yearly_do_df.csv"
+        if not path.exists():
+            return pc_scores
+        do = pd.read_csv(path, index_col=0)
+        do.index = do.index.astype(str).str.zfill(8)
+        stations = [s for s in station_ids if s in do.index]
+        if not stations:
+            return pc_scores
+        n_obs = do.loc[stations].notna().sum()
+        n_obs.index = n_obs.index.astype(int)
+        masked = pc_scores.copy()
+        bad_years = [y for y in masked.index if n_obs.get(y, 0) < min_stations]
+        masked.loc[bad_years, :] = float("nan")
+        return masked
+
     @classmethod
     def ensure_directories(cls):
         """Ensure that critical output directories exist."""

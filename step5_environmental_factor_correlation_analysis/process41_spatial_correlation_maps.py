@@ -144,7 +144,7 @@ def create_correlation_map(corr_df, parameter, output_path, pc_name, merged_df, 
     
     # 7. Add Title and Colorbar
     display_title = f"{pc_name} vs {param_season} {param_label} Correlation" if param_label else f"{pc_name} vs {parameter.replace('_', ' ')} Correlation"
-    plt.title(f"{display_title}\n{target_region}", pad=20, fontsize=20, fontweight='bold')
+    plt.title(f"{display_title}\n{target_region} (own {pc_name})", pad=20, fontsize=20, fontweight='bold')
     
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
     sm.set_array([])
@@ -173,7 +173,7 @@ def main():
     data_type = args.data_type
     
     subset_dir = ProjectPaths.get_subset_dir(season, layer)
-    pc_corr_path = subset_dir / f'pca_{data_type}_corr_{args.pc_name.lower()}.csv'
+    pc_corr_path = ProjectPaths.get_corr_file(season, layer, args.target_region, data_type, args.pc_name)
     
     if not pc_corr_path.exists():
         logging.error(f"Error: correlation file not found: {pc_corr_path}")

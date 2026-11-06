@@ -4,6 +4,7 @@ import numpy as np
 import gsw
 from scipy.stats import pearsonr
 import sys
+import shutil
 import logging
 from pathlib import Path
 import warnings
@@ -48,6 +49,21 @@ def load_step_parameters():
     check_file_exists(param_file)
     df_p = pd.read_csv(param_file)
     return dict(zip(df_p['parameter_name'], df_p['value']))
+
+def add_din_dip(merged_df):
+    """Add the derived nutrient columns 'din' (NH4-N + NO2-N + NO3-N) and 'dip' (PO4-P) if missing."""
+    if 'din' not in merged_df.columns:
+        merged_df['din'] = pd.to_numeric(merged_df['nh4n'], errors='coerce').fillna(0) + \
+                           pd.to_numeric(merged_df['no2n'], errors='coerce').fillna(0) + \
+                           pd.to_numeric(merged_df['no3n'], errors='coerce').fillna(0)
+        # If all three were NaN, then din should be NaN
+        all_nan = merged_df['nh4n'].isna() & merged_df['no2n'].isna() & merged_df['no3n'].isna()
+        merged_df.loc[all_nan, 'din'] = np.nan
+
+    if 'dip' not in merged_df.columns:
+        merged_df['dip'] = merged_df['po4p']
+    return merged_df
+
 
 def get_time_series_matrix(df, param, season_filter, saisuipoin=None):
     mask = df['season'] == season_filter
@@ -100,7 +116,8 @@ class MatrixBuilder:
     """
 
     def __init__(self, merged_df, station_coords):
-        self.merged_df = merged_df
+        # derived nutrient columns ('din', 'dip') are not stored in merged_gdf.feather
+        self.merged_df = add_din_dip(merged_df)
         self.station_coords = station_coords
         self._cache = {}
 
@@ -216,32 +233,55 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--season', default='Summer')
     parser.add_argument('--layer', default='bottom')
+    parser.add_argument('--target_region', required=True,
+                        help="Watermass whose own PC is correlated with its stations (e.g. 'Tokyo Bay')")
     args = parser.parse_args()
-    
+
     season = args.season
     layer = args.layer
+    target_region = args.target_region.strip()
+    region_slug = ProjectPaths.region_slug(target_region)
     subset_dir = ProjectPaths.get_subset_dir(season, layer)
-    pca_scores_path = subset_dir / 'pca_scores.csv'
-    
+
+    # Each region is correlated with its own PC: the Seto-wide PCA for the Seto Inland Sea,
+    # the per-bay PCA of step 4 process11 for the other watermasses.
+    pca_scores_path = ProjectPaths.get_region_pc_scores_path(season, layer, target_region)
     if not pca_scores_path.exists():
-        logging.error(f"PCA scores not found at {pca_scores_path}")
+        logging.warning(f"PCA scores for {target_region} not found at {pca_scores_path}. Skipping.")
         return
-    
+
     # Parameter permutations: every parameter x correlation season x depth layer
     step_params = load_step_parameters()
+    pc_min_do_stations = int(step_params.get('pc_min_do_stations', 3))
     corr_seasons = [s.strip() for s in str(step_params.get('correlation_seasons', 'Spring, Summer, Autumn, Winter')).split(',')]
     corr_params_file = CURRENT_SCRIPT.parent / str(step_params.get('correlation_params_file', 'step5_correlation_parameters.csv'))
     check_file_exists(corr_params_file)
     corr_params_df = pd.read_csv(corr_params_file)
         
-    logging.info(f"Running data integrity check and correlation for {season} {layer}")
-    
+    logging.info(f"Running data integrity check and correlation for {target_region} {season} {layer}")
+
     merged_df = load_and_process_data(force_reload=False)
     merged_df['zettaicode'] = merged_df['zettaicode'].astype(str).str.zfill(8)
-    
-    pca_scores = pd.read_csv(pca_scores_path, index_col=0)
-    pca_scores.index = pca_scores.index.astype(int)
-    
+    # Only the stations of the target region are correlated with that region's PC
+    merged_df = merged_df[merged_df['watermass_name'] == target_region].copy()
+    if merged_df.empty:
+        logging.warning(f"No stations found for region {target_region}. Skipping.")
+        return
+
+    pca_scores = ProjectPaths.get_region_pc_scores(season, layer, target_region)
+    # step 4 process11 mean-fills years without DO, giving placeholder scores of ~0: mask them
+    pca_scores = ProjectPaths.mask_unobserved_years(pca_scores, merged_df['zettaicode'].unique(),
+                                                    season, layer, pc_min_do_stations)
+    masked_years = [int(y) for y in pca_scores.index[pca_scores['PC1'].isna()]]
+    if masked_years:
+        logging.info(f"{target_region}: masked years without DO observations from the PC series: {masked_years}")
+
+    # Start the region's output folder from scratch (inner script wipes only its own region folder)
+    region_out_dir = subset_dir / region_slug
+    if region_out_dir.exists():
+        shutil.rmtree(region_out_dir)
+    region_out_dir.mkdir(parents=True, exist_ok=True)
+
     stations = merged_df[['zettaicode', 'latitude', 'longitude']].drop_duplicates('zettaicode').set_index('zettaicode')
     
     # Generate integrity report
@@ -249,16 +289,7 @@ def main():
     v1_columns = ['wtemp', 'salt', 'chlorophyl', 'temp', 'fusoku', 'doc', 'cod', 'tn', 'tp', 'din', 'dip', 'nh4n', 'no2n', 'no3n', 'po4p']
     
     # Compute din/dip if missing (using V1 columns)
-    if 'din' not in merged_df.columns:
-        merged_df['din'] = pd.to_numeric(merged_df['nh4n'], errors='coerce').fillna(0) + \
-                           pd.to_numeric(merged_df['no2n'], errors='coerce').fillna(0) + \
-                           pd.to_numeric(merged_df['no3n'], errors='coerce').fillna(0)
-        # If all three were NaN, then din should be NaN
-        all_nan = merged_df['nh4n'].isna() & merged_df['no2n'].isna() & merged_df['no3n'].isna()
-        merged_df.loc[all_nan, 'din'] = np.nan
-        
-    if 'dip' not in merged_df.columns:
-        merged_df['dip'] = merged_df['po4p']
+    merged_df = add_din_dip(merged_df)
 
     for param in v1_columns:
         if param not in merged_df.columns:
@@ -278,8 +309,9 @@ def main():
         })
         
     integrity_df = pd.DataFrame(integrity_records)
-    integrity_df.to_csv(PROCESSED_DATA_DIR / f'data_integrity_report_{season}_{layer}.csv', index=False)
-    logging.info(f"Saved integrity report to {PROCESSED_DATA_DIR / f'data_integrity_report_{season}_{layer}.csv'}")
+    integrity_path = PROCESSED_DATA_DIR / f'data_integrity_report_{region_slug}_{season}_{layer}.csv'
+    integrity_df.to_csv(integrity_path, index=False)
+    logging.info(f"Saved integrity report to {integrity_path}")
 
     station_coords = stations[['latitude', 'longitude']]
     builder = MatrixBuilder(merged_df, station_coords)
@@ -302,8 +334,8 @@ def main():
     corr_env_pc1 = calculate_station_correlations(pca_scores['PC1'], env_matrices, env_names, min_years=min_periods)
     corr_env_pc2 = calculate_station_correlations(pca_scores['PC2'], env_matrices, env_names, min_years=min_periods)
     
-    corr_env_pc1.to_csv(subset_dir / 'pca_env_corr_pc1.csv')
-    corr_env_pc2.to_csv(subset_dir / 'pca_env_corr_pc2.csv')
+    corr_env_pc1.to_csv(ProjectPaths.get_corr_file(season, layer, target_region, 'env', 'PC1'))
+    corr_env_pc2.to_csv(ProjectPaths.get_corr_file(season, layer, target_region, 'env', 'PC2'))
     
     logging.info(f"Building Nutrient time series matrices for seasons {corr_seasons} and both layers...")
     nutr_matrices, nutr_names = build_permutation_matrices(builder, corr_params_df, 'nutr', corr_seasons)
@@ -313,8 +345,11 @@ def main():
     corr_nutr_pc1 = calculate_station_correlations(pca_scores['PC1'], nutr_matrices, nutr_names, min_years=min_periods)
     corr_nutr_pc2 = calculate_station_correlations(pca_scores['PC2'], nutr_matrices, nutr_names, min_years=min_periods)
     
-    corr_nutr_pc1.to_csv(subset_dir / 'pca_nutr_corr_pc1.csv')
-    corr_nutr_pc2.to_csv(subset_dir / 'pca_nutr_corr_pc2.csv')
+    corr_nutr_pc1.to_csv(ProjectPaths.get_corr_file(season, layer, target_region, 'nutr', 'PC1'))
+    corr_nutr_pc2.to_csv(ProjectPaths.get_corr_file(season, layer, target_region, 'nutr', 'PC2'))
+    
+    # Keep the exact (masked) PC series that was correlated so downstream plots use the same one
+    pca_scores[['PC1', 'PC2']].to_csv(ProjectPaths.get_region_pc_used_file(season, layer, target_region))
     
     logging.info("Data integrity check and correlation finished successfully.")
 
